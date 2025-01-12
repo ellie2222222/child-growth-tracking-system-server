@@ -5,8 +5,8 @@ import getLoggers from "../utils/logger";
 dotenv.config();
 
 const logger = getLoggers("MONGOOSE");
-const URI: string = process.env.DATABASE_URI || "mongodb+srv://tamlqhse182931:1q4QH9OtGaVzlAqk@app.3ujlt.mongodb.net/";
-const DBName: string = process.env.DATABASE_NAME || "App";
+const URI: string = process.env.DATABASE_URI!;
+const DBName: string = process.env.DATABASE_NAME!;
 
 class Database {
   private static instance: Database | null = null;
