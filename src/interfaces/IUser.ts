@@ -5,7 +5,6 @@ export interface IUser extends Document {
   role: number;
   avatar: string;
   googleId: string;
-  appleUser: boolean;
   ipAddress: string;
   email: string;
   phoneNumber: string;
@@ -13,7 +12,7 @@ export interface IUser extends Document {
   lastLogin: Date;
   isActive: boolean;
   isVerified: boolean;
-  verifyToken: string;
+  verificationToken: string;
   resetPasswordPin: {
     value: string | null;
     expiresAt: Date | null;

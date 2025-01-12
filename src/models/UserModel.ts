@@ -23,10 +23,6 @@ const userModelSchema = new Schema<IUser>(
       unique: true, 
       index: true, 
     },
-    appleUser: {
-      type: Boolean,
-      default: false,
-    },
     ipAddress: {
       type: String,
       default: "",
@@ -61,7 +57,7 @@ const userModelSchema = new Schema<IUser>(
       required: true,
       default: false,
     },
-    verifyToken: {
+    verificationToken: {
       type: String,
       default: "",
     },

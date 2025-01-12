@@ -484,7 +484,7 @@ class AuthService {
       const saltRounds = 10;
       const salt = await bcrypt.genSalt(saltRounds);
       const hashedToken = await bcrypt.hash(token, salt);
-      await this.userRepository.updateUserById(user._id as string, { verifyToken: hashedToken }, session);
+      await this.userRepository.updateUserById(user._id as string, { verificationToken: hashedToken }, session);
 
       await sendMail(mailOptions);
       
@@ -515,14 +515,14 @@ class AuthService {
         throw new CustomException(StatusCodeEnum.BadRequest_400, "Email already verified");
       }
       
-      const isTokenValid = await bcrypt.compare(token, user.verifyToken);
+      const isTokenValid = await bcrypt.compare(token, user.verificationToken);
       if (!isTokenValid) {
         throw new CustomException(StatusCodeEnum.Unauthorized_401, "Invalid email verification token");
       }
 
       const updateData: Partial<IUser> = {
         isVerified: true,
-        verifyToken: '',
+        verificationToken: '',
       }
       await this.userRepository.updateUserById(user._id as string, updateData, session);
 
