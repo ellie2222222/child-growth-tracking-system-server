@@ -22,7 +22,7 @@ export interface ISession extends Document {
   region: string;
   timezone: string;
   city: string;
-  ll: Array<Number>;
+  ll: Array<number>;
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

@@ -58,8 +58,8 @@ const userModelSchema = new Schema<IUser>(
       default: false,
     },
     verificationToken: {
-      type: String,
-      default: "",
+      value: { type: String },
+      expiresAt: { type: Date },
     },
     resetPasswordPin: {
       value: { type: String },

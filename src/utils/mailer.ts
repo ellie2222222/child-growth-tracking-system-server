@@ -28,6 +28,14 @@ const sendMail = async (mailOptions: Mail.Options): Promise<void> => {
     const info = await transporter
       .sendMail(options);
     logger.info(`Email sent: ${info.response}`);
+
+    transporter.verify(function (error, success) {
+      if (error) {
+        logger.error(error);
+      } else {
+        logger.info("Server is ready to take our messages");
+      }
+    });
   } catch (error) {
     logger.error(`Error sending email: ${error}`);
   }

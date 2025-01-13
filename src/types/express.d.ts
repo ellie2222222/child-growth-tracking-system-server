@@ -7,7 +7,7 @@ declare global {
       user: {
         userId: string,
         email: string,
-        role: Number,
+        role: number,
         ipAddress: string,
         userAgent: string,
         browser: {

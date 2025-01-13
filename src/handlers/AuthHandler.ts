@@ -6,7 +6,7 @@ class AuthHandler {
   /**
    * Validates input for login requests.
    */
-  loginHandler = (req: Request, res: Response, next: NextFunction): void => {
+  login = (req: Request, res: Response, next: NextFunction): void => {
     const { email, password } = req.body;
 
     const validationErrors: { field: string; error: string }[] = [];
@@ -51,7 +51,7 @@ class AuthHandler {
   /**
    * Validates input for signup requests.
    */
-  signupHandler = (req: Request, res: Response, next: NextFunction): void => {
+  signup = (req: Request, res: Response, next: NextFunction): void => {
     const { name, email, password } = req.body;
 
     const validationErrors: { field: string; error: string }[] = [];
@@ -104,7 +104,7 @@ class AuthHandler {
   /**
    * Validates input for reset password requests.
    */
-  resetPasswordHandler = (
+  resetPassword = (
     req: Request,
     res: Response,
     next: NextFunction
@@ -145,7 +145,7 @@ class AuthHandler {
   /**
    * Validates input for change password requests.
    */
-  changePasswordHandler = (
+  changePassword = (
     req: Request,
     res: Response,
     next: NextFunction
@@ -194,7 +194,7 @@ class AuthHandler {
   /**
    * Validates input for verify email requests.
    */
-  verifyEmailHandler = (
+  verifyEmail = (
     req: Request,
     res: Response,
     next: NextFunction

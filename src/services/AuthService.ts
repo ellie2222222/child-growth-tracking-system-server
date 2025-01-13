@@ -484,7 +484,13 @@ class AuthService {
       const saltRounds = 10;
       const salt = await bcrypt.genSalt(saltRounds);
       const hashedToken = await bcrypt.hash(token, salt);
-      await this.userRepository.updateUserById(user._id as string, { verificationToken: hashedToken }, session);
+      const updateData: Partial<IUser> = {
+        verificationToken: {
+          value: hashedToken,
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+        },
+      };
+      await this.userRepository.updateUserById(user._id as string, updateData, session);
 
       await sendMail(mailOptions);
       
@@ -514,15 +520,30 @@ class AuthService {
       if (user.isVerified) {
         throw new CustomException(StatusCodeEnum.BadRequest_400, "Email already verified");
       }
+
+      if (!user.verificationToken || !user.verificationToken.value) {
+        throw new CustomException(StatusCodeEnum.BadRequest_400, "Invalid email verification token");
+      }
       
-      const isTokenValid = await bcrypt.compare(token, user.verificationToken);
+      const isTokenValid = await bcrypt.compare(token, user.verificationToken.value);
       if (!isTokenValid) {
         throw new CustomException(StatusCodeEnum.Unauthorized_401, "Invalid email verification token");
       }
 
+      if (!user.verificationToken.expiresAt || user.verificationToken.expiresAt < new Date()) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Email verification token expired"
+        );
+      }
+
+      // Clear verification token after verification
       const updateData: Partial<IUser> = {
         isVerified: true,
-        verificationToken: '',
+        verificationToken: {
+          value: null,
+          expiresAt: null,
+        },
       }
       await this.userRepository.updateUserById(user._id as string, updateData, session);
 
