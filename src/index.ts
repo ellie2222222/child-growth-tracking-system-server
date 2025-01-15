@@ -9,10 +9,11 @@ import getLogger from "./utils/logger";
 import limiter from "./middlewares/rateLimiter";
 import socket from "./socket/socket";
 import authRoutes from "./routes/AuthRoute";
+import paymentRoutes from "./routes/PaymentRoute";
 import ErrorLogMiddleware from "./middlewares/ErrorLogMiddleware";
 import AuthMiddleware from "./middlewares/AuthMiddleware";
 import SessionMiddleware from "./middlewares/SessionMiddleware";
-import CSRFMiddleware from "./middlewares/CSRFMiddleware";
+// import CSRFMiddleware from "./middlewares/CSRFMiddleware";
 import securityHeaders from "./middlewares/SecurityHeaders";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
@@ -63,7 +64,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   res.on("finish", () => {
     const duration = new Date().getTime() - startTime.getTime();
-    const logMessage = `${req.ip} ${req.method} ${req.originalUrl} ${req.protocol.toUpperCase()}/${req.httpVersion} ${res.statusCode} ${
+    const logMessage = `${req.ip} ${req.method} ${
+      req.originalUrl
+    } ${req.protocol.toUpperCase()}/${req.httpVersion} ${res.statusCode} ${
       res.get("Content-Length") || 0
     } ${req.get("User-Agent")} ${duration}ms`;
     logger.info(logMessage);
@@ -76,6 +79,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use(SessionMiddleware);
 app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
+app.use("/api/payment", paymentRoutes);
 
 app.use(ErrorLogMiddleware);
 
