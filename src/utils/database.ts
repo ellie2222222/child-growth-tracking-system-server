@@ -15,7 +15,9 @@ class Database {
   constructor() {
     this.session = null;
     this.connect().catch((error) => {
-      logger.error(`Database connection error during constructor: ${error.message}`);
+      logger.error(
+        `Database connection error during constructor: ${error.message}`
+      );
     });
   }
 
@@ -23,9 +25,8 @@ class Database {
     if (!Database.instance) {
       Database.instance = new Database();
     }
-    return Database.instance; 
+    return Database.instance;
   }
-
 
   // Connect to MongoDB
   private async connect(): Promise<void> {
@@ -88,6 +89,16 @@ class Database {
       logger.info("Session ended.");
     }
   }
+  public ensureObjectId(
+    id: string | mongoose.Types.ObjectId
+  ): mongoose.Types.ObjectId {
+    if (typeof id === "string") {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error(`Invalid ObjectId string: ${id}`);
+      }
+      return new mongoose.Types.ObjectId(id);
+    }
+    return id;
+  }
 }
-
 export default Database;

@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface IBaseEntity extends Document {
+export interface IBaseEntity extends Document {
   isDeleted: boolean;
 }
 
