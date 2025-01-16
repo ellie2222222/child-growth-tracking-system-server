@@ -29,7 +29,7 @@ class SessionRepository {
    * @returns Boolean indicating success or failure.
    * @throws Error when the deletion fails.
    */
-  async deleteSession(
+  async deleteSessionById(
     sessionId: string,
     session?: mongoose.ClientSession
   ): Promise<boolean> {

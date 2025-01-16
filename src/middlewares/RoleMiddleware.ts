@@ -19,6 +19,10 @@ const RoleMiddleware = (roles: Array<number>) => {
         res.status(StatusCodeEnum.NotFound_404).json({ message: "User not found" });
       }
 
+      if (!user?.isVerified) {
+        res.status(StatusCodeEnum.Forbidden_403).json({ message: "User is not verified" });
+      }
+
       if (roles.includes(user?.role!)) {
         res.status(StatusCodeEnum.Forbidden_403).json({ message: "Unauthorized access" });
       }
