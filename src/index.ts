@@ -10,6 +10,7 @@ import limiter from "./middlewares/rateLimiter";
 import socket from "./socket/socket";
 import authRoutes from "./routes/AuthRoute";
 import paymentRoutes from "./routes/PaymentRoute";
+import receiptRoutes from "./routes/ReceiptRoute";
 import ErrorLogMiddleware from "./middlewares/ErrorLogMiddleware";
 import AuthMiddleware from "./middlewares/AuthMiddleware";
 import SessionMiddleware from "./middlewares/SessionMiddleware";
@@ -80,7 +81,7 @@ app.use(SessionMiddleware);
 app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/payment", paymentRoutes);
-
+app.use("/api/receipt", receiptRoutes);
 app.use(ErrorLogMiddleware);
 
 // Start server

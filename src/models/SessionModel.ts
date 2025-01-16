@@ -5,9 +5,9 @@ const now = new Date();
 
 const sessionSchema = new Schema<ISession>(
   {
-    userId: { 
-      type: Schema.Types.ObjectId, 
-      required: true, 
+    userId: {
+      type: Schema.Types.ObjectId,
+      required: true,
       index: true,
       ref: "User",
     },
@@ -30,11 +30,16 @@ const sessionSchema = new Schema<ISession>(
     region: { type: String, default: null },
     city: { type: String, default: null },
     timezone: { type: String, default: null },
-    ll: [{
-      type: Number,
-      default: []
-    }],
-    expiresAt: { type: Date, default: new Date(now.setDate(now.getDate() + 30)) },
+    ll: [
+      {
+        type: Number,
+        default: [],
+      },
+    ],
+    expiresAt: {
+      type: Date,
+      default: new Date(now.setDate(now.getDate() + 30)),
+    },
     ...baseModelSchema.obj,
   },
   { timestamps: true }
