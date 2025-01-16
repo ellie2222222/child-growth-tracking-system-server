@@ -41,11 +41,11 @@ class SessionService {
    * @param sessionId - The ID of the session to delete.
    * @returns True if the session was deleted, false otherwise.
    */
-  async deleteSession(sessionId: string): Promise<boolean> {
+  async deleteSessionById(sessionId: string): Promise<boolean> {
     const session = await this.database.startTransaction();
 
     try {
-      const isDeleted = await this.sessionRepository.deleteSession(
+      const isDeleted = await this.sessionRepository.deleteSessionById(
         sessionId,
         session
       );
@@ -63,7 +63,7 @@ class SessionService {
    * @param userId - The user ID whose sessions should be deleted.
    * @returns The count of sessions deleted.
    */
-  async deleteAllSessionsForUser(userId: string): Promise<number> {
+  async deleteSessionsByUserId(userId: string): Promise<number> {
     const session = await this.database.startTransaction();
 
     try {

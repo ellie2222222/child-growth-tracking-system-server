@@ -5,24 +5,8 @@ import { match } from "path-to-regexp";
 import publicRoutes from "../routes/PublicRoute";
 import getLogger from "../utils/logger";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import IJwtPayload from "../interfaces/IJwtPayload";
 const logger = getLogger("AUTHENTICATION");
-
-interface JwtPayload {
-  userId: string;
-  email: string;
-}
-
-const isPublicRoute = (path: string, method: string): boolean => {
-  const pathname = path.split("?")[0];
-
-  const matchedRoute = publicRoutes.find((route) => {
-    const matchFn = match(route.path, { decode: decodeURIComponent });
-    const matched = matchFn(pathname);
-    return matched && route.method === method;
-  });
-
-  return !!matchedRoute;
-};
 
 const AuthMiddleware = async (
   req: Request,
@@ -30,16 +14,16 @@ const AuthMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   // Handle public route
-  const isPublic = isPublicRoute(req.originalUrl, req.method);
+  const isProtectedRoute = req.isProtectedRoute;
   const { authorization } = req.headers;
 
-  if (isPublic) {
+  if (!isProtectedRoute) {
     try {
       const token = authorization?.split(" ")[1] || "";
       const { userId } = jwt.verify(
         token,
         process.env.ACCESS_TOKEN_SECRET!
-      ) as JwtPayload;
+      ) as IJwtPayload;
 
       if (mongoose.Types.ObjectId.isValid(userId)) {
         req.user = {
@@ -76,7 +60,7 @@ const AuthMiddleware = async (
       const { userId, email } = jwt.verify(
         token,
         process.env.ACCESS_TOKEN_SECRET!
-      ) as JwtPayload;
+      ) as IJwtPayload;
 
       if (!mongoose.Types.ObjectId.isValid(userId)) {
         res

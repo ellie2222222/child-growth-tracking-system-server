@@ -391,6 +391,8 @@ class AuthService {
       };
       await this.userRepository.updateUserById(userId, updatePinData, session);
 
+      await this.sessionService.deleteSessionsByUserId(userId);
+
       await this.database.commitTransaction();
     } catch (error) {
       await this.database.abortTransaction();
@@ -440,6 +442,8 @@ class AuthService {
       };
 
       await this.userRepository.updateUserById(userId, updateData, session);
+      
+      await this.sessionService.deleteSessionsByUserId(userId);
 
       await this.database.commitTransaction();
     } catch (error) {

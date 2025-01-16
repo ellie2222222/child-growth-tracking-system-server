@@ -26,6 +26,12 @@ const RoleMiddleware = (roles: Array<number>) => {
         return;
       }
 
+      if (!user?.isVerified) {
+        res
+          .status(StatusCodeEnum.Forbidden_403)
+          .json({ message: "User is not verified" });
+      }
+
       if (!roles.includes(user?.role!)) {
         //adjust logic
         res

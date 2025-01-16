@@ -4,13 +4,16 @@ import CustomException from "../exceptions/CustomException";
 import { IUser } from "../interfaces/IUser";
 import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
+import SessionService from "./SessionService";
 
 class UserService {
   private userRepository: UserRepository;
+  private sessionService: SessionService;
   private database: Database;
 
   constructor() {
     this.userRepository = new UserRepository();
+    this.sessionService = new SessionService();
     this.database = Database.getInstance();
   }
 
@@ -74,11 +77,11 @@ class UserService {
       // Update the user's role
       const updateData: Partial<IUser> = { role };
       await this.userRepository.updateUserById(userId, updateData, session);
+      
+      await this.sessionService.deleteSessionsByUserId(userId);
 
-      // Commit the transaction
       await this.database.commitTransaction();
     } catch (error: any) {
-      // Rollback the transaction in case of any error
       await this.database.abortTransaction();
       throw error;
     }

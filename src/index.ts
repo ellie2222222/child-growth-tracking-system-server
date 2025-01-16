@@ -16,6 +16,7 @@ import AuthMiddleware from "./middlewares/AuthMiddleware";
 import SessionMiddleware from "./middlewares/SessionMiddleware";
 // import CSRFMiddleware from "./middlewares/CSRFMiddleware";
 import securityHeaders from "./middlewares/SecurityHeaders";
+import helmet from "helmet";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -49,6 +50,9 @@ app.use(limiter(15, 100000));
 
 // Apply security headers middleware globally
 app.use(securityHeaders);
+
+// Helmet
+app.use(helmet());
 
 // CSRF middleware to ensure CSRF protection
 // app.use(CSRFMiddleware);
