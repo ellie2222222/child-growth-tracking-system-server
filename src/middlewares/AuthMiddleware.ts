@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-// import { match } from "path-to-regexp";
-// import publicRoutes from "../routes/PublicRoute";
 import getLogger from "../utils/logger";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import IJwtPayload from "../interfaces/IJwtPayload";
@@ -20,6 +18,7 @@ const AuthMiddleware = async (
 
   if (!isProtectedRoute) {
     try {
+      logger.info("Handling public route");
       const token = authorization?.split(" ")[1] || "";
       const { userId } = jwt.verify(
         token,
@@ -27,8 +26,8 @@ const AuthMiddleware = async (
       ) as IJwtPayload;
 
       if (mongoose.Types.ObjectId.isValid(userId)) {
-        req.user = {
-          ...req.user,
+        req.userInfo = {
+          ...req.userInfo,
           userId,
         };
         logger.info(`Valid token for User ID: ${userId}`);
@@ -78,8 +77,8 @@ const AuthMiddleware = async (
       }
 
       // Attach information to req for further process
-      req.user = {
-        ...req.user,
+      req.userInfo = {
+        ...req.userInfo,
         userId,
         email,
       };

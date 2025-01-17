@@ -12,7 +12,7 @@ class UserController {
    */
   updateRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const requesterRole = req.user.role;
+      const requesterRole = req.userInfo.role;
       const { userId } = req.params;
       const { role } = req.body;
 

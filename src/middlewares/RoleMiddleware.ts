@@ -15,7 +15,7 @@ const RoleMiddleware = (roles: Array<number>) => {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { userId } = req.user;
+      const { userId } = req.userInfo;
       const userRepository = new UserRepository();
 
       const user: IUser | null = await userRepository.getUserById(userId);
@@ -30,10 +30,10 @@ const RoleMiddleware = (roles: Array<number>) => {
         res
           .status(StatusCodeEnum.Forbidden_403)
           .json({ message: "User is not verified" });
+        return;
       }
 
       if (!roles.includes(user?.role!)) {
-        //adjust logic
         res
           .status(StatusCodeEnum.Forbidden_403)
           .json({ message: "Unauthorized access" });
@@ -46,7 +46,6 @@ const RoleMiddleware = (roles: Array<number>) => {
         .status(StatusCodeEnum.InternalServerError_500)
         .json({ message: "Internal Server Error" });
       return;
-      //stop going forward and send other response => crash
     }
   };
 };

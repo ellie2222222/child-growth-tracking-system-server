@@ -21,7 +21,7 @@ class AuthController {
   ): Promise<void> => {
     try {
       const { email, password } = req.body;
-      const sessionData: Partial<ISession> = req.user;
+      const sessionData: Partial<ISession> = req.userInfo;
 
       const { accessToken, refreshToken, sessionId } =
         await this.authService.login(email, password, sessionData);
@@ -50,6 +50,20 @@ class AuthController {
           accessToken,
         },
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Handle Google login 
+   */
+  loginGoogle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const googleUser = req.user;
+      console.log(googleUser)
+
+      // const user = await loginGoogle(googleUser);
     } catch (error) {
       next(error);
     }
@@ -111,7 +125,7 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { userId } = req.user;
+      const { userId } = req.userInfo;
 
       await this.authService.sendResetPasswordPin(userId);
 
@@ -133,7 +147,7 @@ class AuthController {
   ): Promise<void> => {
     try {
       const { pin } = req.body;
-      const { userId } = req.user;
+      const { userId } = req.userInfo;
 
       await this.authService.confirmResetPasswordPin(userId, pin);
 
@@ -155,7 +169,7 @@ class AuthController {
   ): Promise<void> => {
     try {
       const { newPassword } = req.body;
-      const { userId } = req.user;
+      const { userId } = req.userInfo;
 
       await this.authService.resetPassword(userId, newPassword);
 
@@ -177,7 +191,7 @@ class AuthController {
   ): Promise<void> => {
     try {
       const { oldPassword, newPassword } = req.body;
-      const { userId } = req.user;
+      const { userId } = req.userInfo;
 
       await this.authService.changePassword(userId, oldPassword, newPassword);
 
