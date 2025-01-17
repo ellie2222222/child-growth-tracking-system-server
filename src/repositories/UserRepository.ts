@@ -1,7 +1,9 @@
-import mongoose, { Document } from "mongoose";
+import mongoose from "mongoose";
 import UserModel from "../models/UserModel";
 import { IUser } from "../interfaces/IUser";
 import { IQuery } from "../interfaces/IQuery";
+import StatusCodeEnum from "../enums/StatusCodeEnum";
+import CustomException from "../exceptions/CustomException";
 
 class UserRepository {
   /**
@@ -12,14 +14,23 @@ class UserRepository {
    * @throws Error when the creation fails.
    */
   async createUser(
-    data: Object,
+    data: object,
     session?: mongoose.ClientSession
   ): Promise<IUser> {
     try {
       const user = await UserModel.create([{ ...data }], { session });
       return user[0];
-    } catch (error: any) {
-      throw new Error(`Error when creating user: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to  creating user: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -36,8 +47,17 @@ class UserRepository {
         isDeleted: false,
       });
       return user;
-    } catch (error: any) {
-      throw new Error(`Error when finding user by id: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to finding user by id: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -51,8 +71,17 @@ class UserRepository {
     try {
       const user = await UserModel.findOne({ email: { $eq: email } });
       return user;
-    } catch (error: any) {
-      throw new Error(`Error when finding user by email: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to finding user by email: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -66,9 +95,16 @@ class UserRepository {
     try {
       const user = await UserModel.findOne({ phoneNumber });
       return user;
-    } catch (error: any) {
-      throw new Error(
-        `Error when finding user by phone number: ${error.message}`
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to finding user by phone number: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
       );
     }
   }
@@ -83,8 +119,17 @@ class UserRepository {
     try {
       await UserModel.findByIdAndUpdate(userId, { isDeleted: true });
       return true;
-    } catch (error: any) {
-      throw new Error(`Error when deleting a user by id: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to deleting a user by id: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -109,8 +154,17 @@ class UserRepository {
       const user = await UserModel.findByIdAndUpdate(userId, data, { session });
 
       return user;
-    } catch (error: any) {
-      throw new Error(`Error when updating user by id: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to updating user by id: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -127,8 +181,17 @@ class UserRepository {
         isDeleted: false,
       });
       return user;
-    } catch (error: any) {
-      throw new Error(`Error when getting a user by id: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed togetting a user by id: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -138,10 +201,15 @@ class UserRepository {
    * @returns An object containing users, pagination metadata, and total counts.
    * @throws Error when the query fails.
    */
+
   async getAllUsersRepository(query: IQuery) {
+    type SearchQuery = {
+      isDeleted: boolean;
+      name?: { $regex: string; $options: string }; // Optional name property with regex
+    };
     try {
-      let { page, size, search, order, sortBy } = query;
-      const searchQuery: { [key: string]: any } = {
+      const { page, size, search, order, sortBy } = query;
+      const searchQuery: SearchQuery = {
         isDeleted: false,
       };
 
@@ -186,8 +254,17 @@ class UserRepository {
         total: totalUsers,
         totalPages: Math.ceil(totalUsers / size),
       };
-    } catch (error: any) {
-      throw new Error(`Error when getting all users: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to getting all users: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 }

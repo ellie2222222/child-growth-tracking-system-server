@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import SessionModel from "../models/SessionModel";
 import { ISession } from "../interfaces/ISession";
+import CustomException from "../exceptions/CustomException";
+import StatusCodeEnum from "../enums/StatusCodeEnum";
 
 class SessionRepository {
   /**
@@ -17,8 +19,17 @@ class SessionRepository {
     try {
       const result = await SessionModel.create([sessionData], { session });
       return result[0];
-    } catch (error: any) {
-      throw new Error(`Failed to create session: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to create session: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -40,8 +51,17 @@ class SessionRepository {
       );
 
       return !!result; // Returns true if the session was deleted, false otherwise.
-    } catch (error: any) {
-      throw new Error(`Failed to delete session: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to delete session: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -58,10 +78,19 @@ class SessionRepository {
   ): Promise<number> {
     try {
       const result = await SessionModel.deleteMany({ userId }, { session });
-      
+
       return result.deletedCount || 0;
-    } catch (error: any) {
-      throw new Error(`Failed to delete sessions: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to delete session: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -74,8 +103,17 @@ class SessionRepository {
   async findSessionById(sessionId: string): Promise<ISession | null> {
     try {
       return await SessionModel.findOne({ sessionId });
-    } catch (error: any) {
-      throw new Error(`Failed to find session: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to find session: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -88,8 +126,17 @@ class SessionRepository {
   async findSessionsByUserId(userId: string): Promise<ISession[]> {
     try {
       return await SessionModel.find({ userId });
-    } catch (error: any) {
-      throw new Error(`Failed to find sessions for user: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to  find sessions for user: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -112,8 +159,17 @@ class SessionRepository {
       );
 
       return !!result;
-    } catch (error: any) {
-      throw new Error(`Failed to find sessions for user: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to update sessions for user:: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 }

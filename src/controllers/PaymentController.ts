@@ -29,6 +29,7 @@ class PaymentController {
       const request = new paypal.orders.OrdersCreateRequest();
       request.requestBody({
         intent: "CAPTURE",
+
         purchase_units: [
           {
             invoice_id: uniqueInvoiceId,
@@ -39,6 +40,7 @@ class PaymentController {
             custom_id: userId,
           },
         ],
+
         application_context: {
           brand_name: "Your Company Name",
           landing_page: "LOGIN",
@@ -75,20 +77,24 @@ class PaymentController {
   ): Promise<void> => {
     const { token } = req.query;
     // console.log("Token: ", token);
+
     if (!token) {
       res
         .status(StatusCodeEnums.BadRequest_400)
         .json({ message: "Missing payment token." });
       return;
     }
+
     try {
       const request = new paypal.orders.OrdersCaptureRequest(token as string);
       const response = await client.execute(request);
       const { status, purchase_units } = response.result;
+
       if (status === "COMPLETED") {
         const capturedPaymentDetails =
           purchase_units?.[0].payments?.captures?.[0];
         const transactionId = capturedPaymentDetails?.id;
+
         const data = {
           userId: capturedPaymentDetails?.custom_id,
           totalAmount: {
@@ -99,6 +105,7 @@ class PaymentController {
           paymentGateway: "PAYPAL",
           type: "PAYMENT",
         };
+
         // const receipt =
         await this.receiptService.createReceipt(
           data.userId,
@@ -119,6 +126,7 @@ class PaymentController {
           transactionId,
           details: response.result,
         });
+
         return;
       } else {
         res

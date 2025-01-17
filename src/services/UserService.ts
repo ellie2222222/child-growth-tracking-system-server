@@ -51,7 +51,10 @@ class UserService {
 
       // Check if the user is attempting to change to the same role
       if (user.role === role) {
-        throw new CustomException(StatusCodeEnum.BadRequest_400, "Role is already the same");
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Role is already the same"
+        );
       }
 
       // Check if a super admin is trying to change their own role or another super admin's role
@@ -77,13 +80,19 @@ class UserService {
       // Update the user's role
       const updateData: Partial<IUser> = { role };
       await this.userRepository.updateUserById(userId, updateData, session);
-      
+
       await this.sessionService.deleteSessionsByUserId(userId);
 
       await this.database.commitTransaction();
-    } catch (error: any) {
+    } catch (error) {
       await this.database.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 }

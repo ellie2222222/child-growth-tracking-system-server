@@ -3,6 +3,7 @@ import getLogger from "../utils/logger";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { UAParser } from "ua-parser-js";
 import geoIp from "geoip-lite";
+import CustomException from "../exceptions/CustomException";
 
 const logger = getLogger("SESSION");
 
@@ -57,9 +58,15 @@ const SessionMiddleware = async (
       city: cityData,
       ll: llData,
     };
-  } catch (error: any) {
-    logger.error(`Error extracting user request info: ${error.message}`);
-    res.status(StatusCodeEnum.InternalServerError_500).json({ message: "Internal Server Error" });
+  } catch (error) {
+    logger.error(
+      `Error extracting user request info: ${
+        (error as Error | CustomException).message
+      }`
+    );
+    res
+      .status(StatusCodeEnum.InternalServerError_500)
+      .json({ message: "Internal Server Error" });
   } finally {
     next();
   }

@@ -1,6 +1,7 @@
 import mongoose, { ClientSession } from "mongoose";
 import dotenv from "dotenv";
 import getLoggers from "../utils/logger";
+import CustomException from "../exceptions/CustomException";
 
 dotenv.config();
 
@@ -33,9 +34,15 @@ class Database {
     try {
       await mongoose.connect(URI, { dbName: DBName });
       logger.info(`Successfully connected to the database ${DBName}`);
-    } catch (error: any) {
-      logger.error(`Database connection error: ${error.message}`);
-      throw error;
+    } catch (error) {
+      logger.error(
+        `Database connection error: ${
+          (error as Error | CustomException).message
+        }`
+      );
+      if (error as Error | CustomException) {
+        throw error;
+      }
     }
   }
 
@@ -45,9 +52,12 @@ class Database {
       this.session = await mongoose.startSession();
       this.session.startTransaction();
       return this.session;
-    } catch (error: any) {
-      logger.error("Error starting transaction:", error.message);
-      throw new Error(error.message);
+    } catch (error) {
+      logger.error(
+        "Error starting transaction:",
+        (error as Error | CustomException).message
+      );
+      throw new Error((error as Error | CustomException).message);
     }
   }
 
@@ -58,9 +68,12 @@ class Database {
         await this.session.commitTransaction();
         logger.info("Commit change to database successfully!");
       }
-    } catch (error: any) {
-      logger.error("Error committing transaction:", error.message);
-      throw new Error(error.message);
+    } catch (error) {
+      logger.error(
+        "Error committing transaction:",
+        (error as Error | CustomException).message
+      );
+      throw new Error((error as Error | CustomException).message);
     } finally {
       await this.endSession(); // Ensure session is ended after commit
     }
@@ -73,9 +86,12 @@ class Database {
         await this.session.abortTransaction();
         logger.info("Transaction aborted!");
       }
-    } catch (error: any) {
-      logger.error("Error aborting transaction:", error.message);
-      throw new Error(error.message);
+    } catch (error) {
+      logger.error(
+        "Error aborting transaction:",
+        (error as Error | CustomException).message
+      );
+      throw new Error((error as Error | CustomException).message);
     } finally {
       await this.endSession(); // Ensure session is ended after abort
     }

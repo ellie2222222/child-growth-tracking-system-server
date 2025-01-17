@@ -20,8 +20,8 @@ const userModelSchema = new Schema<IUser>(
     googleId: {
       type: String,
       default: null,
-      unique: true, 
-      index: true, 
+      unique: true,
+      index: true,
     },
     ipAddress: {
       type: String,
@@ -71,9 +71,9 @@ const userModelSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-userModelSchema.index({ email: 1 }); 
-userModelSchema.index({ googleId: 1 }); 
-userModelSchema.index({ phoneNumber: 1 }); 
+userModelSchema.index({ email: 1 });
+userModelSchema.index({ googleId: 1 });
+userModelSchema.index({ phoneNumber: 1 });
 
 const UserModel: Model<IUser> = mongoose.model<IUser>("User", userModelSchema);
 

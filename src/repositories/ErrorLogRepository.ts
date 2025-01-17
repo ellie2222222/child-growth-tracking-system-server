@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import ErrorLogModel from "../models/ErrorLogModel";
 import { IErrorLog } from "../interfaces/IErrorLog";
+import CustomException from "../exceptions/CustomException";
+import StatusCodeEnum from "../enums/StatusCodeEnum";
 
 class ErrorLogRepository {
   /**
@@ -10,15 +12,24 @@ class ErrorLogRepository {
    * @throws Error when the creation fails.
    */
   async createErrorLog(
-    errorData: Object,
+    errorData: object,
     session?: mongoose.ClientSession
   ): Promise<IErrorLog> {
     try {
       const errorLog = await ErrorLogModel.create([errorData], { session });
 
       return errorLog[0];
-    } catch (error: any) {
-      throw new Error(`Failed to create error log: ${error.message}`);
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to create error log: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 }

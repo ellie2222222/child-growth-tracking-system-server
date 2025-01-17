@@ -31,7 +31,7 @@ class AuthService {
    * @param attributes - The payload attributes to include in the token.
    * @returns The signed JWT as a string.
    */
-  private generateAccessToken = (attributes: Object): string => {
+  private generateAccessToken = (attributes: object): string => {
     try {
       const accessTokenSecret: string = process.env.ACCESS_TOKEN_SECRET!;
       const accessTokenExpiration: string =
@@ -41,7 +41,13 @@ class AuthService {
         expiresIn: accessTokenExpiration,
       });
     } catch (error) {
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -51,7 +57,7 @@ class AuthService {
    * @param attributes - The payload attributes to include in the token.
    * @returns The signed JWT as a string.
    */
-  private generateRefreshToken = (attributes: Object): string => {
+  private generateRefreshToken = (attributes: object): string => {
     try {
       const refreshTokenSecret: string = process.env.REFRESH_TOKEN_SECRET!;
       const refreshTokenExpiration: string =
@@ -61,7 +67,13 @@ class AuthService {
         expiresIn: refreshTokenExpiration,
       });
     } catch (error) {
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -103,19 +115,26 @@ class AuthService {
         StatusCodeEnum.Unauthorized_401,
         "Invalid refresh token payload"
       );
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
-        throw new CustomException(
-          StatusCodeEnum.Unauthorized_401,
-          "Token expired"
-        );
-      } else if (error.name === "JsonWebTokenError") {
-        throw new CustomException(
-          StatusCodeEnum.Unauthorized_401,
-          "Invalid refresh token"
-        );
+    } catch (error) {
+      if (error as Error) {
+        if ((error as Error).name === "TokenExpiredError") {
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Token expired"
+          );
+        } else if ((error as Error).name === "JsonWebTokenError") {
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Invalid refresh token"
+          );
+        }
+      } else if (error as CustomException) {
+        throw error;
       }
-      throw error;
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -136,7 +155,9 @@ class AuthService {
     sessionId: string;
   }> => {
     try {
-      const user: IUser | null = await this.userRepository.getUserByEmail(email);
+      const user: IUser | null = await this.userRepository.getUserByEmail(
+        email
+      );
 
       // Validate credentials
       if (!user) {
@@ -187,7 +208,13 @@ class AuthService {
         sessionId,
       };
     } catch (error) {
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -231,7 +258,13 @@ class AuthService {
       await this.database.commitTransaction();
     } catch (error) {
       await this.database.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -267,7 +300,7 @@ class AuthService {
       };
       await this.userRepository.updateUserById(userId, updateData, session);
 
-      const mailOptions: Mail.Options = { 
+      const mailOptions: Mail.Options = {
         from: process.env.EMAIL_USER,
         to: user.email,
         subject: `Reset Password PIN: ${pin}`,
@@ -279,7 +312,13 @@ class AuthService {
       await this.database.commitTransaction();
     } catch (error) {
       await this.database.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -321,7 +360,10 @@ class AuthService {
         );
       }
 
-      if (!user.resetPasswordPin.expiresAt || user.resetPasswordPin.expiresAt < new Date()) {
+      if (
+        !user.resetPasswordPin.expiresAt ||
+        user.resetPasswordPin.expiresAt < new Date()
+      ) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
           "Reset password PIN expired"
@@ -336,11 +378,17 @@ class AuthService {
         },
       };
       await this.userRepository.updateUserById(userId, updatePinData, session);
-      
+
       await this.database.commitTransaction();
     } catch (error) {
       await this.database.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -396,7 +444,13 @@ class AuthService {
       await this.database.commitTransaction();
     } catch (error) {
       await this.database.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -442,13 +496,19 @@ class AuthService {
       };
 
       await this.userRepository.updateUserById(userId, updateData, session);
-      
+
       await this.sessionService.deleteSessionsByUserId(userId);
 
       await this.database.commitTransaction();
     } catch (error) {
       await this.database.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -461,9 +521,12 @@ class AuthService {
     const session = await this.database.startTransaction();
     try {
       const user = await this.userRepository.getUserByEmail(email);
-      
+
       if (!user) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Email not found");
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Email not found"
+        );
       }
 
       const token = jwt.sign(
@@ -484,7 +547,7 @@ class AuthService {
               <a href="${verificationUrl}">${verificationUrl}</a>`,
       };
 
-      // Hash and store verification token 
+      // Hash and store verification token
       const saltRounds = 10;
       const salt = await bcrypt.genSalt(saltRounds);
       const hashedToken = await bcrypt.hash(token, salt);
@@ -494,14 +557,24 @@ class AuthService {
           expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
         },
       };
-      await this.userRepository.updateUserById(user._id as string, updateData, session);
+      await this.userRepository.updateUserById(
+        user._id as string,
+        updateData,
+        session
+      );
 
       await sendMail(mailOptions);
-      
+
       await this.database.commitTransaction();
     } catch (error) {
       await this.database.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -514,27 +587,46 @@ class AuthService {
     const session = await this.database.startTransaction();
     try {
       const payload: any = jwt.verify(token, process.env.EMAIL_TOKEN_SECRET!);
+      //idk type of payload from this
 
-      const user = await this.userRepository.getUserById(payload.userId); 
+      const user = await this.userRepository.getUserById(payload.userId);
 
       if (!user) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "User not found");
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
       }
 
       if (user.isVerified) {
-        throw new CustomException(StatusCodeEnum.BadRequest_400, "Email already verified");
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Email already verified"
+        );
       }
 
       if (!user.verificationToken || !user.verificationToken.value) {
-        throw new CustomException(StatusCodeEnum.BadRequest_400, "Invalid email verification token");
-      }
-      
-      const isTokenValid = await bcrypt.compare(token, user.verificationToken.value);
-      if (!isTokenValid) {
-        throw new CustomException(StatusCodeEnum.Unauthorized_401, "Invalid email verification token");
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Invalid email verification token"
+        );
       }
 
-      if (!user.verificationToken.expiresAt || user.verificationToken.expiresAt < new Date()) {
+      const isTokenValid = await bcrypt.compare(
+        token,
+        user.verificationToken.value
+      );
+      if (!isTokenValid) {
+        throw new CustomException(
+          StatusCodeEnum.Unauthorized_401,
+          "Invalid email verification token"
+        );
+      }
+
+      if (
+        !user.verificationToken.expiresAt ||
+        user.verificationToken.expiresAt < new Date()
+      ) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
           "Email verification token expired"
@@ -548,18 +640,37 @@ class AuthService {
           value: null,
           expiresAt: null,
         },
-      }
-      await this.userRepository.updateUserById(user._id as string, updateData, session);
+      };
+      await this.userRepository.updateUserById(
+        user._id as string,
+        updateData,
+        session
+      );
 
       await this.database.commitTransaction();
-    } catch (error: any) {
+    } catch (error) {
       await this.database.abortTransaction();
-      if (error.name === "TokenExpiredError") {
-        throw new CustomException(StatusCodeEnum.Unauthorized_401, "Email verification token expired");
+
+      if (error as Error) {
+        if ((error as Error).name === "TokenExpiredError") {
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Email verification token expired"
+          );
+        }
+        if ((error as Error).name === "JsonWebTokenError") {
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Invalid email verification token"
+          );
+        }
+      } else if (error as CustomException) {
+        throw error;
       }
-      if (error.name === "JsonWebTokenError") {
-        throw new CustomException(StatusCodeEnum.Unauthorized_401, "Invalid email verification token");
-      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
       throw error;
     }
   };
