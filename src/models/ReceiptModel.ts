@@ -1,12 +1,17 @@
-import mongoose, { Model, Schema } from "mongoose";
-import baseModelSchema from "./BaseModel";
-import { IReceipt } from "../interfaces/IReceipt";
+import mongoose, { Schema, Model } from "mongoose";
+import {
+  IReceipt,
+  Currency,
+  PaymentMethod,
+  PaymentGateway,
+  TransactionType,
+} from "../interfaces/IReceipt";
 
 const ReceiptSchema = new Schema<IReceipt>(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref: "Users",
+      ref: "User",
       required: true,
     },
     transactionId: {
@@ -21,31 +26,39 @@ const ReceiptSchema = new Schema<IReceipt>(
       currency: {
         type: String,
         require: true,
-        enums: ["USD", "VND"],
+        enum: Object.values(Currency),
       },
     },
     paymentMethod: {
       type: String,
       required: true,
-      enums: ["PAYPAL", "VISA", "MASTERCARD", "CREDITCARD"],
+      enum: Object.values(PaymentMethod),
     },
     paymentGateway: {
       type: String,
       required: true,
-      enums: ["PAYPAL"],
+      enum: Object.values(PaymentGateway),
+    },
+    bankCode: {
+      type: String,
     },
     type: {
       type: String,
       required: true,
-      enums: ["PAYMENT", "PAYOUT"],
+      enum: Object.values(TransactionType),
     },
-    ...baseModelSchema.obj,
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+  }
 );
 
 const ReceiptModel: Model<IReceipt> = mongoose.model<IReceipt>(
-  "receipt",
+  "Receipt",
   ReceiptSchema
 );
 

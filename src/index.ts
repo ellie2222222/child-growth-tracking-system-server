@@ -8,6 +8,7 @@ import getLogger from "./utils/logger";
 import limiter from "./middlewares/rateLimiter";
 import authRoutes from "./routes/AuthRoute";
 import paymentRoutes from "./routes/PaymentRoute";
+import receiptRoutes from "./routes/ReceiptRoute";
 import ErrorLogMiddleware from "./middlewares/ErrorLogMiddleware";
 import AuthMiddleware from "./middlewares/AuthMiddleware";
 import SessionMiddleware from "./middlewares/SessionMiddleware";
@@ -85,7 +86,7 @@ app.get("/", (req, res) => {
     "<a href='/api/auth/google'>Login with Google</a><br>"
   );
 });
-
+app.use("/api/receipt", receiptRoutes);
 app.use(ErrorLogMiddleware);
 
 // Start server

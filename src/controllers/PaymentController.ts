@@ -3,14 +3,25 @@ import { client, redirectUrl } from "../config/paypalConfig";
 import paypal from "@paypal/checkout-server-sdk";
 import { v4 as uuidv4 } from "uuid";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
-
+import ReceiptService from "../services/ReceiptService";
+interface ILink {
+  href: string;
+  rel: string;
+  method: string;
+}
 class PaymentController {
-  async createPaymentController(
+  private receiptService: ReceiptService;
+
+  constructor() {
+    this.receiptService = new ReceiptService();
+  }
+  createPayment = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     const { price } = req.body;
+    const userId = req.user.userId;
     const uniqueInvoiceId = uuidv4();
 
     try {
@@ -25,6 +36,7 @@ class PaymentController {
               currency_code: "USD",
               value: price,
             },
+            custom_id: userId,
           },
         ],
         application_context: {
@@ -42,7 +54,7 @@ class PaymentController {
 
       // Find the approval link
       const approvalLink = response.result.links?.find(
-        (link: any) => link.rel === "approve"
+        (link: ILink) => link.rel === "approve"
       )?.href;
 
       if (approvalLink) {
@@ -55,18 +67,19 @@ class PaymentController {
     } catch (error) {
       next(error);
     }
-  }
-  async successPaymentController(
+  };
+  successPayment = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<any> {
+  ): Promise<void> => {
     const { token } = req.query;
-    console.log("Token: ", token);
+    // console.log("Token: ", token);
     if (!token) {
-      return res
+      res
         .status(StatusCodeEnums.BadRequest_400)
         .json({ message: "Missing payment token." });
+      return;
     }
     try {
       const request = new paypal.orders.OrdersCaptureRequest(token as string);
@@ -76,32 +89,56 @@ class PaymentController {
         const capturedPaymentDetails =
           purchase_units?.[0].payments?.captures?.[0];
         const transactionId = capturedPaymentDetails?.id;
+        const data = {
+          userId: capturedPaymentDetails?.custom_id,
+          totalAmount: {
+            value: capturedPaymentDetails?.amount?.value,
+            currency: capturedPaymentDetails?.amount?.currency_code,
+          },
+          paymentMethod: "PAYPAL",
+          paymentGateway: "PAYPAL",
+          type: "PAYMENT",
+        };
+        // const receipt =
+        await this.receiptService.createReceipt(
+          data.userId,
+          transactionId,
+          data.totalAmount,
+          data.paymentGateway,
+          data.paymentMethod,
+          data.type
+        );
+        // if (!receipt) {
+        //   console.log("Receipt not created");
+        // } else {
+        //   console.log("Receipt created", receipt);
+        // }
 
-        //bussiness logic
-
-        return res.status(StatusCodeEnums.OK_200).json({
+        res.status(StatusCodeEnums.OK_200).json({
           message: "Payment processed successfully.",
           transactionId,
           details: response.result,
         });
+        return;
       } else {
-        return res
+        res
           .status(StatusCodeEnums.InternalServerError_500)
           .json({ message: "Failed to process payment.", status });
+        return;
       }
     } catch (error) {
       next(error);
     }
-  }
-  async canceledPaymentController(
+  };
+  canceledPayment = async (
     req: Request,
     res: Response
     // next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     res
       .status(StatusCodeEnums.BadRequest_400)
       .json("Payment request was canceled");
-  }
+  };
 }
 
 export default PaymentController;
