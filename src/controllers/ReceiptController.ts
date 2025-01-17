@@ -29,7 +29,7 @@ class ReceiptController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const requesterId = req.user.userId;
+      const requesterId = req.userInfo.userId;
       const { userId } = req.query;
 
       const receipts = await this.receiptService.getReceiptsByUserId(
@@ -51,7 +51,7 @@ class ReceiptController {
   ): Promise<void> => {
     try {
       const { id } = req.params;
-      const requesterId = req.user.userId;
+      const requesterId = req.userInfo.userId;
       const receipt = await this.receiptService.getReceiptById(id, requesterId);
       res.status(StatusCodeEnum.OK_200).json({
         receipts: receipt,
@@ -68,7 +68,7 @@ class ReceiptController {
   ): Promise<void> => {
     try {
       const { id } = req.params;
-      const requesterId = req.user.userId;
+      const requesterId = req.userInfo.userId;
       const receipt = await this.receiptService.deleteReceipt(id, requesterId);
       res.status(StatusCodeEnum.OK_200).json({
         receipt: receipt,

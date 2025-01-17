@@ -21,7 +21,7 @@ class PaymentController {
     next: NextFunction
   ): Promise<void> => {
     const { price } = req.body;
-    const userId = req.user.userId;
+    const userId = req.userInfo.userId;
     const uniqueInvoiceId = uuidv4();
 
     try {
