@@ -27,17 +27,17 @@ class ReceiptRepository {
     }
   }
   //admin/super-admin only
-  async getAllReceipt(session?: mongoose.ClientSession): Promise<IReceipt[]> {
+  getAllReceipt = async (
+    session?: mongoose.ClientSession
+  ): Promise<IReceipt[]> => {
     try {
       const receipts = await ReceiptModel.find({}, {}, { session });
       if (receipts.length === 0) {
         throw new CustomException(404, "No receipts found");
       }
       return receipts;
-    } catch (error: unknown) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -45,7 +45,7 @@ class ReceiptRepository {
         "Internal Server Error"
       );
     }
-  }
+  };
   //admin/super-admin => get all
   //else get isDeleted: false
   async getReceiptsByUserId(
@@ -80,9 +80,7 @@ class ReceiptRepository {
       }
       return receipts;
     } catch (error: unknown) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -117,9 +115,7 @@ class ReceiptRepository {
       }
       return receipt;
     } catch (error) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -156,9 +152,7 @@ class ReceiptRepository {
       );
       return receipt;
     } catch (error) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(

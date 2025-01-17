@@ -8,10 +8,12 @@ import Database from "../utils/database";
 class ReceiptService {
   private database: Database;
   private receiptRepository: ReceiptRepository;
+
   constructor() {
     this.receiptRepository = new ReceiptRepository();
     this.database = new Database();
   }
+
   createReceipt = async (
     userId: string,
     transactionId: string,
@@ -33,9 +35,7 @@ class ReceiptService {
       const receipt = await this.receiptRepository.createReceipt(data, session);
       return receipt;
     } catch (error: unknown) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -44,15 +44,14 @@ class ReceiptService {
       );
     }
   };
+
   getAllReceipts = async (): Promise<IReceipt[]> => {
     try {
       const session = await this.database.startTransaction();
       const receipts = await this.receiptRepository.getAllReceipt(session);
       return receipts;
     } catch (error) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -61,6 +60,7 @@ class ReceiptService {
       );
     }
   };
+
   getReceiptsByUserId = async (
     userId: string | mongoose.Types.ObjectId,
     requesterId: string | mongoose.Types.ObjectId
@@ -74,9 +74,7 @@ class ReceiptService {
       );
       return receipts;
     } catch (error) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -85,6 +83,7 @@ class ReceiptService {
       );
     }
   };
+
   getReceiptById = async (
     id: string | mongoose.Types.ObjectId,
     requesterId: string | mongoose.Types.ObjectId
@@ -98,9 +97,7 @@ class ReceiptService {
       );
       return receipt;
     } catch (error) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -109,6 +106,7 @@ class ReceiptService {
       );
     }
   };
+
   deleteReceipt = async (
     id: mongoose.Types.ObjectId | string,
     requesterId: mongoose.Types.ObjectId | string
@@ -122,9 +120,7 @@ class ReceiptService {
       );
       return receipt;
     } catch (error) {
-      if (error as Error) {
-        throw error;
-      } else if (error as CustomException) {
+      if ((error as Error) || (error as CustomException)) {
         throw error;
       }
       throw new CustomException(

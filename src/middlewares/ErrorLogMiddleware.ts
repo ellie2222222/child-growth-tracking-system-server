@@ -39,7 +39,11 @@ const ErrorLogMiddleware = async (
     logger.error(logMessage);
 
     // Only log specific error codes to the database
-    const errorCodes = [StatusCodeEnums.InternalServerError_500, StatusCodeEnums.Unauthorized_401, StatusCodeEnums.Forbidden_403];
+    const errorCodes = [
+      StatusCodeEnums.InternalServerError_500,
+      StatusCodeEnums.Unauthorized_401,
+      StatusCodeEnums.Forbidden_403,
+    ];
     if (errorCodes.includes(err.code)) {
       const errorLogData = {
         errorCode: err.code?.toString() || "500",
@@ -58,9 +62,17 @@ const ErrorLogMiddleware = async (
 
       logger.info(`Error Log saved to database`);
     }
-  } catch (error: any) {
+  } catch (error) {
     await database.abortTransaction();
-    logger.error(`Error saving error to database: ${error.message}`);
+    if (error as Error) {
+      logger.error(
+        `Error saving error to database: ${(error as Error).message}`
+      );
+    } else if (error as CustomException) {
+      logger.error(
+        `Error saving error to database: ${(error as CustomException).message}`
+      );
+    }
   } finally {
     if (err.name && err.name.toLowerCase().includes("mongo")) {
       res

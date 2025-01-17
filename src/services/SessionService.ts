@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 import Database from "../utils/database";
 import SessionRepository from "../repositories/SessionRepository";
 import { ISession } from "../interfaces/ISession";
+import CustomException from "../exceptions/CustomException";
+import StatusCodeEnum from "../enums/StatusCodeEnum";
 
 dotenv.config();
 
@@ -30,9 +32,15 @@ class SessionService {
 
       await session.commitTransaction();
       return newSession;
-    } catch (error: any) {
+    } catch (error) {
       await session.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -52,9 +60,15 @@ class SessionService {
 
       await session.commitTransaction();
       return isDeleted;
-    } catch (error: any) {
+    } catch (error) {
       await session.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -74,9 +88,15 @@ class SessionService {
 
       await session.commitTransaction();
       return deletedCount;
-    } catch (error: any) {
+    } catch (error) {
       await session.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -102,9 +122,15 @@ class SessionService {
       await this.database.commitTransaction();
 
       return result;
-    } catch (error: any) {
+    } catch (error) {
       await this.database.abortTransaction();
-      throw error;
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 }

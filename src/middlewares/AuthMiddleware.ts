@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import { match } from "path-to-regexp";
-import publicRoutes from "../routes/PublicRoute";
+// import { match } from "path-to-regexp";
+// import publicRoutes from "../routes/PublicRoute";
 import getLogger from "../utils/logger";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import IJwtPayload from "../interfaces/IJwtPayload";
+import CustomException from "../exceptions/CustomException";
 const logger = getLogger("AUTHENTICATION");
 
 const AuthMiddleware = async (
@@ -28,19 +29,27 @@ const AuthMiddleware = async (
       if (mongoose.Types.ObjectId.isValid(userId)) {
         req.user = {
           ...req.user,
-          userId 
+          userId,
         };
         logger.info(`Valid token for User ID: ${userId}`);
       } else {
         logger.warn("Invalid user ID in token.");
       }
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
-        logger.warn("Token expired.");
-      } else if (error.name === "JsonWebTokenError") {
-        logger.warn("Invalid token.");
+    } catch (error) {
+      if (error as Error) {
+        if ((error as Error).name === "TokenExpiredError") {
+          logger.warn("Token expired.");
+        } else if ((error as Error).name === "JsonWebTokenError") {
+          logger.warn("Invalid token.");
+        } else {
+          logger.error(`Token verification error: ${(error as Error).message}`);
+        }
       } else {
-        logger.error(`Token verification error: ${error.message}`);
+        if (error as CustomException) {
+          logger.error(
+            `Token verification error: ${(error as CustomException).message}`
+          );
+        }
       }
     }
 
@@ -76,23 +85,25 @@ const AuthMiddleware = async (
       };
 
       next();
-    } catch (error: any) {
-      if (error.name === "TokenExpiredError") {
-        res.status(StatusCodeEnum.Unauthorized_401).json({
-          message: "Token expired. Please log in again.",
-        });
+    } catch (error) {
+      if (error as Error) {
+        if ((error as Error).name === "TokenExpiredError") {
+          res.status(StatusCodeEnum.Unauthorized_401).json({
+            message: "Token expired. Please log in again.",
+          });
 
-        return;
-      } else if (error.name === "JsonWebTokenError") {
-        res.status(StatusCodeEnum.Unauthorized_401).json({
-          message: "Invalid token. Request is not authorized.",
-        });
+          return;
+        } else if ((error as Error).name === "JsonWebTokenError") {
+          res.status(StatusCodeEnum.Unauthorized_401).json({
+            message: "Invalid token. Request is not authorized.",
+          });
 
-        return;
+          return;
+        }
       }
       res
         .status(StatusCodeEnum.InternalServerError_500)
-        .json({ message: error.message });
+        .json({ message: (error as Error).message });
     }
   }
 };
