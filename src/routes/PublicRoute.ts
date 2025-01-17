@@ -11,10 +11,16 @@ const publicRoutes: PublicRoutes[] = [
   // Auth
   { path: "/api/auth/login", method: "POST" },
   { path: "/api/auth/signup", method: "POST" },
-  { path: "/api/payment/paypal/success", method: "GET" },
-  { path: "/api/payment/paypal/failed", method: "GET" },
+
+  { path: "/", method: "GET" },
+  { path: "/api/auth/google", method: "GET" },
+  { path: "/api/auth/google/redirect", method: "GET" },
   // User
   { path: "/api/users", method: "GET" },
+
+  // Payment
+  { path: "/api/payment/paypal/success", method: "GET" },
+  { path: "/api/payment/paypal/failed", method: "GET" },
 ];
 
 export default publicRoutes;

@@ -4,10 +4,8 @@ import express, { Request, Response, NextFunction, Application } from "express";
 import http from "http";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { Server as SocketIO } from "socket.io";
 import getLogger from "./utils/logger";
 import limiter from "./middlewares/rateLimiter";
-import socket from "./socket/socket";
 import authRoutes from "./routes/AuthRoute";
 import paymentRoutes from "./routes/PaymentRoute";
 import ErrorLogMiddleware from "./middlewares/ErrorLogMiddleware";
@@ -16,22 +14,13 @@ import SessionMiddleware from "./middlewares/SessionMiddleware";
 // import CSRFMiddleware from "./middlewares/CSRFMiddleware";
 import securityHeaders from "./middlewares/SecurityHeaders";
 import helmet from "helmet";
+import RouteMiddleware from "./middlewares/RouteMiddleware";
+import passport from "./config/passportConfig";
+import session from "express-session";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
-// Type declarations
 const app: Application = express();
-const server: http.Server = http.createServer(app);
-
-// Socket setup
-const chatIo: SocketIO = new SocketIO(server, {
-  path: "/socket/chat",
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
-socket(chatIo);
 
 // Middleware
 app.use(
@@ -42,7 +31,13 @@ app.use(
   })
 );
 
+// Files
 app.use("/", express.static(__dirname));
+
+// Session and passport
+app.use(session({ secret: process.env.SESSION_SECRET!, resave: true, saveUninitialized: true }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Rate limiter middleware
 app.use(limiter(15, 100000));
@@ -80,15 +75,23 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 // Routers
+app.use(RouteMiddleware);
 app.use(SessionMiddleware);
 app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/payment", paymentRoutes);
+app.get("/", (req, res) => {
+  res.send(
+    "<a href='/api/auth/google'>Login with Google</a><br>"
+  );
+});
 
 app.use(ErrorLogMiddleware);
 
 // Start server
 const port: number = Number(process.env.DEVELOPMENT_PORT) || 4000;
+
+const server: http.Server = http.createServer(app);
 
 server.listen(port, async (err?: Error) => {
   const logger = getLogger("APP");

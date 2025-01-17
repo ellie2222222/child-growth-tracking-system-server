@@ -11,7 +11,7 @@ import { IUser } from "../interfaces/IUser";
 const RoleMiddleware = (roles: Array<number>) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {  
-      const { userId } = req.user;
+      const { userId } = req.userInfo;
       const userRepository = new UserRepository();
 
       const user: IUser | null = await userRepository.getUserById(userId);

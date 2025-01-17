@@ -44,8 +44,8 @@ const SessionMiddleware = async (
       vendor: parsedDevice.device.vendor,
     };
 
-    req.user = {
-      ...req.user,
+    req.userInfo = {
+      ...req.userInfo,
       ipAddress,
       userAgent: userAgentData,
       browser: browserData,

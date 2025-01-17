@@ -5,7 +5,7 @@ declare global {
   namespace Express {
     interface Request {
       isProtectedRoute: boolean,
-      user: {
+      userInfo: {
         userId: string,
         email: string,
         role: number,
