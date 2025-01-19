@@ -11,7 +11,7 @@ class ReceiptService {
 
   constructor() {
     this.receiptRepository = new ReceiptRepository();
-    this.database = new Database();
+    this.database = Database.getInstance();
   }
 
   createReceipt = async (
@@ -33,6 +33,7 @@ class ReceiptService {
         type,
       };
       const receipt = await this.receiptRepository.createReceipt(data, session);
+      await this.database.commitTransaction();
       return receipt;
     } catch (error: unknown) {
       if ((error as Error) || (error as CustomException)) {
@@ -118,6 +119,7 @@ class ReceiptService {
         requesterId,
         session
       );
+      await this.database.commitTransaction();
       return receipt;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {

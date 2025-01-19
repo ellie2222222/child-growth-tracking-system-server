@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
@@ -5,7 +6,8 @@ import { IUser } from "../interfaces/IUser";
 import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import SessionService from "./SessionService";
-
+import { IQuery } from "../interfaces/IQuery";
+import { returnData } from "../repositories/UserRepository";
 class UserService {
   private userRepository: UserRepository;
   private sessionService: SessionService;
@@ -87,6 +89,217 @@ class UserService {
     } catch (error) {
       await this.database.abortTransaction();
       if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  createUser = async (
+    name: string,
+    password: string,
+    phoneNumber: string,
+    email: string,
+    type: string,
+    requesterId: string
+  ): Promise<IUser> => {
+    try {
+      const session = await this.database.startTransaction();
+      const checkUser = await this.userRepository.getUserById(requesterId);
+      if (!checkUser) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Requester not found"
+        );
+      }
+
+      let data;
+      let user: IUser;
+
+      switch (type) {
+        case "doctor":
+          data = { name, password, phoneNumber, email, role: 3 };
+          user = await this.userRepository.createDoctor(data, session);
+          break;
+
+        case "admin":
+          if (checkUser.role === UserEnum.ADMIN) {
+            throw new CustomException(
+              StatusCodeEnum.Forbidden_403,
+              "Admins cannot create another admin"
+            );
+          }
+          data = { name, password, role: 1, email, phoneNumber };
+          user = await this.userRepository.createAdmin(data, session);
+          break;
+
+        default:
+          throw new CustomException(
+            StatusCodeEnum.BadRequest_400,
+            "User type not supported"
+          );
+      }
+      await this.database.commitTransaction();
+      return user;
+    } catch (error) {
+      await this.database.abortTransaction();
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  getIndividualUser = async (
+    id: string | ObjectId,
+    requesterId: string | ObjectId
+  ): Promise<IUser | CustomException> => {
+    try {
+      const checkRequester = await this.userRepository.getUserById(
+        requesterId as string
+      );
+
+      if (!checkRequester) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Requester not found"
+        );
+      }
+
+      const checkUser = await this.userRepository.getUserById(id as string);
+      if (!checkUser) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      if (id.toString() === requesterId.toString()) {
+        return checkUser;
+      }
+
+      switch (checkRequester?.role) {
+        //user cant get indivitual
+        case UserEnum.MEMBER:
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "User can not get other users' info"
+          );
+
+        //doctor view other doctors and users
+        case UserEnum.DOCTOR:
+          if (![UserEnum.MEMBER, UserEnum.DOCTOR].includes(checkUser?.role)) {
+            throw new CustomException(
+              StatusCodeEnum.Forbidden_403,
+              "You do not have the authorization to perform this action"
+            );
+          }
+          return checkUser;
+
+        //admin can get admins and super admin
+        case UserEnum.ADMIN:
+          if (
+            ![UserEnum.SUPER_ADMIN, UserEnum.ADMIN].includes(checkUser?.role)
+          ) {
+            throw new CustomException(
+              StatusCodeEnum.Forbidden_403,
+              "You do not have the authorization to perform this action"
+            );
+          }
+          return checkUser;
+
+        //get all
+        case UserEnum.SUPER_ADMIN:
+          return checkUser;
+
+        default:
+          throw new CustomException(
+            StatusCodeEnum.BadRequest_400,
+            "Your role is not supported"
+          );
+      }
+    } catch (error) {
+      await this.database.abortTransaction();
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+  getGroupUsers = async (
+    Query: IQuery,
+    requesterId: string | ObjectId
+  ): Promise<returnData> => {
+    const checkRequester = await this.userRepository.getUserById(
+      requesterId as string
+    );
+
+    if (!checkRequester) {
+      throw new CustomException(
+        StatusCodeEnum.NotFound_404,
+        "Requester not found"
+      );
+    }
+    console.log(checkRequester?.role);
+    switch (checkRequester?.role) {
+      case 2:
+        console.log("number 2");
+        break;
+
+      default:
+        break;
+    }
+    try {
+      let users;
+      switch (checkRequester?.role) {
+        case UserEnum.MEMBER:
+          users = await this.userRepository.getAllUsersRepository(
+            Query,
+            UserEnum.DOCTOR
+          );
+          break;
+        case UserEnum.DOCTOR:
+          users = await this.userRepository.getAllUsersRepository(Query, [
+            UserEnum.MEMBER,
+            UserEnum.DOCTOR,
+          ]);
+          break;
+        case UserEnum.ADMIN:
+          users = await this.userRepository.getAllUsersRepository(Query, [
+            UserEnum.MEMBER,
+            UserEnum.DOCTOR,
+            UserEnum.ADMIN,
+            UserEnum.SUPER_ADMIN,
+          ]);
+          break;
+        case UserEnum.SUPER_ADMIN:
+          users = await this.userRepository.getAllUsersRepository(Query, [
+            UserEnum.MEMBER,
+            UserEnum.DOCTOR,
+            UserEnum.ADMIN,
+            UserEnum.SUPER_ADMIN,
+          ]);
+          break;
+        default:
+          throw new CustomException(
+            StatusCodeEnum.BadRequest_400,
+            "Your role is not supported"
+          );
+      }
+      return users;
+    } catch (error) {
+      if (error as Error | CustomException) {
         throw error;
       }
       throw new CustomException(

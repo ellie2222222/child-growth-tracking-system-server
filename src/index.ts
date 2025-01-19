@@ -18,7 +18,7 @@ import helmet from "helmet";
 import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
-
+import userRoutes from "./routes/UserRoute";
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
 const app: Application = express();
@@ -36,7 +36,13 @@ app.use(
 app.use("/", express.static(__dirname));
 
 // Session and passport
-app.use(session({ secret: process.env.SESSION_SECRET!, resave: true, saveUninitialized: true }));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET!,
+    resave: true,
+    saveUninitialized: true,
+  })
+);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -81,10 +87,9 @@ app.use(SessionMiddleware);
 app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/users", userRoutes);
 app.get("/", (req, res) => {
-  res.send(
-    "<a href='/api/auth/google'>Login with Google</a><br>"
-  );
+  res.send("<a href='/api/auth/google'>Login with Google</a><br>");
 });
 app.use("/api/receipt", receiptRoutes);
 app.use(ErrorLogMiddleware);
