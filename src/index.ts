@@ -5,7 +5,7 @@ import http from "http";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import getLogger from "./utils/logger";
-import limiter from "./middlewares/rateLimiter";
+import limiter from "./middlewares/RateLimiter";
 import authRoutes from "./routes/AuthRoute";
 import paymentRoutes from "./routes/PaymentRoute";
 import receiptRoutes from "./routes/ReceiptRoute";
@@ -39,6 +39,9 @@ app.use("/", express.static(__dirname));
 app.use(session({ secret: process.env.SESSION_SECRET!, resave: true, saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Enable trust proxy
+app.set("trust proxy", 1);
 
 // Rate limiter middleware
 app.use(limiter(15, 100000));

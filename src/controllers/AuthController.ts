@@ -26,7 +26,7 @@ class AuthController {
       const { accessToken, refreshToken, sessionId } =
         await this.authService.login(email, password, sessionData);
 
-      // Set Refresh Token in cookies
+      // Set Refresh Token and session ID in cookies
       const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
       res.cookie("refreshToken", refreshToken, {
@@ -41,7 +41,7 @@ class AuthController {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        maxAge: refreshTokenMaxAge, // 30 days
       });
 
       res.status(StatusCodeEnum.OK_200).json({
@@ -61,9 +61,28 @@ class AuthController {
   loginGoogle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const googleUser = req.user;
-      console.log(googleUser)
 
-      // const user = await loginGoogle(googleUser);
+      const { accessToken, refreshToken, sessionId } = await this.authService.loginGoogle(googleUser);
+
+      // Set Refresh Token and session ID in cookies
+      const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
+      const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
+      // Set session ID in cookies
+      res.cookie("sessionId", sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge, // 30 days
+      });
+
+      res.redirect(`${process.env.FRONTEND_URL}/accessToken=${accessToken}`)
     } catch (error) {
       next(error);
     }

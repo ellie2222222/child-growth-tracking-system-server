@@ -218,6 +218,77 @@ class AuthService {
     }
   };
 
+  loginGoogle = async (
+    googleUser: any,
+    sessionData: Partial<ISession>
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    sessionId: string;
+  }> => {
+    try {
+      const { email, name, picture, sub } = googleUser._json as {
+        email: string;
+        name: string;
+        picture: string;
+        sub: string;
+      };
+  
+      // Check if user already exists
+      let user: IUser | null = await this.userRepository.getGoogleUser(email, sub);
+  
+      // If the user doesn't exist, create a new user
+      if (!user) {
+        user = await this.userRepository.createUser({
+          email,
+          name,
+          avatar: picture,
+          googleId: sub,
+        });
+      }
+  
+      // Create session data
+      const sessionDataCreation: Partial<ISession> = {
+        userId: user._id as Schema.Types.ObjectId,
+        userAgent: sessionData.userAgent,
+        ipAddress: sessionData.ipAddress,
+        browser: sessionData.browser,
+        device: sessionData.device,
+        os: sessionData.os,
+      };
+      
+      // Create the session
+      const sessionResult = await this.sessionService.createSession(sessionDataCreation);
+  
+      // Generate tokens
+      const timestamp = new Date().toISOString();
+      const payload = {
+        userId: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        timestamp,
+      };
+      const accessToken = this.generateAccessToken(payload);
+      const refreshToken = this.generateRefreshToken(payload);
+      const sessionId = sessionResult._id?.toString() as string;
+  
+      return {
+        accessToken,
+        refreshToken,
+        sessionId,
+      };
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };  
+
   /**
    * Signs up a user and generates an access token.
    *
