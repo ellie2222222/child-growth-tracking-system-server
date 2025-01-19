@@ -61,8 +61,9 @@ class AuthController {
   loginGoogle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const googleUser = req.user;
+      const sessionData: Partial<ISession> = req.userInfo;
 
-      const { accessToken, refreshToken, sessionId } = await this.authService.loginGoogle(googleUser);
+      const { accessToken, refreshToken, sessionId } = await this.authService.loginGoogle(googleUser, sessionData);
 
       // Set Refresh Token and session ID in cookies
       const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;

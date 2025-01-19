@@ -5,7 +5,6 @@ import http from "http";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import getLogger from "./utils/logger";
-import limiter from "./middlewares/RateLimiter";
 import authRoutes from "./routes/AuthRoute";
 import paymentRoutes from "./routes/PaymentRoute";
 import receiptRoutes from "./routes/ReceiptRoute";
@@ -18,6 +17,7 @@ import helmet from "helmet";
 import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
+import limiter from "./middlewares/rateLimiter";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
