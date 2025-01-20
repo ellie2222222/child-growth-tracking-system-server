@@ -5,9 +5,9 @@ import CustomException from "../exceptions/CustomException";
 import UserModel from "../models/UserModel";
 import UserEnum from "../enums/UserEnum";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import Database from "../utils/database";
+
+import { validateMongooseObjectId } from "../utils/validator";
 class ReceiptRepository {
-  private database = new Database();
   async createReceipt(
     data: object,
     session?: mongoose.ClientSession
@@ -71,8 +71,11 @@ class ReceiptRepository {
         requester &&
         (requester.role === UserEnum.ADMIN ||
           requester.role === UserEnum.SUPER_ADMIN)
-          ? { userId: this.database.ensureObjectId(userId) }
-          : { userId: this.database.ensureObjectId(userId), isDeleted: false };
+          ? { userId: validateMongooseObjectId(userId as string) }
+          : {
+              userId: validateMongooseObjectId(userId as string),
+              isDeleted: false,
+            };
 
       const receipts = await ReceiptModel.find(query, {}, { session });
       if (receipts.length === 0) {
@@ -107,8 +110,8 @@ class ReceiptRepository {
         requester &&
         (requester.role === UserEnum.ADMIN ||
           requester.role === UserEnum.SUPER_ADMIN)
-          ? { _id: this.database.ensureObjectId(id) }
-          : { _id: this.database.ensureObjectId(id), isDeleted: false };
+          ? { _id: validateMongooseObjectId(id as string) }
+          : { _id: validateMongooseObjectId(id as string), isDeleted: false };
       const receipt = await ReceiptModel.findOne(query, null, { session });
       if (!receipt) {
         throw new CustomException(404, "Receipt not found");
@@ -132,7 +135,7 @@ class ReceiptRepository {
   ): Promise<IReceipt | null> {
     try {
       const checkReceipt = await ReceiptModel.findOne(
-        { _id: this.database.ensureObjectId(id), isDeleted: false },
+        { _id: validateMongooseObjectId(id as string), isDeleted: false },
         null,
         { session }
       );
@@ -146,7 +149,7 @@ class ReceiptRepository {
         );
       }
       const receipt = await ReceiptModel.findOneAndUpdate(
-        { _id: this.database.ensureObjectId(id), isDeleted: false },
+        { _id: validateMongooseObjectId(id as string), isDeleted: false },
         { $set: { isDeleted: true } },
         { new: true }
       );

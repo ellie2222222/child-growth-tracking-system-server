@@ -8,7 +8,13 @@ const validateMongooseObjectId = (id: string): void => {
   try {
     mongoose.Types.ObjectId.isValid(id);
   } catch (error) {
-    throw error;
+    if (error as Error | CustomException) {
+      throw error;
+    }
+    throw new CustomException(
+      StatusCodeEnums.InternalServerError_500,
+      "Internal Server Error"
+    );
   }
 };
 
@@ -44,14 +50,20 @@ const validateEmail = async (email: string): Promise<void> => {
     );
   }
   if (!validator.isEmail(email)) {
-    throw new CustomException(StatusCodeEnums.BadRequest_400, "Email is invalid");
+    throw new CustomException(
+      StatusCodeEnums.BadRequest_400,
+      "Email is invalid"
+    );
   }
 };
 
 // Validates the password strength
 const validatePassword = async (password: string): Promise<void> => {
   if (!password) {
-    throw new CustomException(StatusCodeEnums.BadRequest_400, "Password is required");
+    throw new CustomException(
+      StatusCodeEnums.BadRequest_400,
+      "Password is required"
+    );
   }
   if (
     !validator.isStrongPassword(password, {
@@ -102,7 +114,12 @@ const capitalizeWords = (str: string): string => {
 };
 
 // Validates the length of a string within specified min and max limits
-const validateLength = async (min: number, max: number, string: string, type: string): Promise<void> => {
+const validateLength = async (
+  min: number,
+  max: number,
+  string: string,
+  type: string
+): Promise<void> => {
   const trimmedString = string.trim();
 
   if (!validator.isLength(trimmedString, { min, max })) {
@@ -126,7 +143,10 @@ const convertToMongoObjectId = (id: string): mongoose.Types.ObjectId => {
 };
 
 // Checks if an entry exists by ID in the specified model
-const checkExistById = async (model: mongoose.Model<Document>, id: string): Promise<Document | null> => {
+const checkExistById = async (
+  model: mongoose.Model<Document>,
+  id: string
+): Promise<Document | null> => {
   return await model.findOne({ _id: convertToMongoObjectId(id) });
 };
 

@@ -16,7 +16,7 @@ const ErrorLogMiddleware = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  const database = new Database();
+  const database = Database.getInstance();
 
   try {
     const stack = err.stack || "";

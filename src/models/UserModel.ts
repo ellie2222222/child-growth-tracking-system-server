@@ -20,8 +20,8 @@ const userModelSchema = new Schema<IUser>(
     googleId: {
       type: String,
       default: null,
-      unique: true,
-      index: true,
+      // unique: true,
+      // index: true,
     },
     ipAddress: {
       type: String,
@@ -30,14 +30,14 @@ const userModelSchema = new Schema<IUser>(
     email: {
       type: String,
       default: "",
-      unique: true,
-      index: true,
+      // unique: true,
+      // index: true,
     },
     phoneNumber: {
       type: String,
       default: null,
-      unique: true,
-      index: true,
+      // unique: true,
+      // index: true,
     },
     password: {
       type: String,
@@ -70,9 +70,19 @@ const userModelSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-userModelSchema.index({ email: 1 });
-userModelSchema.index({ googleId: 1 });
-userModelSchema.index({ phoneNumber: 1 });
+//unque except default value
+userModelSchema.index(
+  { googleId: 1 },
+  { unique: true, partialFilterExpression: { googleId: { $ne: null } } }
+);
+userModelSchema.index(
+  { email: 1 },
+  { unique: true, partialFilterExpression: { email: { $ne: "" } } }
+);
+userModelSchema.index(
+  { phoneNumber: 1 },
+  { unique: true, partialFilterExpression: { phoneNumber: { $ne: null } } }
+);
 
 const UserModel: Model<IUser> = mongoose.model<IUser>("User", userModelSchema);
 

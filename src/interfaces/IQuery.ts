@@ -5,3 +5,5 @@ export interface IQuery {
   order?: "ascending" | "descending";
   sortBy?: "date";
 }
+
+//if change anything in here need change in getUsers in UserController
