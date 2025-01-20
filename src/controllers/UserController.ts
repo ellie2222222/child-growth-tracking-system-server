@@ -92,6 +92,35 @@ class UserController {
       next(error);
     }
   };
+  updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { name } = req.body;
+      const requesterId = req.userInfo.userId;
+
+      const user = await this.userService.updateUser(id, requesterId, { name });
+
+      res
+        .status(StatusCodeEnum.OK_200)
+        .json({ user: user, message: "User updated successfully" });
+    } catch (error) {
+      next(error);
+    }
+  };
+  deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const requesterId = req.userInfo.userId;
+
+      const user = await this.userService.deleteUser(id, requesterId);
+
+      res
+        .status(StatusCodeEnum.OK_200)
+        .json({ userIsDeleted: user, message: "User deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default UserController;

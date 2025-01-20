@@ -194,10 +194,59 @@ class UserHandler {
         error: "Invalid order in query",
       });
     }
-    if (["date"].includes(sortBy as string)) {
+    if (!["date"].includes(sortBy as string)) {
       validationErrors.push({
         field: "Invalid query field",
         error: "Invalid sortBy in query",
+      });
+    }
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
+      next();
+    }
+  };
+  updateUser = async (req: Request, res: Response, next: NextFunction) => {
+    const validationErrors: { field: string; error: string }[] = [];
+    const { id } = req.params;
+    const { name } = req.body;
+    try {
+      await validateMongooseObjectId(id);
+    } catch (error) {
+      validationErrors.push({
+        field: "Invalid params field",
+        error: (error as Error | CustomException).message,
+      });
+    }
+    try {
+      await validateName(name);
+    } catch (error) {
+      validationErrors.push({
+        field: "Invalid body field",
+        error: (error as Error | CustomException).message,
+      });
+    }
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
+      next();
+    }
+  };
+  deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    const validationErrors: { field: string; error: string }[] = [];
+    const { id } = req.params;
+    try {
+      await validateMongooseObjectId(id);
+    } catch (error) {
+      validationErrors.push({
+        field: "Invalid params field",
+        error: (error as Error | CustomException).message,
       });
     }
     if (validationErrors.length > 0) {

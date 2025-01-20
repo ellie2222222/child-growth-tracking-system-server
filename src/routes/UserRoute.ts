@@ -20,6 +20,12 @@ userRoutes.post(
   userHandler.createUser,
   userController.createUser
 );
-userRoutes.get("/allowed-users", userController.getUsers);
-userRoutes.get("/:id", userController.getUserIndivitually);
+userRoutes.get("/allowed-users", userHandler.getUsers, userController.getUsers);
+userRoutes.get(
+  "/:id",
+  userHandler.getUserIndivitually,
+  userController.getUserIndivitually
+);
+userRoutes.patch("/:id", userHandler.updateUser, userController.updateUser);
+userRoutes.delete("/:id", userHandler.deleteUser, userController.deleteUser);
 export default userRoutes;

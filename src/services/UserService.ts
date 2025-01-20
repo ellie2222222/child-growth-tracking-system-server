@@ -8,6 +8,7 @@ import Database from "../utils/database";
 import SessionService from "./SessionService";
 import { IQuery } from "../interfaces/IQuery";
 import { returnData } from "../repositories/UserRepository";
+
 class UserService {
   private userRepository: UserRepository;
   private sessionService: SessionService;
@@ -186,21 +187,18 @@ class UserService {
       }
 
       switch (checkRequester?.role) {
-        //user cant get indivitual
+        //user cant get indivitual user, can get other role
         case UserEnum.MEMBER:
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "User can not get other users' info"
-          );
-
-        //doctor view other doctors and users
-        case UserEnum.DOCTOR:
-          if (![UserEnum.MEMBER, UserEnum.DOCTOR].includes(checkUser?.role)) {
+          if (checkUser?.role === UserEnum.MEMBER) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,
-              "You do not have the authorization to perform this action"
+              "User can not get other users' info"
             );
           }
+          return checkUser;
+
+        //everyone can get doctor
+        case UserEnum.DOCTOR:
           return checkUser;
 
         //admin can get admins and super admin
@@ -251,15 +249,7 @@ class UserService {
         "Requester not found"
       );
     }
-    console.log(checkRequester?.role);
-    switch (checkRequester?.role) {
-      case 2:
-        console.log("number 2");
-        break;
 
-      default:
-        break;
-    }
     try {
       let users;
       switch (checkRequester?.role) {
@@ -298,6 +288,155 @@ class UserService {
           );
       }
       return users;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  updateUser = async (
+    id: string | ObjectId,
+    requesterId: string | ObjectId,
+    data: {
+      name: string;
+    }
+  ) => {
+    const session = await this.database.startTransaction();
+
+    try {
+      const checkRequester = await this.userRepository.getUserById(
+        requesterId as string
+      );
+
+      if (!checkRequester) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Requester not found"
+        );
+      }
+
+      const checkUser = await this.userRepository.getUserById(id as string);
+      if (!checkUser) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      if (checkUser.id === requesterId) {
+        const user = await this.userRepository.updateUserById(
+          id as string,
+          data
+        );
+        await this.database.commitTransaction();
+        return user;
+      }
+
+      switch (checkRequester?.role) {
+        case UserEnum.ADMIN:
+          if (checkUser?.role === UserEnum.DOCTOR) {
+            const user = await this.userRepository.updateUserById(
+              id as string,
+              data,
+              session
+            );
+            await this.database.commitTransaction();
+            return user;
+          }
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "Admin can only update doctor"
+          );
+
+        case UserEnum.SUPER_ADMIN:
+          if ([UserEnum.DOCTOR, UserEnum.ADMIN].includes(checkUser?.role)) {
+            const user = await this.userRepository.updateUserById(
+              id as string,
+              data,
+              session
+            );
+            await this.database.commitTransaction();
+            return user;
+          }
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "Super admin can only update doctor, admin"
+          );
+
+        default:
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "You do not have the authorization to perform this action"
+          );
+      }
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  deleteUser = async (
+    id: string | ObjectId,
+    requesterId: string | ObjectId
+  ) => {
+    try {
+      const checkRequester = await this.userRepository.getUserById(
+        requesterId as string
+      );
+
+      if (!checkRequester) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Requester not found"
+        );
+      }
+
+      const checkUser = await this.userRepository.getUserById(id as string);
+
+      if (!checkUser) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+      switch (checkRequester?.role) {
+        case UserEnum.ADMIN:
+          if (checkUser?.role === UserEnum.DOCTOR) {
+            const user = await this.userRepository.deleteUserById(id as string);
+            await this.database.commitTransaction();
+            return user;
+          }
+
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "Admin can only delete doctor"
+          );
+
+        case UserEnum.SUPER_ADMIN:
+          if ([UserEnum.ADMIN, UserEnum.DOCTOR].includes(checkUser?.role)) {
+            const user = await this.userRepository.deleteUserById(id as string);
+            return user;
+          }
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "Super admin can only delete admin and doctor"
+          );
+        default:
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "You do not have the authorization to perform this action"
+          );
+      }
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

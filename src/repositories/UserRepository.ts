@@ -92,6 +92,32 @@ class UserRepository {
   }
 
   /**
+   * Fetches a user document by email.
+   * @param email - The email address to search for.
+   * @returns The user document or null if not found.
+   * @throws Error when the query fails.
+   */
+  async getGoogleUser(email: string, googleId: string): Promise<IUser | null> {
+    try {
+      const user = await UserModel.findOne({
+        $or: [{ email: { $eq: email } }, { googleId: { $eq: googleId } }],
+      });
+      return user;
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to finding user by email: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  /**
    * Fetches a user document by phone number.
    * @param phoneNumber - The phone number to search for.
    * @returns The user document or null if not found.
@@ -123,7 +149,11 @@ class UserRepository {
    */
   async deleteUserById(userId: string): Promise<boolean> {
     try {
-      await UserModel.findByIdAndUpdate(userId, { isDeleted: true });
+      await UserModel.findByIdAndUpdate(
+        userId,
+        { isDeleted: true },
+        { new: true }
+      );
       return true;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
@@ -157,7 +187,10 @@ class UserRepository {
         updatedAt: new Date(),
       };
 
-      const user = await UserModel.findByIdAndUpdate(userId, data, { session });
+      const user = await UserModel.findByIdAndUpdate(userId, data, {
+        session,
+        new: true,
+      });
 
       return user;
     } catch (error) {
