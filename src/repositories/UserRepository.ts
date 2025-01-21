@@ -4,7 +4,12 @@ import { IUser } from "../interfaces/IUser";
 import { IQuery } from "../interfaces/IQuery";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-
+export type returnData = {
+  users: IUser[];
+  page: number;
+  total: number;
+  totalPages: number;
+};
 class UserRepository {
   /**
    * Creates a new user document in the database.
@@ -13,6 +18,7 @@ class UserRepository {
    * @returns The created user document.
    * @throws Error when the creation fails.
    */
+
   async createUser(
     data: object,
     session?: mongoose.ClientSession
@@ -93,11 +99,8 @@ class UserRepository {
    */
   async getGoogleUser(email: string, googleId: string): Promise<IUser | null> {
     try {
-      const user = await UserModel.findOne({ 
-          $or: [
-          { email: { $eq: email } },
-          { googleId: { $eq: googleId } }
-         ]
+      const user = await UserModel.findOne({
+        $or: [{ email: { $eq: email } }, { googleId: { $eq: googleId } }],
       });
       return user;
     } catch (error) {
@@ -146,7 +149,11 @@ class UserRepository {
    */
   async deleteUserById(userId: string): Promise<boolean> {
     try {
-      await UserModel.findByIdAndUpdate(userId, { isDeleted: true });
+      await UserModel.findByIdAndUpdate(
+        userId,
+        { isDeleted: true },
+        { new: true }
+      );
       return true;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
@@ -180,7 +187,10 @@ class UserRepository {
         updatedAt: new Date(),
       };
 
-      const user = await UserModel.findByIdAndUpdate(userId, data, { session });
+      const user = await UserModel.findByIdAndUpdate(userId, data, {
+        session,
+        new: true,
+      });
 
       return user;
     } catch (error) {
@@ -231,9 +241,13 @@ class UserRepository {
    * @throws Error when the query fails.
    */
 
-  async getAllUsersRepository(query: IQuery) {
+  async getAllUsersRepository(
+    query: IQuery,
+    role?: number | Array<number>
+  ): Promise<returnData> {
     type SearchQuery = {
       isDeleted: boolean;
+      role?: number | { $in: Array<number> };
       name?: { $regex: string; $options: string }; // Optional name property with regex
     };
     try {
@@ -245,7 +259,13 @@ class UserRepository {
       if (search) {
         searchQuery.name = { $regex: search, $options: "i" };
       }
-
+      if (role) {
+        if (typeof role === "number") {
+          searchQuery.role = role;
+        } else if (Array.isArray(role)) {
+          searchQuery.role = { $in: role };
+        }
+      }
       let sortField = "createdAt";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
 
@@ -288,6 +308,66 @@ class UserRepository {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
           `Failed to getting all users: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async createAdmin(
+    data: object,
+    session?: mongoose.ClientSession
+  ): Promise<IUser> {
+    try {
+      const admin = await UserModel.create(
+        [
+          {
+            ...data,
+            isActive: true,
+            isVerified: true,
+          },
+        ],
+        { session }
+      );
+      return admin[0];
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to create an admin: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async createDoctor(
+    data: object,
+    session?: mongoose.ClientSession
+  ): Promise<IUser> {
+    try {
+      const doctor = await UserModel.create(
+        [
+          {
+            ...data,
+            isActive: true,
+            isVerified: true,
+          },
+        ],
+        { session }
+      );
+      return doctor[0];
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to create a doctor: ${(error as Error).message}`
         );
       }
       throw new CustomException(
