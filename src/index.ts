@@ -17,7 +17,7 @@ import helmet from "helmet";
 import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
-import limiter from "./middlewares/rateLimiter";
+import limiter from "./middlewares/RateLimiter";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
