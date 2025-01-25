@@ -1,33 +1,44 @@
-const { default: mongoose } = require("mongoose");
-const multer = require("multer");
-const ffmpeg = require("fluent-ffmpeg");
-const path = require("path");
-const fs = require("fs");
-const getLogger = require("../utils/logger");
+import { Request } from "express";
+import multer, { FileFilterCallback } from "multer";
+import mongoose, { ObjectId } from "mongoose";
+import ffmpeg from "fluent-ffmpeg";
+import path from "path";
+import fs from "fs";
+import { spawn } from "child_process";
+import getLogger from "../utils/logger";
+import CustomException from "../exceptions/CustomException";
+import dotenv from "dotenv";
 const logger = getLogger("FILE_UPLOAD");
-const { spawn } = require("child_process");
-const CoreException = require("../exceptions/CoreException");
-const StatusCodeEnums = require("../enums/StatusCodeEnum");
-require("dotenv").config();
-const removeFileName = async (filePath) => {
+dotenv.config();
+type DestinationCallback = (error: Error | null, destination: string) => void;
+type FileNameCallback = (error: Error | null, filename: string) => void;
+const removeFileName = async (filePath: string): Promise<string> => {
   // Get the directory name by removing the file name
   return path.dirname(filePath);
 };
 
-const removeExtension = async (filePath) => {
+const removeExtension = async (filePath: string): Promise<string> => {
   return path.join(path.dirname(filePath), path.parse(filePath).name);
 };
-const extractFilenameFromPath = async (filePath) => {
+const extractFilenameFromPath = async (
+  filePath: string
+): Promise<string | null> => {
   try {
     // Use path.basename to get the filename from the given path
     const filename = path.basename(filePath);
     return filename;
-  } catch (err) {
-    console.error(`Error extracting filename from path: ${err.message}`);
+  } catch (err: unknown) {
+    console.error(
+      `Error extracting filename from path: ${
+        (err as Error | CustomException).message
+      }`
+    );
     return null; // or handle error as needed
   }
 };
-const extractFilenameFromUrl = async (inputUrl) => {
+const extractFilenameFromUrl = async (
+  inputUrl: string
+): Promise<string | null> => {
   try {
     // Parse the URL
     const parsedUrl = new URL(inputUrl);
@@ -40,12 +51,16 @@ const extractFilenameFromUrl = async (inputUrl) => {
 
     return filename;
   } catch (err) {
-    console.error(`Error extracting filename from URL: ${err.message}`);
+    console.error(
+      `Error extracting filename from URL: ${
+        (err as Error | CustomException).message
+      }`
+    );
     return null; // or handle error as needed
   }
 };
 
-const convertMp4ToHls = async (filePath) => {
+const convertMp4ToHls = async (filePath: string) => {
   return new Promise((resolve, reject) => {
     const dirPath = path.dirname(filePath);
     const baseName = path.parse(filePath).name;
@@ -100,7 +115,7 @@ const convertMp4ToHls = async (filePath) => {
   });
 };
 
-const convertTsSegmentsToM3u8 = async (folderPath) => {
+const convertTsSegmentsToM3u8 = async (folderPath: string) => {
   return new Promise((resolve, reject) => {
     const absoluteFolderPath = path.resolve(folderPath);
 
@@ -120,7 +135,7 @@ const convertTsSegmentsToM3u8 = async (folderPath) => {
     // Create the M3U8 playlist content
     let m3u8Content = `#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:10\n`;
 
-    tsFiles.forEach((file, index) => {
+    tsFiles.forEach((file) => {
       // Get the duration of each TS file (optional, here it is hardcoded as 1 second)
       m3u8Content += `#EXTINF:10.000,\n${file}\n`;
     });
@@ -136,7 +151,7 @@ const convertTsSegmentsToM3u8 = async (folderPath) => {
   });
 };
 
-const getTsFileDuration = (tsFilePath) => {
+const getTsFileDuration = (tsFilePath: string) => {
   return new Promise((resolve, reject) => {
     const ffprobe = spawn("ffprobe", [
       "-v",
@@ -163,7 +178,7 @@ const getTsFileDuration = (tsFilePath) => {
   });
 };
 
-const findClosetTsFile = async (directory) => {
+const findClosetTsFile = async (directory: string) => {
   try {
     const files = fs.readdirSync(directory);
     let totalDuration = 0;
@@ -175,8 +190,10 @@ const findClosetTsFile = async (directory) => {
         const filePath = path.join(directory, file);
         const duration = await getTsFileDuration(filePath);
         durations.push({ file, duration });
-        totalDuration += duration;
-        console.log(`File: ${file}, Duration: ${duration.toFixed(2)} seconds`);
+        totalDuration += duration as number;
+        console.log(
+          `File: ${file}, Duration: ${(duration as number).toFixed(2)} seconds`
+        );
       }
     }
 
@@ -192,7 +209,7 @@ const findClosetTsFile = async (directory) => {
     let selectedFile = null;
 
     for (const { file, duration } of durations) {
-      cumulativeDuration += duration;
+      cumulativeDuration += duration as number;
 
       // If cumulative duration exceeds 10% or is closest to it, return that file
       if (cumulativeDuration >= tenPercentDuration) {
@@ -201,11 +218,11 @@ const findClosetTsFile = async (directory) => {
       }
     }
 
-    console.log(
-      `File closest to 10% of total duration: ${
-        selectedFile.file
-      }, Duration: ${selectedFile.duration.toFixed(2)} seconds`
-    );
+    // console.log(
+    //   `File closest to 10% of total duration: ${
+    //     selectedFile.file
+    //   }, Duration: ${selectedFile.duration.toFixed(2)} seconds`
+    // );
     return { selectedFile: selectedFile, duration: totalDuration.toFixed(2) };
   } catch (error) {
     console.error("Error finding file closest to 10%:", error);
@@ -213,7 +230,10 @@ const findClosetTsFile = async (directory) => {
   }
 };
 
-const createThumbnailFromTsFile = async (tsFilePath, outputDir) => {
+const createThumbnailFromTsFile = async (
+  tsFilePath: string,
+  outputDir: string
+) => {
   try {
     console.log(`Creating thumbnail for: ${tsFilePath}`);
 
@@ -231,7 +251,7 @@ const createThumbnailFromTsFile = async (tsFilePath, outputDir) => {
     const outputPath = path.join(outputDir, outputFileName);
 
     // Generate a thumbnail using ffmpeg from 5 seconds
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const ffmpeg = spawn("ffmpeg", [
         "-analyzeduration",
         "100M", // Increase probe duration
@@ -287,7 +307,10 @@ const createThumbnailFromTsFile = async (tsFilePath, outputDir) => {
   }
 };
 
-const replaceTsSegmentLinksInM3u8 = async (filePath, videoId) => {
+const replaceTsSegmentLinksInM3u8 = async (
+  filePath: string,
+  videoId: string | ObjectId
+) => {
   logger.info(`Replacing TS segment links in M3U8 file: ${filePath}`);
 
   // Update the URL to use BUNNY_DOMAIN_STORAGE_ZONE
@@ -312,7 +335,7 @@ const replaceTsSegmentLinksInM3u8 = async (filePath, videoId) => {
   // logger.info(`Updated M3U8 Content:\n${m3u8Content}`);
 };
 
-const convertMp4ToTsSegments = async (filePath) => {
+const convertMp4ToTsSegments = async (filePath: string) => {
   return new Promise((resolve, reject) => {
     const dirPath = path.dirname(filePath);
     const baseName = path.parse(filePath).name;
@@ -342,7 +365,7 @@ const convertMp4ToTsSegments = async (filePath) => {
   });
 };
 
-const changeFileName = async (filePath, newName) => {
+const changeFileName = async (filePath: string, newName: string) => {
   return new Promise((resolve, reject) => {
     const dirPath = path.dirname(filePath);
     const ext = path.extname(filePath);
@@ -359,7 +382,7 @@ const changeFileName = async (filePath, newName) => {
   });
 };
 
-const splitVideo = async (filePath, parts = 10) => {
+const splitVideo = async (filePath: string, parts = 10) => {
   return new Promise((resolve, reject) => {
     // Get the video duration first
     ffmpeg.ffprobe(filePath, (err, metadata) => {
@@ -369,7 +392,7 @@ const splitVideo = async (filePath, parts = 10) => {
       }
 
       const duration = metadata.format.duration;
-      const segmentDuration = duration / parts;
+      const segmentDuration = (duration as number) / parts;
 
       const segmentPromises = [];
 
@@ -409,7 +432,7 @@ const splitVideo = async (filePath, parts = 10) => {
   });
 };
 
-const checkFileSuccess = async (filePath) => {
+const checkFileSuccess = async (filePath: string) => {
   logger.info(`Checking file ${filePath} for success...`);
   return new Promise((resolve, reject) => {
     const dirPath = path.dirname(filePath);
@@ -437,8 +460,8 @@ const checkFileSuccess = async (filePath) => {
   });
 };
 
-const deleteFile = async (filePath) => {
-  return new Promise((resolve, reject) => {
+const deleteFile = async (filePath: string) => {
+  return new Promise<void>((resolve, reject) => {
     fs.unlink(filePath, (err) => {
       if (err) {
         logger.error(`Failed to delete file ${filePath}: ${err.message}`);
@@ -450,8 +473,8 @@ const deleteFile = async (filePath) => {
   });
 };
 
-const deleteFolder = async (folderPath) => {
-  return new Promise((resolve, reject) => {
+const deleteFolder = async (folderPath: string) => {
+  return new Promise<void>((resolve, reject) => {
     fs.rm(folderPath, { recursive: true }, (err) => {
       if (err) {
         logger.error(`Failed to delete folder ${folderPath}: ${err.message}`);
@@ -464,179 +487,73 @@ const deleteFolder = async (folderPath) => {
 };
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (
+    req: Request,
+    file: Express.Multer.File,
+    cb: DestinationCallback
+  ) => {
     let dir = "";
+    const { userId } = req.params;
     switch (file.fieldname) {
       case "avatar":
-        const { userId } = req.params;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
-          return cb("Error: Invalid user ID");
+          return cb(new Error("Error: Invalid user ID"), "");
         }
         dir = path.join(`assets/images/users/${userId}`);
         break;
-      case "categoryImg":
-        const { categoryId } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-          logger.error(`Invalid category ID: ${categoryId}`);
-          return cb("Error: Invalid category ID");
-        }
-        dir = path.join(`assets/images/categories/${categoryId}`);
-        break;
-      case "categoryUrl":
-        dir = path.join(`assets/images/categories/create`);
-        break;
-      case "video":
-        const userIdFromToken = req.userId;
-        dir = path.join(`assets/videos/${userIdFromToken}/${Date.now()}`);
-        break;
-      case "videoThumbnail":
-        const { videoId } = req.params;
-        dir = path.join(
-          `assets/videos/${videoId}/${
-            file.fieldname === "video" ? "source" : "thumbnail"
-          }`
-        );
-        break;
-      case "streamThumbnail":
-        const { streamId } = req.params;
-        dir = path.join(`assets/images/streams/${streamId}`);
-        break;
-      case "roomCreateImg":
-        dir = path.join(`assets/images/room/create`);
-        break;
-      case "roomUpdateImg":
-        const { roomId } = req.params;
-        dir = path.join(`assets/images/room/${roomId}`);
-        break;
-      case "playlistCreate":
-        dir = path.join(`assets/images/playlist/create`);
-        break;
-      case "playlistUpdate":
-        const { playlistId } = req.params;
-        dir = path.join(`assets/images/playlist/${playlistId}`);
-        break;
-      case "giftCreateImg":
-        dir = path.join(`assets/images/gifts/create`);
-        break;
-      case "giftUpdateImg":
-        const { id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-          logger.error(`Invalid gift ID: ${id}`);
-          return cb("Error: Invalid gift ID");
-        }
-        dir = path.join(`assets/images/gifts/${id}`);
-        break;
       default:
         logger.error(`Unknown field name: ${file.fieldname}`);
-        return cb(`Error: Unknown field name '${file.fieldname}'`);
+        return cb(
+          new Error(`Error: Unknown field name '${file.fieldname}'`),
+          ""
+        );
     }
 
     fs.mkdir(dir, { recursive: true }, (err) => {
       if (err) {
         logger.error(`Failed to create directory ${dir}: ${err.message}`);
-        return cb(err);
+        return cb(new Error(`${err}`), "");
       }
       cb(null, dir);
     });
   },
-  filename: async (req, file, cb) => {
-    let baseName = req.headers["content-length"] + "_" + Date.now(); // the file is named by the size of the file
+  filename: async (
+    req: Request,
+    file: Express.Multer.File,
+    cb: FileNameCallback
+  ) => {
+    const baseName = req.headers["content-length"] + "_" + Date.now(); // the file is named by the size of the file
     const ext = path.extname(file.originalname);
     let fileName = "";
     let dirPath = "";
-
+    const { userId } = req.params;
     switch (file.fieldname) {
       case "avatar":
-        const { userId } = req.params;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
-          return cb("Error: Invalid user ID");
+          return cb(new Error("Error: Invalid user ID"), "");
         }
         fileName = `${baseName}${ext}`;
         dirPath = path.join(`assets/images/users/${userId}`);
         break;
-      case "categoryUrl":
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/categories/create`);
-        break;
-      case "categoryImg":
-        const { categoryId } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-          logger.error(`Invalid category ID: ${categoryId}`);
-          return cb("Error: Invalid category ID");
-        }
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/categories/${categoryId}`);
-        break;
-      case "video":
-        const userIdFromToken = req.userId;
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/videos/${userIdFromToken}/${Date.now()}`);
-      case "videoThumbnail":
-        const { videoId } = req.params;
-        baseName = videoId;
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(
-          `assets/videos/${videoId}/${
-            file.fieldname === "video" ? "source" : "thumbnail"
-          }`
-        );
-        break;
-      case "streamThumbnail":
-        const { streamId } = req.params;
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/streams/${streamId}`);
-        break;
-      case "playlistCreate":
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/playlist/create`);
-        break;
-      case "playlistUpdate":
-        const { playlistId } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(playlistId)) {
-          logger.error(`Invalid playlist ID: ${playlistId}`);
-          return cb("Error: Invalid playlist ID");
-        }
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/playlist/${playlistId}`);
-        break;
-      case "roomCreateImg":
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/rooms/create`);
-        break;
-      case "roomUpdateImg":
-        const { roomId } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(roomId)) {
-          logger.error(`Invalid room ID: ${roomId}`);
-          return cb("Error: Invalid room ID");
-        }
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/rooms/${roomId}`);
-        break;
-      case "giftCreateImg":
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/gifts/create`);
-        break;
-      case "giftUpdateImg":
-        const { id } = req.params;
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-          logger.error(`Invalid gift ID: ${id}`);
-          return cb("Error: Invalid gift ID");
-        }
-        fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/gifts/${id}`);
-        break;
       default:
         logger.error(`Unknown field name: ${file.fieldname}`);
-        return cb(`Error: Unknown field name '${file.fieldname}'`);
+        return cb(
+          new Error(`Error: Unknown field name '${file.fieldname}'`),
+          ""
+        );
     }
     logger.info(`Saving file ${fileName} successfully to ${dirPath}`);
     cb(null, fileName);
   },
 });
 
-const fileFilter = (req, file, cb) => {
+const fileFilter = (
+  req: Request,
+  file: Express.Multer.File,
+  cb: FileFilterCallback
+) => {
   const allowedImageTypes = /jpeg|jpg|png|gif/;
   const allowedVideoTypes = /mp4|avi|flv|wmv/;
 
@@ -661,28 +578,28 @@ const fileFilter = (req, file, cb) => {
 
   const errorMessage = `Invalid format. ${formatMessage}`;
 
-  cb(new CoreException(StatusCodeEnums.BadRequest_400, errorMessage), false);
+  cb(new Error(errorMessage));
 };
 
-const videoFilter = (req, file, cb) => {
-  const allowedTypes = /mp4|avi|flv|wmv/;
-  const mimeType = allowedTypes.test(file.mimetype);
-  const extName = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase()
-  );
+// const videoFilter = (req, file, cb) => {
+//   const allowedTypes = /mp4|avi|flv|wmv/;
+//   const mimeType = allowedTypes.test(file.mimetype);
+//   const extName = allowedTypes.test(
+//     path.extname(file.originalname).toLowerCase()
+//   );
 
-  if (mimeType && extName) {
-    return cb(null, true);
-  }
-  logger.error("Error: Videos Only!");
-};
+//   if (mimeType && extName) {
+//     return cb(null, true);
+//   }
+//   logger.error("Error: Videos Only!");
+// };
 
 const uploadFile = multer({
   storage: storage,
   fileFilter: fileFilter,
 });
 
-module.exports = {
+export {
   uploadFile,
   deleteFile,
   deleteFolder,

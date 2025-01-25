@@ -42,8 +42,12 @@
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.3",
     "@paypal/paypal-server-sdk": "^0.6.1",
+    "@types/amqplib": "^0.10.6",
     "@types/express-session": "^1.18.1",
+    "@types/fluent-ffmpeg": "^2.1.27",
+    "@types/multer": "^1.4.12",
     "@types/paypal__checkout-server-sdk": "^1.0.8",
+    "amqplib": "^0.10.5",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",

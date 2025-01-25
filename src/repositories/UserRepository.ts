@@ -209,7 +209,7 @@ class UserRepository {
 
   /**
    * Fetches a user document by its ID (alternative implementation).
-   * @param userId - The ID of the user to retrieve.
+   * @param userId - The ID o f the user to retrieve.
    * @returns The user document or null if not found.
    * @throws Error when the query fails.
    */

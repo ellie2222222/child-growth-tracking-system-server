@@ -51,7 +51,7 @@ class UserController {
     }
   };
 
-  getUserIndivitually = async (
+  getUserById = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -60,7 +60,7 @@ class UserController {
       const { id } = req.params;
       const requesterId = req.userInfo.userId;
 
-      const user = await this.userService.getIndividualUser(id, requesterId);
+      const user = await this.userService.getUserById(id, requesterId);
 
       res.status(StatusCodeEnum.OK_200).json({
         user: user,
@@ -76,7 +76,7 @@ class UserController {
       const { page, size, search, order, sortBy } = req.query;
       const requesterId = req.userInfo.userId;
 
-      const data = await this.userService.getGroupUsers(
+      const data = await this.userService.getUsers(
         {
           page: parseInt(page as string) || 1,
           size: parseInt(size as string) || 10,
