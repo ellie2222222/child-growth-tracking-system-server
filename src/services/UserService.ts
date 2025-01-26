@@ -158,7 +158,7 @@ class UserService {
     }
   };
 
-  getIndividualUser = async (
+  getUserById = async (
     id: string | ObjectId,
     requesterId: string | ObjectId
   ): Promise<IUser | CustomException> => {
@@ -235,7 +235,7 @@ class UserService {
       );
     }
   };
-  getGroupUsers = async (
+  getUsers = async (
     Query: IQuery,
     requesterId: string | ObjectId
   ): Promise<returnData> => {

@@ -149,7 +149,7 @@ class UserHandler {
       next();
     }
   };
-  getUserIndivitually = async (
+  getUserById = async (
     req: Request,
     res: Response,
     next: NextFunction

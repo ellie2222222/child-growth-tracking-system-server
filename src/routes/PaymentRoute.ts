@@ -4,7 +4,7 @@ import PaymentController from "../controllers/PaymentController";
 const route = Router();
 const paymentController = new PaymentController();
 
-route.post("/paypal/create", paymentController.createPayment);
-route.get("/paypal/success", paymentController.successPayment);
-route.get("/paypal/failed", paymentController.canceledPayment);
+route.post("/paypal/create", paymentController.createPaypalPayment);
+route.get("/paypal/success", paymentController.successPaypalPayment);
+route.get("/paypal/failed", paymentController.canceledPaypalPayment);
 export default route;

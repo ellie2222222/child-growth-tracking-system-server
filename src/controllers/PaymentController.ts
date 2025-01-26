@@ -15,7 +15,7 @@ class PaymentController {
   constructor() {
     this.receiptService = new ReceiptService();
   }
-  createPayment = async (
+  createPaypalPayment = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -70,7 +70,7 @@ class PaymentController {
       next(error);
     }
   };
-  successPayment = async (
+  successPaypalPayment = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -138,7 +138,7 @@ class PaymentController {
       next(error);
     }
   };
-  canceledPayment = async (
+  canceledPaypalPayment = async (
     req: Request,
     res: Response
     // next: NextFunction
