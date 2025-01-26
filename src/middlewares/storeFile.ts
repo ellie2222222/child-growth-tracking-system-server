@@ -493,14 +493,32 @@ const storage = multer.diskStorage({
     cb: DestinationCallback
   ) => {
     let dir = "";
-    const { userId } = req.params;
+    let userId = req.userInfo.userId;
+    let postId;
     switch (file.fieldname) {
       case "avatar":
+        userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
           return cb(new Error("Error: Invalid user ID"), "");
         }
         dir = path.join(`assets/images/users/${userId}`);
+        break;
+      case "createPosts":
+        userId = req.userInfo.userId;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+          logger.error(`Invalid user ID: ${userId}`);
+          return cb(new Error("Error: Invalid user ID"), "");
+        }
+        dir = path.join(`assets/images/${userId}/post-attachments`);
+        break;
+      case "updatePosts":
+        userId = req.userInfo.userId;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+          logger.error(`Invalid user ID: ${userId}`);
+          return cb(new Error("Error: Invalid user ID"), "");
+        }
+        dir = path.join(`assets/images/${userId}/post-attachments`);
         break;
       default:
         logger.error(`Unknown field name: ${file.fieldname}`);
@@ -527,15 +545,35 @@ const storage = multer.diskStorage({
     const ext = path.extname(file.originalname);
     let fileName = "";
     let dirPath = "";
-    const { userId } = req.params;
+    let postId;
+    let userId = req.userInfo.userId;
     switch (file.fieldname) {
       case "avatar":
+        userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
           return cb(new Error("Error: Invalid user ID"), "");
         }
         fileName = `${baseName}${ext}`;
         dirPath = path.join(`assets/images/users/${userId}`);
+        break;
+      case "createPosts":
+        userId = req.userInfo.userId;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+          logger.error(`Invalid user ID: ${userId}`);
+          return cb(new Error("Error: Invalid user ID"), "");
+        }
+        fileName = `${baseName}${ext}`;
+        dirPath = path.join(`assets/images/${userId}/post-attachments`);
+        break;
+      case "updatePosts":
+        userId = req.userInfo.userId;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+          logger.error(`Invalid user ID: ${userId}`);
+          return cb(new Error("Error: Invalid user ID"), "");
+        }
+        fileName = `${baseName}${ext}`;
+        dirPath = path.join(`assets/images/${userId}/post-attachments`);
         break;
       default:
         logger.error(`Unknown field name: ${file.fieldname}`);

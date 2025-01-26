@@ -8,7 +8,7 @@ class PostRepository {
   constructor() {}
   async createPost(data: object, session?: mongoose.ClientSession) {
     try {
-      const post = await PostModel.create(data, { session });
+      const post = await PostModel.create([data], { session });
       return post;
     } catch (error) {
       if (error as Error | CustomException) {
@@ -72,8 +72,14 @@ class PostRepository {
         { $limit: size },
         { $sort: { [sortField]: sortOrder } },
       ]);
+      const totalPost = await PostModel.countDocuments(searchQuery);
 
-      return Posts;
+      return {
+        Posts,
+        page,
+        totalPost,
+        totalPage: Math.ceil(totalPost / size),
+      };
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

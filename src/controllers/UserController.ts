@@ -92,6 +92,7 @@ class UserController {
       next(error);
     }
   };
+
   updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
@@ -107,6 +108,7 @@ class UserController {
       next(error);
     }
   };
+
   deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
