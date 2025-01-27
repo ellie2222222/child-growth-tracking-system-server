@@ -1,18 +1,18 @@
 import validator from "validator";
-import StatusCodeEnums from "../enums/StatusCodeEnum";
 import mongoose, { Document } from "mongoose";
 import CustomException from "../exceptions/CustomException";
+import StatusCodeEnum from "../enums/StatusCodeEnum";
 
 // Validates if the ID is a valid Mongoose ObjectId
-const validateMongooseObjectId = (id: string): void => {
+const validateMongooseObjectId = (id: string): boolean => {
   try {
-    mongoose.Types.ObjectId.isValid(id);
+    return mongoose.Types.ObjectId.isValid(id);
   } catch (error) {
-    if (error as Error | CustomException) {
+    if (error instanceof Error || error instanceof CustomException) {
       throw error;
     }
     throw new CustomException(
-      StatusCodeEnums.InternalServerError_500,
+      StatusCodeEnum.InternalServerError_500,
       "Internal Server Error"
     );
   }
@@ -22,20 +22,20 @@ const validateMongooseObjectId = (id: string): void => {
 const validateName = async (name: string): Promise<void> => {
   if (!name) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Name is required"
     );
   }
   if (!validator.isLength(name, { min: 6, max: 50 })) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Name is invalid. It must be between 6 and 50 characters."
     );
   }
   const regex = /^[a-zA-Z0-9]+$/;
   if (!regex.test(name)) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Name is invalid. It should only contain alphanumeric characters."
     );
   }
@@ -45,13 +45,13 @@ const validateName = async (name: string): Promise<void> => {
 const validateEmail = async (email: string): Promise<void> => {
   if (!email) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Email is required"
     );
   }
   if (!validator.isEmail(email)) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Email is invalid"
     );
   }
@@ -61,7 +61,7 @@ const validateEmail = async (email: string): Promise<void> => {
 const validatePassword = async (password: string): Promise<void> => {
   if (!password) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Password is required"
     );
   }
@@ -75,7 +75,7 @@ const validatePassword = async (password: string): Promise<void> => {
     })
   ) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Password is invalid. It must be at least 8 characters, with 1 lowercase, 1 uppercase, 1 number, and 1 symbol."
     );
   }
@@ -85,13 +85,13 @@ const validatePassword = async (password: string): Promise<void> => {
 const validatePhoneNumber = async (phoneNumber: string): Promise<void> => {
   if (!phoneNumber) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Phone number is required"
     );
   }
   if (!validator.isMobilePhone(phoneNumber, "vi-VN")) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       "Phone number is invalid"
     );
   }
@@ -124,14 +124,14 @@ const validateLength = async (
 
   if (!validator.isLength(trimmedString, { min, max })) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       `${type} is invalid. It must be between ${min} and ${max} characters.`
     );
   }
 
   if (trimmedString.length === 0) {
     throw new CustomException(
-      StatusCodeEnums.BadRequest_400,
+      StatusCodeEnum.BadRequest_400,
       `${type} cannot be blank.`
     );
   }

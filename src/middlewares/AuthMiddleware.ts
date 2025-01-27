@@ -65,7 +65,7 @@ const AuthMiddleware = async (
     const token = authorization.split(" ")[1];
 
     try {
-      const { userId, email } = jwt.verify(
+      const { userId, email, role } = jwt.verify(
         token,
         process.env.ACCESS_TOKEN_SECRET!
       ) as IJwtPayload;
@@ -81,6 +81,7 @@ const AuthMiddleware = async (
         ...req.userInfo,
         userId,
         email,
+        role,
       };
 
       next();
