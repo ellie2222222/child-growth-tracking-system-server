@@ -74,6 +74,7 @@ const AuthMiddleware = async (
         res
           .status(StatusCodeEnum.Unauthorized_401)
           .json({ message: "Invalid token. Request is not authorized." });
+        return;
       }
 
       // Attach information to req for further process

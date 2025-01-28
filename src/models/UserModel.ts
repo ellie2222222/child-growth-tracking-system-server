@@ -46,7 +46,7 @@ const userModelSchema = new Schema<IUser>(
       required: true,
       default: false,
     },
-    verificationToken: {
+    verificationPin: {
       value: { type: String },
       expiresAt: { type: Date },
     },

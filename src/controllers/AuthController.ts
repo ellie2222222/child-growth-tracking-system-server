@@ -222,7 +222,7 @@ class AuthController {
   /**
    * Handles verifying token
    */
-  confirmEmailVerificationToken = async (
+  confirmEmailVerificationPin = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -230,7 +230,7 @@ class AuthController {
     try {
       const { token } = req.body;
 
-      await this.authService.confirmEmailVerificationToken(token);
+      await this.authService.confirmEmailVerificationPin(token);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
