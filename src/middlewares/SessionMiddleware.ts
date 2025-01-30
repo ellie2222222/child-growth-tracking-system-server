@@ -4,6 +4,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { UAParser } from "ua-parser-js";
 import geoIp from "geoip-lite";
 import CustomException from "../exceptions/CustomException";
+import SessionRepository from "../repositories/SessionRepository";
 
 const logger = getLogger("SESSION");
 
@@ -58,6 +59,27 @@ const SessionMiddleware = async (
       city: cityData,
       ll: llData,
     };
+
+    // Verify request's session ID
+    if (process.env.NODE_ENV === "PRODUCTION") {
+      const sessionId = req.cookies["sessionId"];
+      if (!sessionId) {
+        res.status(StatusCodeEnum.Unauthorized_401).json({
+          message: "Session ID is required",
+        });
+        return;
+      }
+      const sessionRepository = new SessionRepository();
+      const isExist = await sessionRepository.findSessionById(sessionId);
+      if (!isExist) {
+        res.status(StatusCodeEnum.Unauthorized_401).json({
+          message: "Invalid session ID",
+        });
+        return;
+      }
+    }
+
+    next();
   } catch (error) {
     logger.error(
       `Error extracting user request info: ${
@@ -67,8 +89,6 @@ const SessionMiddleware = async (
     res
       .status(StatusCodeEnum.InternalServerError_500)
       .json({ message: "Internal Server Error" });
-  } finally {
-    next();
   }
 };
 

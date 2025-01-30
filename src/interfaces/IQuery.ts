@@ -3,7 +3,7 @@ export interface IQuery {
   size: number;
   search?: string;
   order?: "ascending" | "descending";
-  sortBy?: "date";
+  sortBy?: "date" | "name" ;
 }
 
 //if change anything in here need change in getUsers in UserController

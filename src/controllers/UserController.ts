@@ -23,6 +23,9 @@ class UserController {
       const { role } = req.body;
 
       await this.userService.updateRole(userId, role, requesterRole);
+      res.status(StatusCodeEnum.OK_200).json({
+        message: "Update role successfully",
+      });
     } catch (error) {
       next(error);
     }

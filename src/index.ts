@@ -18,7 +18,8 @@ import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
 import userRoutes from "./routes/UserRoute";
-import limiter from "./middlewares/rateLimiter";
+import limiter from "./middlewares/RateLimiter";
+import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
@@ -93,6 +94,7 @@ app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/children", childRoutes);
 app.use("/api/posts", postRoute);
 app.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a><br>");

@@ -46,9 +46,7 @@ class AuthController {
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Login successful",
-        data: {
-          accessToken,
-        },
+        accessToken,
       });
     } catch (error) {
       next(error);
@@ -127,9 +125,7 @@ class AuthController {
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        data: {
-          accessToken: newAccessToken,
-        },
+        accessToken: newAccessToken,
       });
     } catch (error) {
       next(error);
@@ -226,7 +222,7 @@ class AuthController {
   /**
    * Handles verifying token
    */
-  confirmEmailVerificationToken = async (
+  confirmEmailVerificationPin = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -234,7 +230,7 @@ class AuthController {
     try {
       const { token } = req.body;
 
-      await this.authService.confirmEmailVerificationToken(token);
+      await this.authService.confirmEmailVerificationPin(token);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",

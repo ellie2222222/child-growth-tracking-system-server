@@ -20,24 +20,14 @@ const userModelSchema = new Schema<IUser>(
     googleId: {
       type: String,
       default: null,
-      // unique: true,
-      // index: true,
-    },
-    ipAddress: {
-      type: String,
-      default: "",
     },
     email: {
       type: String,
       default: "",
-      // unique: true,
-      // index: true,
     },
     phoneNumber: {
       type: String,
       default: null,
-      // unique: true,
-      // index: true,
     },
     password: {
       type: String,
@@ -56,7 +46,7 @@ const userModelSchema = new Schema<IUser>(
       required: true,
       default: false,
     },
-    verificationToken: {
+    verificationPin: {
       value: { type: String },
       expiresAt: { type: Date },
     },
@@ -70,18 +60,18 @@ const userModelSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
-//unque except default value
+// Unique except default value
 userModelSchema.index(
   { googleId: 1 },
-  { unique: true, partialFilterExpression: { googleId: { $ne: null } } }
+  { unique: true, partialFilterExpression: { googleId: { $exists: true } } }
 );
 userModelSchema.index(
   { email: 1 },
-  { unique: true, partialFilterExpression: { email: { $ne: "" } } }
+  { unique: true, partialFilterExpression: { email: { $exists: true } } }
 );
 userModelSchema.index(
   { phoneNumber: 1 },
-  { unique: true, partialFilterExpression: { phoneNumber: { $ne: null } } }
+  { unique: true, partialFilterExpression: { phoneNumber: { $exists: true } } }
 );
 
 const UserModel: Model<IUser> = mongoose.model<IUser>("User", userModelSchema);

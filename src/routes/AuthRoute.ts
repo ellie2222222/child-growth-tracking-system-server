@@ -34,8 +34,8 @@ authRoutes.post(
 );
 
 authRoutes.post(
-  "/confirm-email-verification-token",
-  authController.confirmEmailVerificationToken
+  "/confirm-email-verification-pin",
+  authController.confirmEmailVerificationPin
 );
 
 authRoutes.post(

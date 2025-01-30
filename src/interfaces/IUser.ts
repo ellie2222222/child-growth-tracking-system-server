@@ -5,14 +5,13 @@ export interface IUser extends Document {
   role: number;
   avatar: string;
   googleId: string;
-  ipAddress: string;
   email: string;
   phoneNumber: string;
   password: string;
   lastLogin: Date;
   isActive: boolean;
   isVerified: boolean;
-  verificationToken: {
+  verificationPin: {
     value: string | null;
     expiresAt: Date | null;
   };

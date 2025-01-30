@@ -600,31 +600,16 @@ class AuthService {
         );
       }
 
-      const token = jwt.sign(
-        { userId: user._id },
-        process.env.EMAIL_TOKEN_SECRET!,
-        {
-          expiresIn: "1h",
-        }
-      );
-
-      const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Email Verification",
-        html: `<p>Click the link below to verify your email:</p>
-              <a href="${verificationUrl}">${verificationUrl}</a>`,
-      };
-
-      // Hash and store verification token
+      // Generate and hash PIN
+      const pin = Math.floor(100000 + Math.random() * 900000).toString();
       const saltRounds = 10;
       const salt = await bcrypt.genSalt(saltRounds);
-      const hashedToken = await bcrypt.hash(token, salt);
+      const hashedPin = await bcrypt.hash(pin, salt);
+
+      // Store hashed PIN
       const updateData: Partial<IUser> = {
-        verificationToken: {
-          value: hashedToken,
+        verificationPin: {
+          value: hashedPin,
           expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
         },
       };
@@ -633,6 +618,13 @@ class AuthService {
         updateData,
         session
       );
+
+      const mailOptions: Mail.Options = {
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: `Email Verification PIN: ${pin}`,
+        html: `<p>Email Verification PIN: ${pin}</p>`,
+      };
 
       await sendMail(mailOptions);
 
@@ -654,7 +646,7 @@ class AuthService {
    * @param token - The JWT token from the verification email.
    * @returns A void promise.
    */
-  confirmEmailVerificationToken = async (token: string): Promise<void> => {
+  confirmEmailVerificationPin = async (token: string): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
       const payload: any = jwt.verify(token, process.env.EMAIL_TOKEN_SECRET!);
@@ -676,7 +668,7 @@ class AuthService {
         );
       }
 
-      if (!user.verificationToken || !user.verificationToken.value) {
+      if (!user.verificationPin || !user.verificationPin.value) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
           "Invalid email verification token"
@@ -685,7 +677,7 @@ class AuthService {
 
       const isTokenValid = await bcrypt.compare(
         token,
-        user.verificationToken.value
+        user.verificationPin.value
       );
       if (!isTokenValid) {
         throw new CustomException(
@@ -695,8 +687,8 @@ class AuthService {
       }
 
       if (
-        !user.verificationToken.expiresAt ||
-        user.verificationToken.expiresAt < new Date()
+        !user.verificationPin.expiresAt ||
+        user.verificationPin.expiresAt < new Date()
       ) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
@@ -707,7 +699,7 @@ class AuthService {
       // Clear verification token after verification
       const updateData: Partial<IUser> = {
         isVerified: true,
-        verificationToken: {
+        verificationPin: {
           value: null,
           expiresAt: null,
         },
@@ -742,7 +734,6 @@ class AuthService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
-      throw error;
     }
   };
 }
