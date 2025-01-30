@@ -20,12 +20,19 @@ class CommentRepository {
     }
   }
 
-  async getComment(id: string | ObjectId) {
+  async getComment(id: string | ObjectId, ignoreDeleted: boolean) {
     try {
-      const comment = await CommentModel.findOne({
+      type searchQuery = {
+        _id: mongoose.Types.ObjectId;
+        isDeleted?: boolean;
+      };
+      const searchQuery: searchQuery = {
         _id: new mongoose.Types.ObjectId(id as string),
-        isDeleted: false,
-      });
+      };
+      if (!ignoreDeleted) {
+        searchQuery.isDeleted = false;
+      }
+      const comment = await CommentModel.findOne(searchQuery);
       if (!comment) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -44,14 +51,25 @@ class CommentRepository {
     }
   }
 
-  async getCommentsByPostId(postId: string | ObjectId, query: IQuery) {
+  async getCommentsByPostId(
+    postId: string | ObjectId,
+    query: IQuery,
+    ignoreDeleted: boolean
+  ) {
     try {
+      type searchQuery = {
+        postId: mongoose.Types.ObjectId;
+        isDeleted?: boolean;
+      };
+      const searchQuery: searchQuery = {
+        postId: new mongoose.Types.ObjectId(postId as string),
+      };
+      if (!ignoreDeleted) {
+        searchQuery.isDeleted = false;
+      }
       const comments = await CommentModel.aggregate([
         {
-          $match: {
-            postId: new mongoose.Types.ObjectId(postId as string),
-            isDeleted: false,
-          },
+          $match: searchQuery,
           $skip: (query.page - 1) * query.size,
           $limit: query.size,
         },
@@ -62,7 +80,13 @@ class CommentRepository {
           "No comment found for this post"
         );
       }
-      return comments;
+      const totalComment = await CommentModel.countDocuments(searchQuery);
+      return {
+        comments,
+        page: query.page || 1,
+        total: totalComment,
+        totalPages: Math.ceil(totalComment / query.size),
+      };
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

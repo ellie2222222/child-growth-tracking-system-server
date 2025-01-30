@@ -115,12 +115,18 @@ class PostService {
     id: string | ObjectId,
     title: string,
     content: string,
-    attachments: Array<string>
+    attachments: Array<string>,
+    requesterId: string
   ) => {
     const session = await this.database.startTransaction();
     try {
       const oldPost = await this.postRepository.getPost(id, true);
-
+      if (requesterId.toString() !== oldPost.userId.toString()) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You are not allowed to update this post"
+        );
+      }
       const post = await this.postRepository.updatePost(
         id,
         {
@@ -148,10 +154,17 @@ class PostService {
     }
   };
 
-  deletePost = async (id: string | ObjectId) => {
+  deletePost = async (id: string | ObjectId, requesterId: string) => {
     const session = await this.database.startTransaction();
 
     try {
+      const oldPost = await this.postRepository.getPost(id, true);
+      if (requesterId.toString() !== oldPost.userId.toString()) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You are not allowed to update this post"
+        );
+      }
       const post = await this.postRepository.deletePost(id, session);
       await this.database.commitTransaction();
       return post;

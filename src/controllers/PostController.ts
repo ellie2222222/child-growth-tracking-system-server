@@ -79,6 +79,7 @@ class PostController {
       const { id } = req.params;
       const { title, content } = req.body;
       const files = req.files as Express.Multer.File[]; // Explicitly cast req.files to array
+      const requesterId = req.userInfo.userId;
 
       let attachments: string[] = [];
       if (files) {
@@ -89,7 +90,8 @@ class PostController {
         id,
         title,
         content,
-        attachments
+        attachments,
+        requesterId
       );
 
       res
@@ -102,11 +104,13 @@ class PostController {
       next(error);
     }
   };
+
   deletePost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
+      const requesterId = req.userInfo.userId;
 
-      await this.postService.deletePost(id);
+      await this.postService.deletePost(id, requesterId);
 
       res
         .status(StatusCodeEnum.OK_200)
