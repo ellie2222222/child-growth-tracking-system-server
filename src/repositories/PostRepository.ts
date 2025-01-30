@@ -21,12 +21,19 @@ class PostRepository {
     }
   }
 
-  async getPost(id: ObjectId | string) {
+  async getPost(id: ObjectId | string, ignoreDeleted: boolean) {
     try {
-      const post = await PostModel.findOne({
+      type searchQuery = {
+        _id: mongoose.Types.ObjectId;
+        isDeleted?: boolean;
+      };
+      const searchQuery: searchQuery = {
         _id: new mongoose.Types.ObjectId(id as string),
-        isDeleted: false,
-      });
+      };
+      if (!ignoreDeleted) {
+        searchQuery.isDeleted = false;
+      }
+      const post = await PostModel.findOne(searchQuery);
 
       if (!post) {
         throw new CustomException(
@@ -47,18 +54,22 @@ class PostRepository {
     }
   }
 
-  async getPosts(query: IQuery) {
+  async getPosts(query: IQuery, ignoreDeleted: boolean) {
     const { page, size, search, order, sortBy } = query;
     type searchQuery = {
-      isDeleted: false;
+      isDeleted?: boolean;
       title?: { $regex: string; $options: string };
     };
 
     try {
-      const searchQuery: searchQuery = { isDeleted: false };
+      const searchQuery: searchQuery = {};
+      if (!ignoreDeleted) {
+        searchQuery.isDeleted = false;
+      }
       if (search && search !== "") {
         searchQuery.title = { $regex: search, $options: "i" };
       }
+
       let sortField = "createdAt";
       if (sortBy === "date") sortField = "createdAt";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;

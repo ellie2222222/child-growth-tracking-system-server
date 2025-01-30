@@ -46,12 +46,22 @@ class UserRepository {
    * @returns The user document or null if not found.
    * @throws Error when the query fails.
    */
-  async getUserById(userId: string): Promise<IUser | null> {
+  async getUserById(
+    userId: string,
+    ignoreDeleted: boolean
+  ): Promise<IUser | null> {
     try {
-      const user = await UserModel.findOne({
+      type searchQuery = {
+        _id: mongoose.Types.ObjectId;
+        isDeleted?: boolean;
+      };
+      const searchQuery: searchQuery = {
         _id: new mongoose.Types.ObjectId(userId),
-        isDeleted: false,
-      });
+      };
+      if (!ignoreDeleted) {
+        searchQuery.isDeleted = false;
+      }
+      const user = await UserModel.findOne(searchQuery);
       return user;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
@@ -243,18 +253,21 @@ class UserRepository {
 
   async getAllUsersRepository(
     query: IQuery,
+    ignoreDeleted: boolean,
     role?: number | Array<number>
   ): Promise<returnData> {
     type SearchQuery = {
-      isDeleted: boolean;
+      isDeleted?: boolean;
       role?: number | { $in: Array<number> };
       name?: { $regex: string; $options: string }; // Optional name property with regex
     };
     try {
       const { page, size, search, order, sortBy } = query;
-      const searchQuery: SearchQuery = {
-        isDeleted: false,
-      };
+      const searchQuery: SearchQuery = {};
+
+      if (!ignoreDeleted) {
+        searchQuery.isDeleted = false;
+      }
 
       if (search) {
         searchQuery.name = { $regex: search, $options: "i" };
