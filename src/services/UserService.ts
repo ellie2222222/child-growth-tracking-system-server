@@ -33,8 +33,9 @@ class UserService {
     requesterRole: number
   ): Promise<void> => {
     const session = await this.database.startTransaction();
+    const ignoreDeleted = false;
     try {
-      const user = await this.userRepository.getUserById(userId);
+      const user = await this.userRepository.getUserById(userId, ignoreDeleted);
 
       // Check if user exists
       if (!user) {
@@ -109,7 +110,11 @@ class UserService {
   ): Promise<IUser> => {
     try {
       const session = await this.database.startTransaction();
-      const checkUser = await this.userRepository.getUserById(requesterId);
+      const ignoreDeleted = false;
+      const checkUser = await this.userRepository.getUserById(
+        requesterId,
+        ignoreDeleted
+      );
       if (!checkUser) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -163,8 +168,10 @@ class UserService {
     requesterId: string | ObjectId
   ): Promise<IUser | CustomException> => {
     try {
+      let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
-        requesterId as string
+        requesterId as string,
+        ignoreDeleted
       );
 
       if (!checkRequester) {
@@ -173,8 +180,13 @@ class UserService {
           "Requester not found"
         );
       }
-
-      const checkUser = await this.userRepository.getUserById(id as string);
+      ignoreDeleted = [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
+        checkRequester.role
+      );
+      const checkUser = await this.userRepository.getUserById(
+        id as string,
+        ignoreDeleted
+      );
       if (!checkUser) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -239,8 +251,10 @@ class UserService {
     Query: IQuery,
     requesterId: string | ObjectId
   ): Promise<returnData> => {
+    let ignoreDeleted = false;
     const checkRequester = await this.userRepository.getUserById(
-      requesterId as string
+      requesterId as string,
+      ignoreDeleted
     );
 
     if (!checkRequester) {
@@ -249,37 +263,49 @@ class UserService {
         "Requester not found"
       );
     }
-
+    ignoreDeleted = [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
+      checkRequester.role
+    );
     try {
       let users;
       switch (checkRequester?.role) {
         case UserEnum.MEMBER:
           users = await this.userRepository.getAllUsersRepository(
             Query,
+            ignoreDeleted,
             UserEnum.DOCTOR
           );
           break;
         case UserEnum.DOCTOR:
-          users = await this.userRepository.getAllUsersRepository(Query, [
-            UserEnum.MEMBER,
-            UserEnum.DOCTOR,
-          ]);
+          users = await this.userRepository.getAllUsersRepository(
+            Query,
+            ignoreDeleted,
+            [UserEnum.MEMBER, UserEnum.DOCTOR]
+          );
           break;
         case UserEnum.ADMIN:
-          users = await this.userRepository.getAllUsersRepository(Query, [
-            UserEnum.MEMBER,
-            UserEnum.DOCTOR,
-            UserEnum.ADMIN,
-            UserEnum.SUPER_ADMIN,
-          ]);
+          users = await this.userRepository.getAllUsersRepository(
+            Query,
+            ignoreDeleted,
+            [
+              UserEnum.MEMBER,
+              UserEnum.DOCTOR,
+              UserEnum.ADMIN,
+              UserEnum.SUPER_ADMIN,
+            ]
+          );
           break;
         case UserEnum.SUPER_ADMIN:
-          users = await this.userRepository.getAllUsersRepository(Query, [
-            UserEnum.MEMBER,
-            UserEnum.DOCTOR,
-            UserEnum.ADMIN,
-            UserEnum.SUPER_ADMIN,
-          ]);
+          users = await this.userRepository.getAllUsersRepository(
+            Query,
+            ignoreDeleted,
+            [
+              UserEnum.MEMBER,
+              UserEnum.DOCTOR,
+              UserEnum.ADMIN,
+              UserEnum.SUPER_ADMIN,
+            ]
+          );
           break;
         default:
           throw new CustomException(
@@ -307,10 +333,11 @@ class UserService {
     }
   ) => {
     const session = await this.database.startTransaction();
-
+    const ignoreDeleted = false;
     try {
       const checkRequester = await this.userRepository.getUserById(
-        requesterId as string
+        requesterId as string,
+        ignoreDeleted
       );
 
       if (!checkRequester) {
@@ -320,7 +347,10 @@ class UserService {
         );
       }
 
-      const checkUser = await this.userRepository.getUserById(id as string);
+      const checkUser = await this.userRepository.getUserById(
+        id as string,
+        ignoreDeleted
+      );
       if (!checkUser) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -390,8 +420,10 @@ class UserService {
     requesterId: string | ObjectId
   ) => {
     try {
+      const ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
-        requesterId as string
+        requesterId as string,
+        ignoreDeleted
       );
 
       if (!checkRequester) {
@@ -401,7 +433,10 @@ class UserService {
         );
       }
 
-      const checkUser = await this.userRepository.getUserById(id as string);
+      const checkUser = await this.userRepository.getUserById(
+        id as string,
+        ignoreDeleted
+      );
 
       if (!checkUser) {
         throw new CustomException(

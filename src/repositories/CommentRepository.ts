@@ -1,15 +1,14 @@
-import mongoose, { ObjectId } from "mongoose";
-import StatusCodeEnum from "../enums/StatusCodeEnum";
+import mongoose, { ClientSession, ObjectId } from "mongoose";
+import CommentModel from "../models/CommentModel";
 import CustomException from "../exceptions/CustomException";
-import PostModel from "../models/PostModel";
+import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
 
-class PostRepository {
-  constructor() {}
-  async createPost(data: object, session?: mongoose.ClientSession) {
+class CommentRepository {
+  async createComment(data: object, session?: mongoose.ClientSession) {
     try {
-      const post = await PostModel.create([data], { session });
-      return post;
+      const comment = await CommentModel.create(data, { session });
+      return comment;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -21,7 +20,7 @@ class PostRepository {
     }
   }
 
-  async getPost(id: ObjectId | string, ignoreDeleted: boolean) {
+  async getComment(id: string | ObjectId, ignoreDeleted: boolean) {
     try {
       type searchQuery = {
         _id: mongoose.Types.ObjectId;
@@ -33,16 +32,14 @@ class PostRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      const post = await PostModel.findOne(searchQuery);
-
-      if (!post) {
+      const comment = await CommentModel.findOne(searchQuery);
+      if (!comment) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
-          "Post not found"
+          "Comment not found"
         );
       }
-
-      return post;
+      return comment;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -54,48 +51,46 @@ class PostRepository {
     }
   }
 
-  async getPosts(query: IQuery, ignoreDeleted: boolean) {
-    const { page, size, search, order, sortBy } = query;
-    type searchQuery = {
-      isDeleted?: boolean;
-      title?: { $regex: string; $options: string };
-    };
-
+  async getCommentsByPostId(
+    postId: string | ObjectId,
+    query: IQuery,
+    ignoreDeleted: boolean
+  ) {
     try {
-      const searchQuery: searchQuery = {};
+      type searchQuery = {
+        postId: mongoose.Types.ObjectId;
+        isDeleted?: boolean;
+      };
+      const searchQuery: searchQuery = {
+        postId: new mongoose.Types.ObjectId(postId as string),
+      };
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      if (search && search !== "") {
-        searchQuery.title = { $regex: search, $options: "i" };
-      }
-
-      let sortField = "createdAt";
-      if (sortBy === "date") sortField = "createdAt";
-      const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
-      const skip = (page - 1) * size;
-
-      const Posts = await PostModel.aggregate([
+      const comments = await CommentModel.aggregate([
         {
           $match: searchQuery,
+          $skip: (query.page - 1) * query.size,
+          $limit: query.size,
         },
-        { $skip: skip },
-        { $limit: size },
-        { $sort: { [sortField]: sortOrder } },
       ]);
-      const totalPost = await PostModel.countDocuments(searchQuery);
-
+      if (comments.length === 0) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "No comment found for this post"
+        );
+      }
+      const totalComment = await CommentModel.countDocuments(searchQuery);
       return {
-        Posts,
-        page,
-        totalPost,
-        totalPage: Math.ceil(totalPost / size),
+        comments,
+        page: query.page || 1,
+        total: totalComment,
+        totalPages: Math.ceil(totalComment / query.size),
       };
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
       }
-
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
@@ -103,55 +98,49 @@ class PostRepository {
     }
   }
 
-  async updatePost(
+  async updateComment(
     id: string | ObjectId,
     data: object,
     session?: mongoose.ClientSession
   ) {
     try {
-      const post = await PostModel.findByIdAndUpdate(id, data, { session });
-
-      if (!post) {
+      const comment = await CommentModel.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(id as string) },
+        data,
+        { session, new: true }
+      );
+      if (!comment) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
-          "Post not found"
+          "Comment not found"
         );
       }
-
-      return post;
+      return comment;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
       }
-
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
     }
   }
-
-  async deletePost(id: string | ObjectId, session?: mongoose.ClientSession) {
+  async deleteComment(id: string | ObjectId, session?: ClientSession) {
     try {
-      const post = await PostModel.findByIdAndUpdate(
-        id,
+      const comment = await CommentModel.findOneAndUpdate(
+        {
+          _id: new mongoose.Types.ObjectId(id as string),
+          isDeleted: false,
+        },
         { $set: { isDeleted: true } },
-        { session }
+        { session, new: true }
       );
-
-      if (!post) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Post not found"
-        );
-      }
-
-      return post;
+      return comment;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
       }
-
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
@@ -159,4 +148,5 @@ class PostRepository {
     }
   }
 }
-export default PostRepository;
+
+export default CommentRepository;

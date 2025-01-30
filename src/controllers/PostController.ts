@@ -26,6 +26,7 @@ class PostController {
         content,
         attachments
       );
+
       res
         .status(StatusCodeEnum.Created_201)
         .json({ Post: post, message: "Post created successfully" });
@@ -40,7 +41,9 @@ class PostController {
   getPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const post = await this.postService.getPost(id);
+      const requesterId = req.userInfo.userId;
+      const post = await this.postService.getPost(id, requesterId);
+
       res.status(StatusCodeEnum.OK_200).json({
         Post: post,
         message: "Get post successfully",
@@ -53,13 +56,18 @@ class PostController {
   getPosts = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { page, size, search, order, sortBy } = req.query;
-      const posts = await this.postService.getPosts({
-        page: parseInt(page as string) || 1,
-        size: parseInt(size as string) || 10,
-        search: search as string,
-        order: (order as "ascending" | "descending") || "ascending",
-        sortBy: (sortBy as "date") || "date",
-      });
+      const requesterId = req.userInfo.userId;
+      const posts = await this.postService.getPosts(
+        {
+          page: parseInt(page as string) || 1,
+          size: parseInt(size as string) || 10,
+          search: search as string,
+          order: (order as "ascending" | "descending") || "ascending",
+          sortBy: (sortBy as "date") || "date",
+        },
+        requesterId
+      );
+
       res.status(StatusCodeEnum.OK_200).json(posts);
     } catch (error) {
       next(error);
@@ -71,16 +79,21 @@ class PostController {
       const { id } = req.params;
       const { title, content } = req.body;
       const files = req.files as Express.Multer.File[]; // Explicitly cast req.files to array
+      const requesterId = req.userInfo.userId;
+
       let attachments: string[] = [];
       if (files) {
         attachments = formatPathArray(files) as string[];
       }
+
       const post = await this.postService.updatePosts(
         id,
         title,
         content,
-        attachments
+        attachments,
+        requesterId
       );
+
       res
         .status(StatusCodeEnum.OK_200)
         .json({ Post: post, message: "Post updated successfully" });
@@ -91,10 +104,14 @@ class PostController {
       next(error);
     }
   };
+
   deletePost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      await this.postService.deletePost(id);
+      const requesterId = req.userInfo.userId;
+
+      await this.postService.deletePost(id, requesterId);
+
       res
         .status(StatusCodeEnum.OK_200)
         .json({ message: "Post deleted successfully" });
