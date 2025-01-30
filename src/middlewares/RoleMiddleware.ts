@@ -18,7 +18,10 @@ const RoleMiddleware = (roles: Array<number>) => {
       const { userId } = req.userInfo;
       const userRepository = new UserRepository();
 
-      const user: IUser | null = await userRepository.getUserById(userId);
+      const user: IUser | null = await userRepository.getUserById(
+        userId,
+        false
+      );
       if (!user) {
         res
           .status(StatusCodeEnum.NotFound_404)
@@ -33,7 +36,7 @@ const RoleMiddleware = (roles: Array<number>) => {
         return;
       }
 
-      if (!roles.includes(user?.role!)) {
+      if (!roles.includes(user?.role)) {
         res
           .status(StatusCodeEnum.Forbidden_403)
           .json({ message: "Unauthorized access" });
@@ -41,7 +44,7 @@ const RoleMiddleware = (roles: Array<number>) => {
       }
 
       next();
-    } catch (error) {
+    } catch {
       res
         .status(StatusCodeEnum.InternalServerError_500)
         .json({ message: "Internal Server Error" });

@@ -91,7 +91,10 @@ class AuthService {
       const payload = jwt.verify(refreshToken, refreshTokenSecret);
 
       if (typeof payload === "object" && payload.userId) {
-        const user = await this.userRepository.getUserById(payload.userId);
+        const user = await this.userRepository.getUserById(
+          payload.userId,
+          false
+        );
 
         if (!user) {
           throw new CustomException(
@@ -233,10 +236,13 @@ class AuthService {
         picture: string;
         sub: string;
       };
-  
+
       // Check if user already exists
-      let user: IUser | null = await this.userRepository.getGoogleUser(email, sub);
-  
+      let user: IUser | null = await this.userRepository.getGoogleUser(
+        email,
+        sub
+      );
+
       // If the user doesn't exist, create a new user
       if (!user) {
         user = await this.userRepository.createUser({
@@ -246,7 +252,7 @@ class AuthService {
           googleId: sub,
         });
       }
-  
+
       // Create session data
       const sessionDataCreation: Partial<ISession> = {
         userId: user._id as Schema.Types.ObjectId,
@@ -256,10 +262,12 @@ class AuthService {
         device: sessionData.device,
         os: sessionData.os,
       };
-      
+
       // Create the session
-      const sessionResult = await this.sessionService.createSession(sessionDataCreation);
-  
+      const sessionResult = await this.sessionService.createSession(
+        sessionDataCreation
+      );
+
       // Generate tokens
       const timestamp = new Date().toISOString();
       const payload = {
@@ -272,7 +280,7 @@ class AuthService {
       const accessToken = this.generateAccessToken(payload);
       const refreshToken = this.generateRefreshToken(payload);
       const sessionId = sessionResult._id?.toString() as string;
-  
+
       return {
         accessToken,
         refreshToken,
@@ -287,7 +295,7 @@ class AuthService {
         "Internal Server Error"
       );
     }
-  };  
+  };
 
   /**
    * Signs up a user and generates an access token.
@@ -348,7 +356,7 @@ class AuthService {
   sendResetPasswordPin = async (userId: string): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
-      const user = await this.userRepository.getUserById(userId);
+      const user = await this.userRepository.getUserById(userId, false);
 
       if (!user) {
         throw new CustomException(
@@ -407,7 +415,7 @@ class AuthService {
     const session = await this.database.startTransaction();
     try {
       // Validate user ID
-      const user = await this.userRepository.getUserById(userId);
+      const user = await this.userRepository.getUserById(userId, false);
 
       if (!user) {
         throw new CustomException(
@@ -478,7 +486,7 @@ class AuthService {
     const session = await this.database.startTransaction();
     try {
       // Validate user ID
-      const user = await this.userRepository.getUserById(userId);
+      const user = await this.userRepository.getUserById(userId, false);
 
       if (!user) {
         throw new CustomException(
@@ -540,7 +548,7 @@ class AuthService {
   ): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
-      const user = await this.userRepository.getUserById(userId);
+      const user = await this.userRepository.getUserById(userId, false);
 
       if (!user) {
         throw new CustomException(
@@ -652,7 +660,7 @@ class AuthService {
       const payload: any = jwt.verify(token, process.env.EMAIL_TOKEN_SECRET!);
       //idk type of payload from this
 
-      const user = await this.userRepository.getUserById(payload.userId);
+      const user = await this.userRepository.getUserById(payload.userId, false);
 
       if (!user) {
         throw new CustomException(

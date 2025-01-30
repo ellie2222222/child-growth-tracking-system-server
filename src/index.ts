@@ -18,9 +18,10 @@ import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
 import userRoutes from "./routes/UserRoute";
-import limiter from "./middlewares/RateLimiter";
+import limiter from "./middlewares/rateLimiter";
 import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
+import commentRoute from "./routes/CommentRoute";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -87,6 +88,8 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
+app.use("/", express.static(__dirname));
+
 // Routers
 app.use(RouteMiddleware);
 app.use(SessionMiddleware);
@@ -96,6 +99,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/children", childRoutes);
 app.use("/api/posts", postRoute);
+app.use("/api/comments", commentRoute);
 app.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a><br>");
 });

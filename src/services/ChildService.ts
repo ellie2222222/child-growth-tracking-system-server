@@ -33,10 +33,12 @@ class ChildService {
     try {
       // Prepare data
       childData.memberId = userId;
-      childData.relationships = [{
-        memberId: userId,
-        type: childData.relationship!,
-      }]
+      childData.relationships = [
+        {
+          memberId: userId,
+          type: childData.relationship!,
+        },
+      ];
 
       const createdChild = await this.childRepository.createChild(
         childData,
@@ -62,14 +64,14 @@ class ChildService {
    */
   getChildById = async (
     childId: string,
-    requesterInfo: Request["userInfo"],
+    requesterInfo: Request["userInfo"]
   ): Promise<IChild | null> => {
     try {
       const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
 
       // Check user existence
-      const user = await this.userRepository.getUserById(requesterId);
+      const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -79,9 +81,15 @@ class ChildService {
 
       // Get child with conditions
       let child: IChild | null = null;
-      if (requesterRole === UserEnum.ADMIN || requesterRole === UserEnum.SUPER_ADMIN) {
+      if (
+        requesterRole === UserEnum.ADMIN ||
+        requesterRole === UserEnum.SUPER_ADMIN
+      ) {
         child = await this.childRepository.getChildById(childId, true);
-      } else if (requesterRole === UserEnum.MEMBER || requesterRole === UserEnum.DOCTOR) {
+      } else if (
+        requesterRole === UserEnum.MEMBER ||
+        requesterRole === UserEnum.DOCTOR
+      ) {
         child = await this.childRepository.getChildById(childId, false);
       }
       if (!child) {
@@ -125,7 +133,7 @@ class ChildService {
   ): Promise<ChildrenData> => {
     try {
       const requesterRole = requesterInfo.role;
-      const user = await this.userRepository.getUserById(userId);
+      const user = await this.userRepository.getUserById(userId, false);
       if (!user) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -135,10 +143,24 @@ class ChildService {
 
       // Get child with conditions
       let data: ChildrenData;
-      if (requesterRole === UserEnum.ADMIN || requesterRole === UserEnum.SUPER_ADMIN) {
-        data = await this.childRepository.getChildrenByUserId(userId, query, true);
-      } else if (requesterRole === UserEnum.MEMBER || requesterRole === UserEnum.DOCTOR) {
-        data = await this.childRepository.getChildrenByUserId(userId, query, false);
+      if (
+        requesterRole === UserEnum.ADMIN ||
+        requesterRole === UserEnum.SUPER_ADMIN
+      ) {
+        data = await this.childRepository.getChildrenByUserId(
+          userId,
+          query,
+          true
+        );
+      } else if (
+        requesterRole === UserEnum.MEMBER ||
+        requesterRole === UserEnum.DOCTOR
+      ) {
+        data = await this.childRepository.getChildrenByUserId(
+          userId,
+          query,
+          false
+        );
       }
 
       return data!;
@@ -157,14 +179,14 @@ class ChildService {
    * Delete a child
    */
   deleteChild = async (
-    childId: string, 
-    requesterInfo: Request["userInfo"],
+    childId: string,
+    requesterInfo: Request["userInfo"]
   ): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
       const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
-      const user = await this.userRepository.getUserById(requesterId);
+      const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -174,9 +196,15 @@ class ChildService {
 
       // Get child with conditions
       let child: IChild | null = null;
-      if (requesterRole === UserEnum.ADMIN || requesterRole === UserEnum.SUPER_ADMIN) {
+      if (
+        requesterRole === UserEnum.ADMIN ||
+        requesterRole === UserEnum.SUPER_ADMIN
+      ) {
         child = await this.childRepository.getChildById(childId, true);
-      } else if (requesterRole === UserEnum.MEMBER || requesterRole === UserEnum.DOCTOR) {
+      } else if (
+        requesterRole === UserEnum.MEMBER ||
+        requesterRole === UserEnum.DOCTOR
+      ) {
         child = await this.childRepository.getChildById(childId, false);
       }
       if (!child) {
@@ -191,7 +219,10 @@ class ChildService {
         (relationship) => relationship.memberId.toString() === requesterId
       );
 
-      if (!isRelated && (requesterRole === UserEnum.DOCTOR || requesterRole === UserEnum.MEMBER)) {
+      if (
+        !isRelated &&
+        (requesterRole === UserEnum.DOCTOR || requesterRole === UserEnum.MEMBER)
+      ) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Child not found"
@@ -234,7 +265,7 @@ class ChildService {
     try {
       const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
-      const user = await this.userRepository.getUserById(requesterId);
+      const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -244,9 +275,15 @@ class ChildService {
 
       // Get child with conditions
       let child: IChild | null = null;
-      if (requesterRole === UserEnum.ADMIN || requesterRole === UserEnum.SUPER_ADMIN) {
+      if (
+        requesterRole === UserEnum.ADMIN ||
+        requesterRole === UserEnum.SUPER_ADMIN
+      ) {
         child = await this.childRepository.getChildById(childId, true);
-      } else if (requesterRole === UserEnum.MEMBER || requesterRole === UserEnum.DOCTOR) {
+      } else if (
+        requesterRole === UserEnum.MEMBER ||
+        requesterRole === UserEnum.DOCTOR
+      ) {
         child = await this.childRepository.getChildById(childId, false);
       }
       if (!child) {
@@ -256,12 +293,15 @@ class ChildService {
         );
       }
 
-       // Check if user is associated with the child in relationships
+      // Check if user is associated with the child in relationships
       const isRelated = child.relationships.some(
         (relationship) => relationship.memberId.toString() === requesterId
       );
 
-      if (!isRelated && (requesterRole === UserEnum.DOCTOR || requesterRole === UserEnum.MEMBER)) {
+      if (
+        !isRelated &&
+        (requesterRole === UserEnum.DOCTOR || requesterRole === UserEnum.MEMBER)
+      ) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Child not found"
@@ -280,7 +320,7 @@ class ChildService {
           "Child not found or cannot be updated"
         );
       }
-      
+
       await session.commitTransaction();
       return updatedChild;
     } catch (error) {
