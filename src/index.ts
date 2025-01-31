@@ -91,7 +91,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use("/", express.static(__dirname));
 
 // Routers
-app.use(RouteMiddleware);
+// app.use(RouteMiddleware);
 app.use(SessionMiddleware);
 app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);

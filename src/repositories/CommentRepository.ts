@@ -7,7 +7,7 @@ import { IQuery } from "../interfaces/IQuery";
 class CommentRepository {
   async createComment(data: object, session?: mongoose.ClientSession) {
     try {
-      const comment = await CommentModel.create(data, { session });
+      const comment = await CommentModel.create([data], { session });
       return comment;
     } catch (error) {
       if (error as Error | CustomException) {
@@ -29,10 +29,13 @@ class CommentRepository {
       const searchQuery: searchQuery = {
         _id: new mongoose.Types.ObjectId(id as string),
       };
+
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
+      console.log(searchQuery);
       const comment = await CommentModel.findOne(searchQuery);
+
       if (!comment) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -67,12 +70,13 @@ class CommentRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
+      console.log(searchQuery);
       const comments = await CommentModel.aggregate([
         {
           $match: searchQuery,
-          $skip: (query.page - 1) * query.size,
-          $limit: query.size,
         },
+        { $skip: (query.page - 1) * query.size },
+        { $limit: query.size },
       ]);
       if (comments.length === 0) {
         throw new CustomException(
