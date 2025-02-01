@@ -109,7 +109,10 @@ class PostRepository {
     session?: mongoose.ClientSession
   ) {
     try {
-      const post = await PostModel.findByIdAndUpdate(id, data, { session });
+      const post = await PostModel.findByIdAndUpdate(id, data, {
+        session,
+        new: true,
+      });
 
       if (!post) {
         throw new CustomException(
