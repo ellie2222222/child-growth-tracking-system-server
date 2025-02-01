@@ -197,6 +197,7 @@ class CommentHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }

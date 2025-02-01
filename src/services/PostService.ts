@@ -121,21 +121,34 @@ class PostService {
     const session = await this.database.startTransaction();
     try {
       const oldPost = await this.postRepository.getPost(id, true);
+
       if (requesterId.toString() !== oldPost.userId.toString()) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You are not allowed to update this post"
         );
       }
-      const post = await this.postRepository.updatePost(
-        id,
-        {
-          title,
-          content,
-          attachments,
-        },
-        session
-      );
+
+      type data = {
+        title?: string;
+        content?: string;
+        attachments?: Array<string>;
+      };
+
+      const data: data = {};
+
+      if (title) {
+        data.title = title;
+      }
+
+      if (content) {
+        data.content = content;
+      }
+
+      if (attachments) {
+        data.attachments = attachments;
+      }
+      const post = await this.postRepository.updatePost(id, data, session);
 
       await this.database.commitTransaction();
 

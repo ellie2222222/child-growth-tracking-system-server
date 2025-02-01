@@ -22,7 +22,7 @@ import limiter from "./middlewares/rateLimiter";
 import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
-
+import membershipPackageRoute from "./routes/MembershipPackageRoute";
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
 const app: Application = express();
@@ -88,10 +88,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use("/", express.static(__dirname));
+// Serve assets correctly
+app.use("/assets", express.static("assets"));
 
 // Routers
-app.use(RouteMiddleware);
+// app.use(RouteMiddleware);
 app.use(SessionMiddleware);
 app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
@@ -104,6 +105,7 @@ app.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a><br>");
 });
 app.use("/api/receipt", receiptRoutes);
+app.use("/api/membership-packages", membershipPackageRoute);
 app.use(ErrorLogMiddleware);
 
 // Start server

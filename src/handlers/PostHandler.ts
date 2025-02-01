@@ -60,7 +60,7 @@ class PostHandler {
   getPosts = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
 
-    const { page, size, search, order, sortBy } = req.query;
+    const { page, size, order, sortBy } = req.query;
 
     if (page && isNaN(parseInt(page as string))) {
       validationErrors.push({
@@ -106,17 +106,10 @@ class PostHandler {
       validationErrors.push({ field: "id", error: "Invalid post Id" });
     }
 
-    if (!title && !validator.isLength(title, { min: 6, max: 150 })) {
+    if (title && !validator.isLength(title, { min: 6, max: 150 })) {
       validationErrors.push({
         field: "title",
         error: "Title is required and should be between 6 and 150 characters",
-      });
-    }
-
-    if (!content) {
-      validationErrors.push({
-        field: "content",
-        error: "Content is required",
       });
     }
 
