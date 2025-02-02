@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
@@ -8,16 +8,19 @@ import Database from "../utils/database";
 import SessionService from "./SessionService";
 import { IQuery } from "../interfaces/IQuery";
 import { returnData } from "../repositories/UserRepository";
+import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 
 class UserService {
   private userRepository: UserRepository;
   private sessionService: SessionService;
   private database: Database;
+  private membershipPackageRepository: MembershipPackageRepository;
 
   constructor() {
     this.userRepository = new UserRepository();
     this.sessionService = new SessionService();
     this.database = Database.getInstance();
+    this.membershipPackageRepository = new MembershipPackageRepository();
   }
 
   /**
@@ -473,6 +476,76 @@ class UserService {
           );
       }
     } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  updatesubscription = async (
+    id: string | ObjectId,
+    membershipPackageId: string | mongoose.Types.ObjectId
+  ) => {
+    const session = await this.database.startTransaction();
+    try {
+      const checkUser = await this.userRepository.getUserById(
+        id as string,
+        false
+      );
+
+      if (!checkUser) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      const checkMembershipPackage =
+        await this.membershipPackageRepository.getMembershipPackage(
+          membershipPackageId as string,
+          true
+        );
+
+      if (!checkMembershipPackage) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Membership package not found in database"
+        );
+      }
+
+      const subscription = checkUser.subscription;
+      const membershipPackageObjectId = new mongoose.Types.ObjectId(
+        membershipPackageId as string
+      );
+      if (checkUser.subscription.currentPlan !== null) {
+        (subscription.futureMemberships as Array<mongoose.Types.ObjectId>).push(
+          membershipPackageObjectId
+        );
+      } else {
+        subscription.currentPlan = membershipPackageObjectId;
+        subscription.tier = checkMembershipPackage.tier;
+        subscription.startDate = new Date();
+        subscription.endDate = new Date(
+          Date.now() + 3600 * 24 * checkMembershipPackage.duration.value * 1000
+        );
+      }
+      const user = await this.userRepository.updateUserById(
+        id as string,
+        {
+          ...checkUser,
+          subscription: subscription,
+        },
+        session
+      );
+
+      await session.commitTransaction();
+      return user;
+    } catch (error) {
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }

@@ -45,11 +45,11 @@ class CommentService {
         session
       );
 
-      this.database.commitTransaction();
+      await session.commitTransaction();
 
       return comment;
     } catch (error) {
-      this.database.abortTransaction();
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }
@@ -57,6 +57,8 @@ class CommentService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 
@@ -196,10 +198,10 @@ class CommentService {
         },
         session
       );
-      await this.database.commitTransaction();
+      await session.commitTransaction();
       return comment;
     } catch (error) {
-      await this.database.abortTransaction();
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }
@@ -207,6 +209,8 @@ class CommentService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 
@@ -231,10 +235,10 @@ class CommentService {
         );
       }
       await this.commentRepository.deleteComment(id, session);
-      await this.database.commitTransaction();
+      await session.commitTransaction();
       return true;
     } catch (error) {
-      await this.database.abortTransaction();
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }
@@ -242,6 +246,8 @@ class CommentService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 }

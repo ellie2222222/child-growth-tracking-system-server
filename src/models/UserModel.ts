@@ -55,6 +55,30 @@ const userModelSchema = new Schema<IUser>(
       expiresAt: { type: Date },
       isVerified: { type: Boolean, default: false },
     },
+    subscription: {
+      startDate: {
+        type: Date,
+        default: null,
+      },
+      endDate: {
+        type: Date,
+        default: null,
+      },
+      currentPlan: {
+        type: Schema.Types.ObjectId,
+        ref: "MembershipPackage",
+        default: null,
+      },
+      tier: {
+        type: Number,
+        default: null,
+      },
+      futureMemberships: {
+        type: [Schema.Types.ObjectId],
+        ref: "MembershipPackage",
+        default: [],
+      },
+    },
     ...baseModelSchema.obj,
   },
   { timestamps: true }

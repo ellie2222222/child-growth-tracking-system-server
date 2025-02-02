@@ -42,6 +42,20 @@ const ReceiptSchema = new Schema<IReceipt>(
     bankCode: {
       type: String,
     },
+    product: {
+      name: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        default: "",
+      },
+      id: {
+        type: Schema.Types.ObjectId,
+        ref: "MembershipPackage",
+      },
+    },
     type: {
       type: String,
       required: true,

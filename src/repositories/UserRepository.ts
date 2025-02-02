@@ -4,6 +4,8 @@ import { IUser } from "../interfaces/IUser";
 import { IQuery } from "../interfaces/IQuery";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
+import getLogger from "../utils/logger";
+import MembershipModel from "../models/MembershipPackage";
 export type returnData = {
   users: IUser[];
   page: number;
@@ -386,6 +388,94 @@ class UserRepository {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
+      );
+    }
+  }
+
+  async checkExpiration() {
+    try {
+      const users = await UserModel.aggregate([
+        {
+          $match: {
+            "subscription.endDate": { $lt: new Date() },
+            isDeleted: false,
+          },
+        },
+      ]);
+      return users;
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to check expiration: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+  async handleExpirations(userIds: Array<IUser>) {
+    try {
+      const Logger = getLogger("MEMBERSHIP_EXPIRATION");
+
+      for (const userId of userIds) {
+        const user = await UserModel.findOne({ _id: userId, isDeleted: false });
+
+        if (!user) {
+          Logger.error(`User with userId: ${userId} not found`);
+          continue;
+        }
+
+        const nextMembershipId = user.subscription.futureMemberships[0];
+
+        if (!nextMembershipId) {
+          // No future memberships, clear subscription
+          await UserModel.updateOne(
+            { _id: userId },
+            {
+              $set: {
+                "subscription.endDate": null,
+                "subscription.startDate": null,
+                "subscription.currentPlan": null,
+                "subscription.tier": null,
+              },
+            }
+          );
+          continue;
+        }
+
+        const membershipPackage = await MembershipModel.findById(
+          nextMembershipId
+        );
+
+        if (!membershipPackage) {
+          Logger.error(
+            `Membership package ${nextMembershipId} not found for user: ${userId}`
+          );
+          continue;
+        }
+
+        const newEndDate = new Date(
+          Date.now() +
+            3600 * 24 * (membershipPackage.duration.value as number) * 1000
+        );
+
+        // Update user's subscription and remove the used membership from futureMemberships
+        await UserModel.findByIdAndUpdate(userId, {
+          $set: {
+            "subscription.currentPlan": nextMembershipId,
+            "subscription.startDate": new Date(),
+            "subscription.endDate": newEndDate,
+          },
+          $pull: { "subscription.futureMemberships": nextMembershipId },
+        });
+      }
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Failed to handle expirations: ${(error as Error).message}`
       );
     }
   }
