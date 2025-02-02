@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Document, Types } from "mongoose";
 
 export interface IUser extends Document {
   name: string;
@@ -19,6 +19,13 @@ export interface IUser extends Document {
     value: string | null;
     expiresAt: Date | null;
     isVerified: boolean;
+  };
+  subscription: {
+    startDate: Date | null;
+    endDate: Date | null;
+    currentPlan: Types.ObjectId | null;
+    tier: number | null;
+    futureMemberships: Types.ObjectId[] | [];
   };
   isDeleted?: boolean;
   createdAt?: Date;

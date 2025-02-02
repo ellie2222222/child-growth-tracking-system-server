@@ -1,16 +1,17 @@
 import amqp, { Channel, Connection } from "amqplib";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import dotenv from "dotenv";
 
-const RABBITMQ_URL =
-  "amqps://tkbxfmbb:ozTJgfQPA299-hhETVjgLGIqQwI71-WR@armadillo.rmq.cloudamqp.com/tkbxfmbb";
+dotenv.config();
+const RABBITMQ_URL = process.env.RABBITMQ_URL;
 
 const createConnection = async (): Promise<{
   connection: Connection;
   channel: Channel;
 }> => {
   try {
-    const connection = await amqp.connect(RABBITMQ_URL);
+    const connection = await amqp.connect(RABBITMQ_URL as string);
     const channel = await connection.createChannel();
     return { connection, channel };
   } catch (error) {
@@ -23,6 +24,7 @@ const createConnection = async (): Promise<{
     );
   }
 };
+
 const closeConnection = async (connection: Connection, channel: Channel) => {
   try {
     if (channel) {

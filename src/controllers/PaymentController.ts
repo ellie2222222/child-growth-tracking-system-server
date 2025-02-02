@@ -4,27 +4,69 @@ import paypal from "@paypal/checkout-server-sdk";
 import { v4 as uuidv4 } from "uuid";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
 import ReceiptService from "../services/ReceiptService";
+import MembershipPackageService from "../services/MembershipPackagesService";
+import PaymentQueue from "../queue/PaymentQueue";
 interface ILink {
   href: string;
   rel: string;
   method: string;
 }
 class PaymentController {
+  private paymentQueue: PaymentQueue;
   private receiptService: ReceiptService;
+  private membershipPackageService: MembershipPackageService;
 
   constructor() {
     this.receiptService = new ReceiptService();
+    this.membershipPackageService = new MembershipPackageService();
+    this.paymentQueue = new PaymentQueue();
   }
   createPaypalPayment = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const { price } = req.body;
+    const { price, packageId } = req.body;
     const userId = req.userInfo.userId;
     const uniqueInvoiceId = uuidv4();
 
     try {
+      const testPackage =
+        await this.membershipPackageService.getMembershipPackage(
+          packageId,
+          userId
+        );
+
+      if (!testPackage) {
+        res
+          .status(StatusCodeEnums.NotFound_404)
+          .json({ message: "Membership package not found" });
+        return;
+      }
+
+      switch (testPackage.price.unit) {
+        case "USD":
+          if (parseFloat(price as string) !== testPackage.price.value) {
+            res.status(StatusCodeEnums.BadRequest_400).json({
+              message: "Price mismatch, please check the item's price",
+            });
+            return;
+          }
+          break;
+
+        case "VND":
+          if (parseFloat(price as string) !== testPackage.price.value * 25000) {
+            res.status(StatusCodeEnums.BadRequest_400).json({
+              message: "Price mismatch, please check the item's price",
+            });
+            return;
+          }
+          break;
+
+        default:
+          break;
+      }
+
       // Create a new order request
       const request = new paypal.orders.OrdersCreateRequest();
       request.requestBody({
@@ -37,7 +79,7 @@ class PaymentController {
               currency_code: "USD",
               value: price,
             },
-            custom_id: userId,
+            custom_id: `${userId}|${packageId}`,
           },
         ],
 
@@ -96,35 +138,26 @@ class PaymentController {
         const transactionId = capturedPaymentDetails?.id;
 
         const data = {
-          userId: capturedPaymentDetails?.custom_id,
+          userId: (capturedPaymentDetails?.custom_id as string).split("|")[0],
+          membershipPackageId: (
+            capturedPaymentDetails?.custom_id as string
+          ).split("|")[1],
           totalAmount: {
             value: capturedPaymentDetails?.amount?.value,
             currency: capturedPaymentDetails?.amount?.currency_code,
           },
+          transactionId,
           paymentMethod: "PAYPAL",
           paymentGateway: "PAYPAL",
           type: "PAYMENT",
         };
 
-        // const receipt =
-        await this.receiptService.createReceipt(
-          data.userId,
-          transactionId,
-          data.totalAmount,
-          data.paymentGateway,
-          data.paymentMethod,
-          data.type
-        );
-        // if (!receipt) {
-        //   console.log("Receipt not created");
-        // } else {
-        //   console.log("Receipt created", receipt);
-        // }
+        await this.paymentQueue.sendPaymentData(data);
+        const receipt = await this.paymentQueue.consumePaymentData();
 
         res.status(StatusCodeEnums.OK_200).json({
           message: "Payment processed successfully.",
-          transactionId,
-          details: response.result,
+          receipt: receipt,
         });
 
         return;
@@ -138,6 +171,7 @@ class PaymentController {
       next(error);
     }
   };
+
   canceledPaypalPayment = async (
     req: Request,
     res: Response

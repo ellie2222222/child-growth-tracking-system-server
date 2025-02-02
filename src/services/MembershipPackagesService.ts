@@ -6,6 +6,7 @@ import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { IMembershipPackage } from "../interfaces/IMembershipPackage";
 
 type PriceType = {
   value: number;
@@ -58,10 +59,15 @@ class MembershipPackageService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 
-  getMembershipPackage = async (id: string | ObjectId, requesterId: string) => {
+  getMembershipPackage = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<IMembershipPackage> => {
     try {
       let ignoreDeleted = false;
 
@@ -189,10 +195,10 @@ class MembershipPackageService {
           data,
           session
         );
-      await this.database.commitTransaction();
+      await session.commitTransaction();
       return membershipPackage;
     } catch (error) {
-      await this.database.abortTransaction();
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }
@@ -200,6 +206,8 @@ class MembershipPackageService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 
@@ -211,10 +219,10 @@ class MembershipPackageService {
           id,
           session
         );
-      await this.database.commitTransaction();
+      await session.commitTransaction();
       return result;
     } catch (error) {
-      await this.database.abortTransaction();
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }
@@ -222,6 +230,8 @@ class MembershipPackageService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 }

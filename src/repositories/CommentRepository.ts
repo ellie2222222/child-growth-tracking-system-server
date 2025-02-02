@@ -33,7 +33,8 @@ class CommentRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      console.log(searchQuery);
+      // console.log(searchQuery);
+
       const comment = await CommentModel.findOne(searchQuery);
 
       if (!comment) {
@@ -70,7 +71,8 @@ class CommentRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      console.log(searchQuery);
+      // console.log(searchQuery);
+
       const comments = await CommentModel.aggregate([
         {
           $match: searchQuery,

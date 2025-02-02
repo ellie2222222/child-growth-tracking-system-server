@@ -23,6 +23,7 @@ import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
 import membershipPackageRoute from "./routes/MembershipPackageRoute";
+import cronJob from "./utils/cron";
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
 const app: Application = express();
@@ -107,7 +108,7 @@ app.get("/", (req, res) => {
 app.use("/api/receipt", receiptRoutes);
 app.use("/api/membership-packages", membershipPackageRoute);
 app.use(ErrorLogMiddleware);
-
+cronJob.start();
 // Start server
 const port: number = Number(process.env.DEVELOPMENT_PORT) || 4000;
 

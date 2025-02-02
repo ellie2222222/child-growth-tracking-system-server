@@ -35,10 +35,10 @@ class PostService {
         session
       );
 
-      await this.database.commitTransaction();
+      await session.commitTransaction();
       return post;
     } catch (error) {
-      await this.database.abortTransaction();
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }
@@ -46,6 +46,8 @@ class PostService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 
@@ -150,13 +152,13 @@ class PostService {
       }
       const post = await this.postRepository.updatePost(id, data, session);
 
-      await this.database.commitTransaction();
+      await session.commitTransaction();
 
       cleanUpOldAttachments(oldPost.attachments);
 
       return post;
     } catch (error) {
-      await this.database.abortTransaction();
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }
@@ -164,6 +166,8 @@ class PostService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 
@@ -179,10 +183,10 @@ class PostService {
         );
       }
       const post = await this.postRepository.deletePost(id, session);
-      await this.database.commitTransaction();
+      await session.commitTransaction();
       return post;
     } catch (error) {
-      await this.database.abortTransaction();
+      await session.abortTransaction();
       if (error as Error | CustomException) {
         throw error;
       }
@@ -190,6 +194,8 @@ class PostService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    } finally {
+      await session.endSession();
     }
   };
 }

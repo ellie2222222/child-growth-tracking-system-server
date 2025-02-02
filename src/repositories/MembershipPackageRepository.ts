@@ -32,11 +32,14 @@ class MembershipPackageRepository {
         _id: new mongoose.Types.ObjectId(id as string),
       };
 
+      // console.log("in repo", searchQuery);
+
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
 
       const mempackage = await MembershipModel.findOne(searchQuery);
+      // console.log("data:", mempackage);
 
       if (!mempackage) {
         throw new CustomException(
