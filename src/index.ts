@@ -21,6 +21,7 @@ import userRoutes from "./routes/UserRoute";
 import limiter from "./middlewares/RateLimiter";
 import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
+import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -64,9 +65,7 @@ app.use(helmet());
 // CSRF middleware to ensure CSRF protection
 // app.use(CSRFMiddleware);
 
-app.use(express.json());
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
 
 // Log API requests
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -96,11 +95,20 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/children", childRoutes);
 app.use("/api/posts", postRoute);
+app.use("/api/growth-metrics", growthMetricsRoute);
+app.use("/api/receipt", receiptRoutes);
+
+// Google Login
 app.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a><br>");
 });
-app.use("/api/receipt", receiptRoutes);
+
+// Middleware for error logging
 app.use(ErrorLogMiddleware);
+
+// Express
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Start server
 const port: number = Number(process.env.DEVELOPMENT_PORT) || 4000;

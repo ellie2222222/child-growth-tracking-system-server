@@ -5,6 +5,7 @@ declare global {
   namespace Express {
     interface Request {
       isProtectedRoute: boolean,
+      excelJsonData: { [key: string]: any; }[],
       userInfo: {
         userId: string,
         email: string,
