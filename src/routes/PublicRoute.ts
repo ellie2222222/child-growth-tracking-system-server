@@ -23,7 +23,7 @@ const publicRoutes: PublicRoutes[] = [
   { path: "/api/payment/paypal/failed", method: "GET" },
 
   //Assets
-  { path: "/assets/*", method: "GET" },
+  { path: "/assets/:something", method: "GET" },
 ];
 
 export default publicRoutes;

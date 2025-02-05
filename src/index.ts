@@ -93,7 +93,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use("/assets", express.static("assets"));
 
 // Routers
-// app.use(RouteMiddleware);
+app.use(RouteMiddleware);
 app.use(SessionMiddleware);
 app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);

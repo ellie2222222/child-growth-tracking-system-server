@@ -9,7 +9,7 @@ const logger = getLogger("MEMBERSHIP");
 const task = cron.schedule(
   "* * * * *",
   async () => {
-    logger.info("Cron job started...");
+    // logger.info("Cron job started...");
 
     try {
       const userIds = await userRepository.checkExpiration();
@@ -18,7 +18,7 @@ const task = cron.schedule(
         await userRepository.handleExpirations(userIds);
         logger.info(`Processed ${userIds.length} expired memberships.`);
       } else {
-        logger.info("No memberships expired this cycle.");
+        // logger.info("No memberships expired this cycle.");
       }
     } catch (error) {
       logger.error(`Error in cron job: ${(error as Error).message}`);
@@ -27,6 +27,6 @@ const task = cron.schedule(
   { scheduled: true, timezone: "Asia/Ho_Chi_Minh" }
 );
 
-logger.info("Cron job initialized."); // Log when cron is initialized
+// logger.info("Cron job initialized."); // Log when cron is initialized
 
 export default task;
