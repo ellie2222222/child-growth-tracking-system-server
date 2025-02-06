@@ -22,14 +22,14 @@ class GrowthMetricsService {
 
   uploadGrowthMetricsFile = async (
     metric: string,
-    excelJsonData: Request["excelJsonData"],
+    excelJsonData: Request["excelJsonData"]
   ): Promise<{
     result: Array<object>;
     insertedCount: number;
     updatedCount: number;
   }> => {
+    const session = await this.database.startTransaction();
     try {
-      const session = await this.database.startTransaction();
 
       // Prepare return data
       let result: Array<object> = [];
@@ -46,15 +46,17 @@ class GrowthMetricsService {
                 agemonthrange !== undefined
                   ? `${Math.floor(agemonthrange)}-${Math.ceil(agemonthrange)}`
                   : agemonthrange,
-              L: l,
-              M: m,
-              S: s,
-              percentiles: Object.entries(percentiles)
-                .filter(([key]) => key.startsWith("p"))
-                .map(([key, value]) => ({
-                  percentile: parseFloat(key.replace(/^p/i, "")),
-                  value,
-                })),
+              percentiles: {
+                L: l,
+                M: m,
+                S: s,
+                values: Object.entries(percentiles)
+                  .filter(([key]) => key.startsWith("p"))
+                  .map(([key, value]) => ({
+                    percentile: parseFloat(key.replace(/^p/i, "")),
+                    value: value as number,
+                  })),
+              },
             })
           );
 
@@ -63,13 +65,14 @@ class GrowthMetricsService {
 
           for (const data of bmiTransformedData) {
             result.push(data);
-            const resultData: UpdateWriteOpResult = await this.growthMetricsRepository.updateBmiData(data, session);
+            const resultData: UpdateWriteOpResult =
+              await this.growthMetricsRepository.updateBmiData(data, session);
             updatedCount += resultData.modifiedCount;
             insertedCount += resultData.upsertedCount;
-            bmiProgressBar.update()
+            bmiProgressBar.update();
           }
-          
-          bmiProgressBar.complete(insertedCount, updatedCount)
+
+          bmiProgressBar.complete(insertedCount, updatedCount);
 
           break;
 
@@ -82,31 +85,34 @@ class GrowthMetricsService {
                 agemonthrange !== undefined
                   ? `${Math.floor(agemonthrange)}-${Math.ceil(agemonthrange)}`
                   : agemonthrange,
-              L: l,
-              M: m,
-              S: s,
-              percentiles: Object.entries(percentiles)
-                .filter(([key]) => key.startsWith("p"))
-                .map(([key, value]) => ({
-                  percentile: parseFloat(key.replace(/^p/i, "")),
-                  value,
-                })),
+              percentiles: {
+                L: l,
+                M: m,
+                S: s,
+                values: Object.entries(percentiles)
+                  .filter(([key]) => key.startsWith("p"))
+                  .map(([key, value]) => ({
+                    percentile: parseFloat(key.replace(/^p/i, "")),
+                    value: value as number,
+                  })),
+              },
             })
           );
-             
+
           const lhfaTotalRecords = lhfaTransformedData.length;
           const lhfaProgressBar = new ProgressBar(lhfaTotalRecords);
 
           for (const data of lhfaTransformedData) {
             result.push(data);
-            const resultData: UpdateWriteOpResult = await this.growthMetricsRepository.updateLhfaData(data, session);
+            const resultData: UpdateWriteOpResult =
+              await this.growthMetricsRepository.updateLhfaData(data, session);
             updatedCount += resultData.modifiedCount;
             insertedCount += resultData.upsertedCount;
-            lhfaProgressBar.update()
+            lhfaProgressBar.update();
           }
-          
-          lhfaProgressBar.complete(insertedCount, updatedCount)
-          
+
+          lhfaProgressBar.complete(insertedCount, updatedCount);
+
           break;
 
         case "WFA":
@@ -118,38 +124,41 @@ class GrowthMetricsService {
                 agemonthrange !== undefined
                   ? `${Math.floor(agemonthrange)}-${Math.ceil(agemonthrange)}`
                   : agemonthrange,
-              L: l,
-              M: m,
-              S: s,
-              percentiles: Object.entries(percentiles)
-                .filter(([key]) => key.startsWith("p"))
-                .map(([key, value]) => ({
-                  percentile: parseFloat(key.replace(/^p/i, "")),
-                  value,
-                })),
+              percentiles: {
+                L: l,
+                M: m,
+                S: s,
+                values: Object.entries(percentiles)
+                  .filter(([key]) => key.startsWith("p"))
+                  .map(([key, value]) => ({
+                    percentile: parseFloat(key.replace(/^p/i, "")),
+                    value: value as number,
+                  })),
+              },
             })
           );
-             
+
           const wfaTotalRecords = wfaTransformedData.length;
           const wfaProgressBar = new ProgressBar(wfaTotalRecords);
 
           for (const data of wfaTransformedData) {
             result.push(data);
-            const resultData: UpdateWriteOpResult = await this.growthMetricsRepository.updateWfaData(data, session);
+            const resultData: UpdateWriteOpResult =
+              await this.growthMetricsRepository.updateWfaData(data, session);
             updatedCount += resultData.modifiedCount;
             insertedCount += resultData.upsertedCount;
-            wfaProgressBar.update()
+            wfaProgressBar.update();
           }
 
-          wfaProgressBar.complete(insertedCount, updatedCount)
-          
+          wfaProgressBar.complete(insertedCount, updatedCount);
+
           break;
 
         default:
           break;
       }
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
 
       return {
         result,
@@ -157,7 +166,7 @@ class GrowthMetricsService {
         updatedCount,
       };
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }

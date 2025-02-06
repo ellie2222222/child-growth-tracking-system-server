@@ -5,13 +5,15 @@ export interface ILhfa extends Document {
   ageMonth: number;
   ageMonthRange: string;
   gender: GenderEnumType;
-  percentiles: Array<{ 
-    percentile: number;
-    value: number;
-  }>;
-  L: number,
-  M: number,
-  S: number,
+  percentiles: {
+    L: number;
+    M: number;
+    S: number;
+    values: Array<{ 
+      percentile: number;
+      value: number;
+    }>;
+  };
   isDeleted?: boolean;
   createdAt?: Date; 
   updatedAt?: Date; 
