@@ -32,10 +32,7 @@ const userModelSchema = new Schema<IUser>(
     password: {
       type: String,
     },
-    lastLogin: {
-      type: Date,
-      default: Date.now,
-    },
+
     isActive: {
       type: Boolean,
       required: true,
@@ -71,12 +68,12 @@ const userModelSchema = new Schema<IUser>(
       },
       tier: {
         type: Number,
-        default: null,
+        default: 0,
       },
-      futureMemberships: {
-        type: [Schema.Types.ObjectId],
+      futureMembership: {
+        type: Schema.Types.ObjectId,
         ref: "MembershipPackage",
-        default: [],
+        default: null,
       },
     },
     ...baseModelSchema.obj,

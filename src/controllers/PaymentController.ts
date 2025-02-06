@@ -6,6 +6,9 @@ import StatusCodeEnums from "../enums/StatusCodeEnum";
 import ReceiptService from "../services/ReceiptService";
 import MembershipPackageService from "../services/MembershipPackagesService";
 import PaymentQueue from "../queue/PaymentQueue";
+import UserService from "../services/UserService";
+import CustomException from "../exceptions/CustomException";
+import { IUser } from "../interfaces/IUser";
 interface ILink {
   href: string;
   rel: string;
@@ -15,12 +18,30 @@ class PaymentController {
   private paymentQueue: PaymentQueue;
   private receiptService: ReceiptService;
   private membershipPackageService: MembershipPackageService;
+  private userService: UserService;
 
   constructor() {
     this.receiptService = new ReceiptService();
     this.membershipPackageService = new MembershipPackageService();
     this.paymentQueue = new PaymentQueue();
+    this.userService = new UserService();
   }
+
+  private checkUserPackage = async (userId: string) => {
+    const user = await this.userService.getUserById(userId, userId);
+    if (!user) {
+      throw new CustomException(
+        StatusCodeEnums.BadRequest_400,
+        "User not found"
+      );
+    }
+    if ((user as IUser).subscription.futureMembership != null) {
+      throw new CustomException(
+        StatusCodeEnums.BadRequest_400,
+        "You can only prepurchase 1 package"
+      );
+    }
+  };
   createPaypalPayment = async (
     req: Request,
     res: Response,
@@ -31,6 +52,7 @@ class PaymentController {
     const uniqueInvoiceId = uuidv4();
 
     try {
+      this.checkUserPackage(userId);
       const testPackage =
         await this.membershipPackageService.getMembershipPackage(
           packageId,
