@@ -119,11 +119,11 @@ class SessionService {
         session
       );
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
 
       return result;
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }

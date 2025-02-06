@@ -90,9 +90,9 @@ class UserService {
 
       await this.sessionService.deleteSessionsByUserId(userId);
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -111,8 +111,8 @@ class UserService {
     type: string,
     requesterId: string
   ): Promise<IUser> => {
+    const session = await this.database.startTransaction();
     try {
-      const session = await this.database.startTransaction();
       const ignoreDeleted = false;
       const checkUser = await this.userRepository.getUserById(
         requesterId,
@@ -151,10 +151,10 @@ class UserService {
             "User type not supported"
           );
       }
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
       return user;
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -239,7 +239,6 @@ class UserService {
           );
       }
     } catch (error) {
-      await this.database.abortTransaction();
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -366,7 +365,7 @@ class UserService {
           id as string,
           data
         );
-        await this.database.commitTransaction();
+        await this.database.commitTransaction(session);
         return user;
       }
 
@@ -378,7 +377,7 @@ class UserService {
               data,
               session
             );
-            await this.database.commitTransaction();
+            await this.database.commitTransaction(session);
             return user;
           }
           throw new CustomException(
@@ -393,7 +392,7 @@ class UserService {
               data,
               session
             );
-            await this.database.commitTransaction();
+            await this.database.commitTransaction(session);
             return user;
           }
           throw new CustomException(
@@ -422,6 +421,7 @@ class UserService {
     id: string | ObjectId,
     requesterId: string | ObjectId
   ) => {
+    const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -451,7 +451,7 @@ class UserService {
         case UserEnum.ADMIN:
           if (checkUser?.role === UserEnum.DOCTOR) {
             const user = await this.userRepository.deleteUserById(id as string);
-            await this.database.commitTransaction();
+            await this.database.commitTransaction(session);
             return user;
           }
 
@@ -476,6 +476,7 @@ class UserService {
           );
       }
     } catch (error) {
+      await session.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }
@@ -486,7 +487,7 @@ class UserService {
     }
   };
 
-  updatesubscription = async (
+  updateSubscription = async (
     id: string | ObjectId,
     membershipPackageId: string | mongoose.Types.ObjectId
   ) => {
@@ -542,10 +543,10 @@ class UserService {
         session
       );
 
-      await session.commitTransaction();
+      await session.commitTransaction(session);
       return user;
     } catch (error) {
-      await session.abortTransaction();
+      await session.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }

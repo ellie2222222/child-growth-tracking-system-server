@@ -1,20 +1,23 @@
-import mongoose, { ClientSession } from "mongoose";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import getLoggers from "../utils/logger";
 import CustomException from "../exceptions/CustomException";
+import StatusCodeEnum from "../enums/StatusCodeEnum";
 
 dotenv.config();
 
 const logger = getLoggers("MONGOOSE");
+
+if (!process.env.DATABASE_URI || !process.env.DATABASE_NAME) {
+  logger.error("Missing required environment variables: DATABASE_URI or DATABASE_NAME");
+}
 const URI: string = process.env.DATABASE_URI!;
 const DBName: string = process.env.DATABASE_NAME!;
 
 class Database {
   private static instance: Database | null = null;
-  private session: ClientSession | null = null;
 
-  constructor() {
-    this.session = null;
+  private constructor() {
     this.connect().catch((error) => {
       logger.error(
         `Database connection error during constructor: ${error.message}`
@@ -36,9 +39,7 @@ class Database {
       logger.info(`Successfully connected to the database ${DBName}`);
     } catch (error) {
       logger.error(
-        `Database connection error: ${
-          (error as Error | CustomException).message
-        }`
+        `Database connection error: ${(error as Error | CustomException).message}`
       );
       if (error as Error | CustomException) {
         throw error;
@@ -47,25 +48,25 @@ class Database {
   }
 
   // Start a new database transaction
-  public async startTransaction(): Promise<ClientSession> {
+  public async startTransaction(): Promise<mongoose.ClientSession> {
     try {
-      this.session = await mongoose.startSession();
-      this.session.startTransaction();
-      return this.session;
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      return session;
     } catch (error) {
       logger.error(
         "Error starting transaction:",
         (error as Error | CustomException).message
       );
-      throw new Error((error as Error | CustomException).message);
+      throw new CustomException(StatusCodeEnum.InternalServerError_500, (error as Error | CustomException).message);
     }
   }
 
-  // Commit the transaction
-  public async commitTransaction(): Promise<void> {
+  // Commit the transaction (accept session as parameter)
+  public async commitTransaction(session: mongoose.ClientSession): Promise<void> {
     try {
-      if (this.session) {
-        await this.session.commitTransaction();
+      if (session) {
+        await session.commitTransaction();
         logger.info("Commit change to database successfully!");
       }
     } catch (error) {
@@ -73,17 +74,17 @@ class Database {
         "Error committing transaction:",
         (error as Error | CustomException).message
       );
-      throw new Error((error as Error | CustomException).message);
+      throw new CustomException(StatusCodeEnum.InternalServerError_500, (error as Error | CustomException).message);
     } finally {
-      await this.endSession(); // Ensure session is ended after commit
+      await this.endSession(session); // Ensure session is ended after commit
     }
   }
 
-  // Abort the transaction
-  public async abortTransaction(): Promise<void> {
+  // Abort the transaction (accept session as parameter)
+  public async abortTransaction(session: mongoose.ClientSession): Promise<void> {
     try {
-      if (this.session) {
-        await this.session.abortTransaction();
+      if (session) {
+        await session.abortTransaction();
         logger.info("Transaction aborted!");
       }
     } catch (error) {
@@ -91,30 +92,46 @@ class Database {
         "Error aborting transaction:",
         (error as Error | CustomException).message
       );
-      throw new Error((error as Error | CustomException).message);
+      throw new CustomException(StatusCodeEnum.InternalServerError_500, (error as Error | CustomException).message);
     } finally {
-      await this.endSession(); // Ensure session is ended after abort
+      await this.endSession(session); // Ensure session is ended after abort
     }
   }
 
-  // End the session
-  private async endSession(): Promise<void> {
-    if (this.session) {
-      await this.session.endSession();
-      this.session = null; // Clear session reference
-      logger.info("Session ended.");
+  // End the session (accept session as parameter)
+  private async endSession(session: mongoose.ClientSession): Promise<void> {
+    try {
+      if (session) {
+        await session.endSession();
+        logger.info("Session ended.");
+      }
+    } catch (error) {
+      logger.error(`Error ending session: ${(error as Error | CustomException).message}`);
+      throw new CustomException(StatusCodeEnum.InternalServerError_500, (error as Error | CustomException).message);
     }
   }
+
+  public async disconnect(): Promise<void> {
+    try {
+      await mongoose.disconnect();
+      logger.info("Disconnected from the database.");
+    } catch (error) {
+      logger.error(`Error disconnecting from database: ${(error as Error | CustomException).message}`);
+      throw new CustomException(StatusCodeEnum.InternalServerError_500, (error as Error | CustomException).message);
+    }
+  }  
+  
   public ensureObjectId(
     id: string | mongoose.Types.ObjectId
   ): mongoose.Types.ObjectId {
     if (typeof id === "string") {
       if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new Error(`Invalid ObjectId string: ${id}`);
+        throw new CustomException(StatusCodeEnum.InternalServerError_500, `Invalid ObjectId string: ${id}`);
       }
       return new mongoose.Types.ObjectId(id);
     }
     return id;
   }
 }
+
 export default Database;

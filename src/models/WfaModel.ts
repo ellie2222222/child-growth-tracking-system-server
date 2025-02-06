@@ -11,30 +11,18 @@ const wfaModelSchema = new Schema<IWfa>(
       enum: [GenderEnum.BOY, GenderEnum.GIRL],
       required: true,
     },
-    L: {
-      type: Number,
-      required: true,
-    },
-    M: {
-      type: Number,
-      required: true,
-    },
-    S: {
-      type: Number,
-      required: true,
-    },
-    percentiles: [
-      {
-        percentile: {
-          type: Number,
-          required: true,
+    percentiles: {
+      L: { type: Number, required: true },
+      M: { type: Number, required: true },
+      S: { type: Number, required: true },
+      values: [
+        {
+          percentile: { type: Number, required: true },
+          value: { type: Number, required: true },
+          _id: false,
         },
-        value: {
-          type: Number,
-          required: true,
-        },
-      },
-    ],
+      ],
+    },
     isDeleted: { 
         type: Boolean, 
         default: false 

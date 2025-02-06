@@ -159,12 +159,15 @@ class UserRepository {
    * @returns True if the operation is successful.
    * @throws Error when the update fails.
    */
-  async deleteUserById(userId: string): Promise<boolean> {
+  async deleteUserById(
+    userId: string, 
+    session?: mongoose.ClientSession
+  ): Promise<boolean> {
     try {
       await UserModel.findByIdAndUpdate(
         userId,
         { isDeleted: true },
-        { new: true }
+        { session, new: true },
       );
       return true;
     } catch (error) {
