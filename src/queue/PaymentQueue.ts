@@ -59,7 +59,7 @@ class PaymentQueue {
                   data.type
                 );
 
-                await this.userService.updatesubscription(
+                await this.userService.updateSubscription(
                   data.userId,
                   data.membershipPackageId
                 );

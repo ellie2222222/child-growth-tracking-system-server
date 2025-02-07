@@ -3,9 +3,9 @@ import { Request, Response, NextFunction } from "express";
 import getLogger from "../utils/logger";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
 import Database from "../utils/database";
-import { ClientSession } from "mongoose";
 import ErrorLogRepository from "../repositories/ErrorLogRepository";
 import CustomException from "../exceptions/CustomException";
+import mongoose from "mongoose";
 
 // Get logger instance for error logging
 const logger = getLogger("ERROR_LOG");
@@ -17,6 +17,7 @@ const ErrorLogMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   const database = Database.getInstance();
+  const session: mongoose.ClientSession = await database.startTransaction();
 
   try {
     const stack = err.stack || "";
@@ -55,15 +56,14 @@ const ErrorLogMiddleware = async (
         updatedAt: new Date(),
       };
 
-      const session: ClientSession = await database.startTransaction();
       const errorLogRepository = new ErrorLogRepository();
       await errorLogRepository.createErrorLog(errorLogData, session);
-      await database.commitTransaction();
+      await database.commitTransaction(session);
 
       logger.info(`Error Log saved to database`);
     }
   } catch (error) {
-    await database.abortTransaction();
+    await database.abortTransaction(session);
     if (error as Error) {
       logger.error(
         `Error saving error to database: ${(error as Error).message}`

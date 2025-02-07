@@ -334,9 +334,9 @@ class AuthService {
         session
       );
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -388,9 +388,9 @@ class AuthService {
 
       await sendMail(mailOptions);
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -458,9 +458,9 @@ class AuthService {
       };
       await this.userRepository.updateUserById(userId, updatePinData, session);
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -520,9 +520,9 @@ class AuthService {
 
       await this.sessionService.deleteSessionsByUserId(userId);
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -578,9 +578,9 @@ class AuthService {
 
       await this.sessionService.deleteSessionsByUserId(userId);
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -636,9 +636,9 @@ class AuthService {
 
       await sendMail(mailOptions);
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -718,9 +718,9 @@ class AuthService {
         session
       );
 
-      await this.database.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await this.database.abortTransaction();
+      await this.database.abortTransaction(session);
 
       if (error as Error) {
         if ((error as Error).name === "TokenExpiredError") {
