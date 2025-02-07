@@ -307,7 +307,6 @@ class UserRepository {
             createdAt: 1,
             updatedAt: 1,
             role: 1,
-            lastLogin: 1,
           },
         },
         { $sort: { [sortField]: sortOrder } },
@@ -431,7 +430,7 @@ class UserRepository {
           continue;
         }
 
-        const nextMembershipId = user.subscription.futureMemberships[0];
+        const nextMembershipId = user.subscription.futureMembership;
 
         if (!nextMembershipId) {
           // No future memberships, clear subscription
@@ -465,14 +464,14 @@ class UserRepository {
             3600 * 24 * (membershipPackage.duration.value as number) * 1000
         );
 
-        // Update user's subscription and remove the used membership from futureMemberships
+        // Update user's subscription and remove the used membership from futureMembership
         await UserModel.findByIdAndUpdate(userId, {
           $set: {
             "subscription.currentPlan": nextMembershipId,
             "subscription.startDate": new Date(),
             "subscription.endDate": newEndDate,
+            "subscription.futureMembership": null,
           },
-          $pull: { "subscription.futureMemberships": nextMembershipId },
         });
       }
     } catch (error) {

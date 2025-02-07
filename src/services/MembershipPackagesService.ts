@@ -48,10 +48,10 @@ class MembershipPackageService {
           session
         );
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return membershipPackage;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }
@@ -195,10 +195,10 @@ class MembershipPackageService {
           data,
           session
         );
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return membershipPackage;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }
@@ -219,10 +219,10 @@ class MembershipPackageService {
           id,
           session
         );
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return result;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }

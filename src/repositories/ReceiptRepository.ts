@@ -27,11 +27,9 @@ class ReceiptRepository {
     }
   }
   //admin/super-admin only
-  getAllReceipt = async (
-    session?: mongoose.ClientSession
-  ): Promise<IReceipt[]> => {
+  getAllReceipt = async (ignoreDeleted: boolean): Promise<IReceipt[]> => {
     try {
-      const receipts = await ReceiptModel.find({}, {}, { session });
+      const receipts = await ReceiptModel.find({});
       if (receipts.length === 0) {
         throw new CustomException(404, "No receipts found");
       }
@@ -51,6 +49,7 @@ class ReceiptRepository {
   async getReceiptsByUserId(
     userId: mongoose.Types.ObjectId | string,
     requesterId: mongoose.Types.ObjectId | string,
+    ignoreDeleted: boolean,
     session?: mongoose.ClientSession
   ): Promise<IReceipt[]> {
     try {
@@ -98,6 +97,7 @@ class ReceiptRepository {
   async getReceiptById(
     id: mongoose.Types.ObjectId | string,
     requesterId: mongoose.Types.ObjectId | string,
+    ignoreDeleted: boolean,
     session?: mongoose.ClientSession
   ): Promise<IReceipt | null> {
     try {

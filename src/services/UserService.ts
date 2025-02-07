@@ -523,9 +523,7 @@ class UserService {
         membershipPackageId as string
       );
       if (checkUser.subscription.currentPlan !== null) {
-        (subscription.futureMemberships as Array<mongoose.Types.ObjectId>).push(
-          membershipPackageObjectId
-        );
+        subscription.futureMembership = membershipPackageObjectId;
       } else {
         subscription.currentPlan = membershipPackageObjectId;
         subscription.tier = checkMembershipPackage.tier;

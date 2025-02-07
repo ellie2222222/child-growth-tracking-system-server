@@ -45,11 +45,11 @@ class CommentService {
         session
       );
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
 
       return comment;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }
@@ -198,10 +198,10 @@ class CommentService {
         },
         session
       );
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return comment;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }
@@ -235,10 +235,10 @@ class CommentService {
         );
       }
       await this.commentRepository.deleteComment(id, session);
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return true;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }

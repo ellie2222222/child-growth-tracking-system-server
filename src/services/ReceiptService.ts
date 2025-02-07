@@ -5,16 +5,20 @@ import { IReceipt } from "../interfaces/IReceipt";
 import ReceiptRepository from "../repositories/ReceiptRepository";
 import Database from "../utils/database";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import UserEnum from "../enums/UserEnum";
+import UserRepository from "../repositories/UserRepository";
 
 class ReceiptService {
   private database: Database;
   private receiptRepository: ReceiptRepository;
   private membershipPackageRepository: MembershipPackageRepository;
+  private userRepository: UserRepository;
 
   constructor() {
     this.receiptRepository = new ReceiptRepository();
     this.database = Database.getInstance();
     this.membershipPackageRepository = new MembershipPackageRepository();
+    this.userRepository = new UserRepository();
   }
 
   createReceipt = async (
@@ -54,10 +58,10 @@ class ReceiptService {
         type,
       };
       const receipt = await this.receiptRepository.createReceipt(data, session);
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return receipt;
     } catch (error: unknown) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -70,9 +74,27 @@ class ReceiptService {
     }
   };
 
-  getAllReceipts = async (): Promise<IReceipt[]> => {
+  getAllReceipts = async (requesterId: string): Promise<IReceipt[]> => {
     try {
-      const receipts = await this.receiptRepository.getAllReceipt();
+      let ignoreDeleted = false;
+      const checkRequester = await this.userRepository.getUserById(
+        requesterId,
+        ignoreDeleted
+      );
+      if (!checkRequester) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Requester not found"
+        );
+      }
+      if (
+        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
+      ) {
+        ignoreDeleted = true;
+      }
+      const receipts = await this.receiptRepository.getAllReceipt(
+        ignoreDeleted
+      );
       return receipts;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
@@ -90,9 +112,26 @@ class ReceiptService {
     requesterId: string | mongoose.Types.ObjectId
   ): Promise<IReceipt[]> => {
     try {
+      let ignoreDeleted = false;
+      const checkRequester = await this.userRepository.getUserById(
+        requesterId as string,
+        ignoreDeleted
+      );
+      if (!checkRequester) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Requester not found"
+        );
+      }
+      if (
+        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
+      ) {
+        ignoreDeleted = true;
+      }
       const receipts = await this.receiptRepository.getReceiptsByUserId(
         userId,
-        requesterId
+        requesterId,
+        ignoreDeleted
       );
       return receipts;
     } catch (error) {
@@ -111,11 +150,27 @@ class ReceiptService {
     requesterId: string | mongoose.Types.ObjectId
   ) => {
     try {
-      const session = await this.database.startTransaction();
+      let ignoreDeleted = false;
+      const checkRequester = await this.userRepository.getUserById(
+        requesterId as string,
+        ignoreDeleted
+      );
+      if (!checkRequester) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Requester not found"
+        );
+      }
+      if (
+        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
+      ) {
+        ignoreDeleted = true;
+      }
+
       const receipt = await this.receiptRepository.getReceiptById(
         id,
         requesterId,
-        session
+        ignoreDeleted
       );
       return receipt;
     } catch (error) {
@@ -140,10 +195,10 @@ class ReceiptService {
         requesterId,
         session
       );
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return receipt;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }

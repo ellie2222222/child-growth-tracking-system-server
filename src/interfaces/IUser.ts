@@ -8,7 +8,6 @@ export interface IUser extends Document {
   email: string;
   phoneNumber: string;
   password: string;
-  lastLogin: Date;
   isActive: boolean;
   isVerified: boolean;
   verificationPin: {
@@ -25,7 +24,7 @@ export interface IUser extends Document {
     endDate: Date | null;
     currentPlan: Types.ObjectId | null;
     tier: number | null;
-    futureMemberships: Types.ObjectId[] | [];
+    futureMembership: Types.ObjectId | null;
   };
   isDeleted?: boolean;
   createdAt?: Date;
