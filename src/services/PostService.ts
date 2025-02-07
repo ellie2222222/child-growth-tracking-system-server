@@ -35,10 +35,10 @@ class PostService {
         session
       );
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return post;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }
@@ -152,13 +152,13 @@ class PostService {
       }
       const post = await this.postRepository.updatePost(id, data, session);
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
 
       cleanUpOldAttachments(oldPost.attachments);
 
       return post;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }
@@ -183,10 +183,10 @@ class PostService {
         );
       }
       const post = await this.postRepository.deletePost(id, session);
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return post;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if (error as Error | CustomException) {
         throw error;
       }

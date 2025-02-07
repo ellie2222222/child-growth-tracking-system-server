@@ -45,10 +45,10 @@ class ChildService {
         session
       );
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return createdChild;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -240,9 +240,9 @@ class ChildService {
         );
       }
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -321,10 +321,10 @@ class ChildService {
         );
       }
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return updatedChild;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }

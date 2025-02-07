@@ -58,10 +58,10 @@ class ReceiptService {
         type,
       };
       const receipt = await this.receiptRepository.createReceipt(data, session);
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return receipt;
     } catch (error: unknown) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -195,10 +195,10 @@ class ReceiptService {
         requesterId,
         session
       );
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return receipt;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }

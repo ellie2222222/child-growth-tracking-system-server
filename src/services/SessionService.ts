@@ -30,10 +30,10 @@ class SessionService {
         session
       );
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return newSession;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -58,10 +58,10 @@ class SessionService {
         session
       );
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return isDeleted;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -86,10 +86,10 @@ class SessionService {
         session
       );
 
-      await session.commitTransaction();
+      await this.database.commitTransaction(session);
       return deletedCount;
     } catch (error) {
-      await session.abortTransaction();
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
