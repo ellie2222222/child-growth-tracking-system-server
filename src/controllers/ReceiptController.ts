@@ -14,8 +14,18 @@ class ReceiptController {
     next: NextFunction
   ): Promise<void> => {
     try {
+      const { page, size, search, order, sortBy } = req.query;
       const requesterId = req.userInfo.userId;
-      const receipts = await this.receiptService.getAllReceipts(requesterId);
+      const receipts = await this.receiptService.getAllReceipts(
+        {
+          page: parseInt(page as string) || 1,
+          size: parseInt(size as string) || 10,
+          search: search as string,
+          order: (order as "ascending" | "descending") || "ascending",
+          sortBy: (sortBy as "date") || "date",
+        },
+        requesterId
+      );
       res.status(StatusCodeEnum.OK_200).json({
         receipts: receipts,
         message: "Get all receipts successfully",
@@ -32,8 +42,16 @@ class ReceiptController {
     try {
       const requesterId = req.userInfo.userId;
       const { userId } = req.query;
+      const { page, size, search, order, sortBy } = req.query;
 
       const receipts = await this.receiptService.getReceiptsByUserId(
+        {
+          page: parseInt(page as string) || 1,
+          size: parseInt(size as string) || 10,
+          search: search as string,
+          order: (order as "ascending" | "descending") || "ascending",
+          sortBy: (sortBy as "date") || "date",
+        },
         userId as string,
         requesterId
       );

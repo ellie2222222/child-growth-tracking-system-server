@@ -10,6 +10,7 @@ const receiptHandler = new ReceiptHandler();
 router.get(
   "/",
   RoleMiddleware([UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  receiptHandler.getAllReceipts,
   receiptController.getAllReceipts
 );
 router.get(

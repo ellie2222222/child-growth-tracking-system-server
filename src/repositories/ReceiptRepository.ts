@@ -2,11 +2,10 @@ import mongoose from "mongoose";
 import ReceiptModel from "../models/ReceiptModel";
 import { IReceipt } from "../interfaces/IReceipt";
 import CustomException from "../exceptions/CustomException";
-import UserModel from "../models/UserModel";
-import UserEnum from "../enums/UserEnum";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 
 import { validateMongooseObjectId } from "../utils/validator";
+import { IQuery } from "../interfaces/IQuery";
 class ReceiptRepository {
   async createReceipt(
     data: object,
@@ -27,9 +26,26 @@ class ReceiptRepository {
     }
   }
   //admin/super-admin only
-  getAllReceipt = async (ignoreDeleted: boolean): Promise<IReceipt[]> => {
+  getAllReceipt = async (
+    query: IQuery,
+    ignoreDeleted: boolean
+  ): Promise<IReceipt[]> => {
     try {
-      const receipts = await ReceiptModel.find({});
+      const { page, size, order, sortBy } = query;
+      type searchQuery = {
+        isDeleted?: boolean;
+      };
+      let sortField = "createdAt";
+      if (sortBy === "date") sortField = "createdAt";
+      const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
+      const skip = (page - 1) * size;
+      const searchQuery = ignoreDeleted ? {} : { isDeleted: true };
+      const receipts = await ReceiptModel.aggregate([
+        { $match: searchQuery },
+        { $skip: skip },
+        { $limit: size },
+        { $sort: { [sortField]: sortOrder } },
+      ]);
       if (receipts.length === 0) {
         throw new CustomException(404, "No receipts found");
       }
@@ -47,36 +63,36 @@ class ReceiptRepository {
   //admin/super-admin => get all
   //else get isDeleted: false
   async getReceiptsByUserId(
+    query: IQuery,
     userId: mongoose.Types.ObjectId | string,
-    requesterId: mongoose.Types.ObjectId | string,
-    ignoreDeleted: boolean,
-    session?: mongoose.ClientSession
+    ignoreDeleted: boolean
   ): Promise<IReceipt[]> {
     try {
-      const requester = await UserModel.findOne({
-        _id: requesterId,
-        isDeleted: false,
-      });
-      if (!requester) {
-        throw new CustomException(404, "Requester not found");
-      }
-      if (requesterId.toString() !== userId.toString()) {
-        throw new CustomException(
-          StatusCodeEnum.Forbidden_403,
-          "You can view other people's receipts"
-        );
-      }
-      const query =
-        requester &&
-        (requester.role === UserEnum.ADMIN ||
-          requester.role === UserEnum.SUPER_ADMIN)
-          ? { userId: validateMongooseObjectId(userId as string) }
-          : {
-              userId: validateMongooseObjectId(userId as string),
-              isDeleted: false,
-            };
+      const { page, size, order, sortBy } = query;
+      type searchQuery = {
+        userId: mongoose.Types.ObjectId;
+        isDeleted?: boolean;
+      };
 
-      const receipts = await ReceiptModel.find(query, {}, { session });
+      const searchQuery: searchQuery = ignoreDeleted
+        ? { userId: new mongoose.Types.ObjectId(userId) }
+        : {
+            userId: new mongoose.Types.ObjectId(userId),
+            isDeleted: false,
+          };
+
+      let sortField = "createdAt";
+      if (sortBy === "date") sortField = "createdAt";
+      const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
+      const skip = (page - 1) * size;
+      const receipts = await ReceiptModel.aggregate([
+        {
+          $match: searchQuery,
+        },
+        { $skip: skip },
+        { $limit: size },
+        { $sort: { [sortField]: sortOrder } },
+      ]);
       if (receipts.length === 0) {
         throw new CustomException(404, "No receipts found");
       }
@@ -96,22 +112,13 @@ class ReceiptRepository {
   //user can get not deleted
   async getReceiptById(
     id: mongoose.Types.ObjectId | string,
-    requesterId: mongoose.Types.ObjectId | string,
     ignoreDeleted: boolean,
     session?: mongoose.ClientSession
   ): Promise<IReceipt | null> {
     try {
-      const requester = await UserModel.findOne({
-        _id: requesterId,
-        isDeleted: false,
-      });
-
-      const query =
-        requester &&
-        (requester.role === UserEnum.ADMIN ||
-          requester.role === UserEnum.SUPER_ADMIN)
-          ? { _id: validateMongooseObjectId(id as string) }
-          : { _id: validateMongooseObjectId(id as string), isDeleted: false };
+      const query = ignoreDeleted
+        ? { _id: validateMongooseObjectId(id as string) }
+        : { _id: validateMongooseObjectId(id as string), isDeleted: false };
       const receipt = await ReceiptModel.findOne(query, null, { session });
       if (!receipt) {
         throw new CustomException(404, "Receipt not found");
