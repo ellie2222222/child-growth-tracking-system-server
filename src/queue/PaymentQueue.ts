@@ -54,8 +54,8 @@ class PaymentQueue {
                   data.transactionId,
                   data.membershipPackageId,
                   data.totalAmount,
-                  data.paymentGateway,
                   data.paymentMethod,
+                  data.paymentGateway,
                   data.type
                 );
 

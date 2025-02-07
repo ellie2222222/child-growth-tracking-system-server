@@ -23,11 +23,16 @@ import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
 import membershipPackageRoute from "./routes/MembershipPackageRoute";
-import cronJob from "./utils/cron";import growthMetricsRoute from "./routes/GrowthMetricsRoute";
+import cronJob from "./utils/cron";
+import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
 const app: Application = express();
+
+// Express
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Middleware
 app.use(
@@ -96,7 +101,7 @@ app.use(RouteMiddleware);
 app.use(SessionMiddleware);
 app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
-app.use("/api/payment", paymentRoutes);
+app.use("/api/payments", paymentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/children", childRoutes);
 app.use("/api/posts", postRoute);
@@ -113,9 +118,6 @@ app.get("/", (req, res) => {
 app.use("/api/membership-packages", membershipPackageRoute);
 app.use(ErrorLogMiddleware);
 
-// Express
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 cronJob.start();
 // Start server
 const port: number = Number(process.env.DEVELOPMENT_PORT) || 4000;

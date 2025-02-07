@@ -14,7 +14,8 @@ class ReceiptController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const receipts = await this.receiptService.getAllReceipts();
+      const requesterId = req.userInfo.userId;
+      const receipts = await this.receiptService.getAllReceipts(requesterId);
       res.status(StatusCodeEnum.OK_200).json({
         receipts: receipts,
         message: "Get all receipts successfully",

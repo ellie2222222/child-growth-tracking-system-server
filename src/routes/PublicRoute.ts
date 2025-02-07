@@ -21,6 +21,7 @@ const publicRoutes: PublicRoutes[] = [
   // Payment
   { path: "/api/payment/paypal/success", method: "GET" },
   { path: "/api/payment/paypal/failed", method: "GET" },
+  { path: "/api/payments/vnpay/callback", method: "GET" },
 
   //Assets
   { path: "/assets/:something", method: "GET" },

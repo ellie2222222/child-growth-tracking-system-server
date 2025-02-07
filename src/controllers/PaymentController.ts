@@ -1,47 +1,44 @@
 import { NextFunction, Request, Response } from "express";
-import { client, redirectUrl } from "../config/paypalConfig";
+import { client } from "../config/paypalConfig";
 import paypal from "@paypal/checkout-server-sdk";
-import { v4 as uuidv4 } from "uuid";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
-import ReceiptService from "../services/ReceiptService";
-import MembershipPackageService from "../services/MembershipPackagesService";
 import PaymentQueue from "../queue/PaymentQueue";
-import UserService from "../services/UserService";
-import CustomException from "../exceptions/CustomException";
-import { IUser } from "../interfaces/IUser";
-interface ILink {
+import querystring from "qs";
+import crypto from "crypto";
+import { sortObject } from "../utils/payment";
+import { vnpayConfig } from "../config/vnpayConfig";
+import PaymentService from "../services/PaymentService";
+
+export interface ILink {
   href: string;
   rel: string;
   method: string;
 }
+
+export interface VnpParams {
+  vnp_Version: string;
+  vnp_Command: string;
+  vnp_TmnCode: string;
+  vnp_Locale: string;
+  vnp_Amount: string;
+  vnp_CurrCode: string;
+  vnp_OrderInfo: string;
+  vnp_TxnRef: string;
+  vnp_OrderType?: string;
+  vnp_ReturnUrl?: string;
+  vnp_BankCode?: string;
+  [key: string]: string | number | undefined;
+}
+
 class PaymentController {
   private paymentQueue: PaymentQueue;
-  private receiptService: ReceiptService;
-  private membershipPackageService: MembershipPackageService;
-  private userService: UserService;
+  private paymentService: PaymentService;
 
   constructor() {
-    this.receiptService = new ReceiptService();
-    this.membershipPackageService = new MembershipPackageService();
     this.paymentQueue = new PaymentQueue();
-    this.userService = new UserService();
+    this.paymentService = new PaymentService();
   }
 
-  private checkUserPackage = async (userId: string) => {
-    const user = await this.userService.getUserById(userId, userId);
-    if (!user) {
-      throw new CustomException(
-        StatusCodeEnums.BadRequest_400,
-        "User not found"
-      );
-    }
-    if ((user as IUser).subscription.futureMembership != null) {
-      throw new CustomException(
-        StatusCodeEnums.BadRequest_400,
-        "You can only prepurchase 1 package"
-      );
-    }
-  };
   createPaypalPayment = async (
     req: Request,
     res: Response,
@@ -49,79 +46,13 @@ class PaymentController {
   ): Promise<void> => {
     const { price, packageId } = req.body;
     const userId = req.userInfo.userId;
-    const uniqueInvoiceId = uuidv4();
 
     try {
-      this.checkUserPackage(userId);
-      const testPackage =
-        await this.membershipPackageService.getMembershipPackage(
-          packageId,
-          userId
-        );
-
-      if (!testPackage) {
-        res
-          .status(StatusCodeEnums.NotFound_404)
-          .json({ message: "Membership package not found" });
-        return;
-      }
-
-      switch (testPackage.price.unit) {
-        case "USD":
-          if (parseFloat(price as string) !== testPackage.price.value) {
-            res.status(StatusCodeEnums.BadRequest_400).json({
-              message: "Price mismatch, please check the item's price",
-            });
-            return;
-          }
-          break;
-
-        case "VND":
-          if (parseFloat(price as string) !== testPackage.price.value * 25000) {
-            res.status(StatusCodeEnums.BadRequest_400).json({
-              message: "Price mismatch, please check the item's price",
-            });
-            return;
-          }
-          break;
-
-        default:
-          break;
-      }
-
-      // Create a new order request
-      const request = new paypal.orders.OrdersCreateRequest();
-      request.requestBody({
-        intent: "CAPTURE",
-
-        purchase_units: [
-          {
-            invoice_id: uniqueInvoiceId,
-            amount: {
-              currency_code: "USD",
-              value: price,
-            },
-            custom_id: `${userId}|${packageId}`,
-          },
-        ],
-
-        application_context: {
-          brand_name: "Your Company Name",
-          landing_page: "LOGIN",
-          shipping_preference: "GET_FROM_FILE",
-          user_action: "PAY_NOW",
-          return_url: `${redirectUrl.return_url}`,
-          cancel_url: `${redirectUrl.cancel_url}`,
-        },
-      });
-
-      // Execute the request
-      const response = await client.execute(request);
-
-      // Find the approval link
-      const approvalLink = response.result.links?.find(
-        (link: ILink) => link.rel === "approve"
-      )?.href;
+      const approvalLink = await this.paymentService.createPaypalPayment(
+        price,
+        packageId,
+        userId
+      );
 
       if (approvalLink) {
         res.status(StatusCodeEnums.OK_200).json({ link: approvalLink });
@@ -203,6 +134,91 @@ class PaymentController {
       .status(StatusCodeEnums.BadRequest_400)
       .json("Payment request was canceled");
   };
-}
 
+  createVnpayPayment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    const { price, packageId, bankCode } = req.body;
+    const userId = req.userInfo.userId;
+    const ipAddr =
+      req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+
+    try {
+      const vnpUrl = await this.paymentService.createVnpayPayment(
+        parseFloat(price as string),
+        userId,
+        packageId,
+        ipAddr as string,
+        bankCode
+      );
+      res.status(200).json({ url: vnpUrl });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  vnpayPaymentReturn = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    let vnp_Params = req.query;
+
+    const secureHash = vnp_Params["vnp_SecureHash"];
+
+    delete vnp_Params["vnp_SecureHash"];
+    delete vnp_Params["vnp_SecureHashType"];
+
+    vnp_Params = sortObject(vnp_Params);
+
+    const secretKey = vnpayConfig.vnp_HashSecret;
+    // Sort the parameters to compare with the signature
+    const signData = querystring.stringify(vnp_Params, { encode: false });
+    const hmac = crypto.createHmac("sha512", secretKey);
+    const signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
+    // Validate the checksum and payment status
+    if (secureHash === signed && vnp_Params["vnp_ResponseCode"] === "00") {
+      try {
+        const amount = parseFloat(vnp_Params.vnp_Amount as string) / 100; // Convert back from VND cents
+
+        console.log(vnp_Params.vnp_OrderInfo);
+        const data = {
+          userId: (vnp_Params.vnp_OrderInfo as string).split("%")[0],
+          membershipPackageId: (vnp_Params.vnp_OrderInfo as string).split(
+            "%7C"
+          )[1],
+          totalAmount: {
+            value: amount,
+            currency: vnp_Params.vnp_CurrCode,
+          },
+          transactionId: vnp_Params.vnp_TxnRef,
+          paymentMethod: vnp_Params.vnp_CardType,
+          paymentGateway: "VNPAY",
+          type: "PAYMENT",
+          bankCode: vnp_Params.vnp_BankCode,
+        };
+
+        await this.paymentQueue.sendPaymentData(data);
+        const receipt = await this.paymentQueue.consumePaymentData();
+
+        res.status(StatusCodeEnums.OK_200).json({
+          message: "Payment processed successfully.",
+          receipt: receipt,
+        });
+
+        return;
+      } catch (error) {
+        next(error);
+      }
+    } else {
+      res.status(StatusCodeEnums.InternalServerError_500).json({
+        success: false,
+        message: "Payment failed or checksum validation failed",
+        vnp_Params: vnp_Params,
+      });
+    }
+  };
+}
 export default PaymentController;

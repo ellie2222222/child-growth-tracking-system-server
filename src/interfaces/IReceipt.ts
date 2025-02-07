@@ -11,10 +11,13 @@ export enum PaymentMethod {
   VISA = "VISA",
   MASTERCARD = "MASTERCARD",
   CREDITCARD = "CREDITCARD",
+  ATM = "ATM",
+  JCB = "JCB",
 }
 
 export enum PaymentGateway {
   PAYPAL = "PAYPAL",
+  VNPAY = "VNPAY",
 }
 
 export enum TransactionType {

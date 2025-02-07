@@ -9,7 +9,7 @@ const environment = new paypal.core.SandboxEnvironment(
 
 const client = new paypal.core.PayPalHttpClient(environment);
 const redirectUrl = {
-  return_url: `${process.env.SERVER_URL}/api/payment/paypal/success`,
-  cancel_url: `${process.env.SERVER_URL}/api/payment/paypal/failed`,
+  return_url: `${process.env.SERVER_URL}/api/payments/paypal/success`,
+  cancel_url: `${process.env.SERVER_URL}/api/payments/paypal/failed`,
 };
 export { client, redirectUrl };
