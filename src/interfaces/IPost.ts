@@ -5,6 +5,7 @@ export interface IPost extends IBaseEntity {
   userId: ObjectId;
   title: string;
   content: string;
+  thumbnailUrl?: string;
   attachments: Array<string>;
   createdAt: Date;
   updatedAt: Date;

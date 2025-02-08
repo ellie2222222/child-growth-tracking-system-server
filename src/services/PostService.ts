@@ -4,7 +4,11 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import Database from "../utils/database";
 import { IQuery } from "../interfaces/IQuery";
-import { cleanUpOldAttachments } from "../utils/filePathFormater";
+import {
+  cleanUpFile,
+  cleanUpFileArray,
+  extractAndReplaceImages,
+} from "../utils/fileUtils";
 import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
 class PostService {
@@ -20,17 +24,21 @@ class PostService {
     userId: string | ObjectId,
     title: string,
     content: string,
-    attachments: Array<string>
+    attachments: Array<string>,
+    thumbnailUrl?: string
   ) => {
     const session = await this.database.startTransaction();
 
     try {
+      const formatedContent = extractAndReplaceImages(content, attachments);
+
       const post = await this.postRepository.createPost(
         {
           userId,
           title,
-          content,
+          content: formatedContent,
           attachments,
+          thumbnailUrl,
         },
         session
       );
@@ -118,6 +126,7 @@ class PostService {
     title: string,
     content: string,
     attachments: Array<string>,
+    thumbnailUrl: string,
     requesterId: string
   ) => {
     const session = await this.database.startTransaction();
@@ -135,26 +144,35 @@ class PostService {
         title?: string;
         content?: string;
         attachments?: Array<string>;
+        thumbnailUrl?: string;
       };
 
       const data: data = {};
 
-      if (title) {
+      if (title && oldPost.title !== title) {
         data.title = title;
       }
-
-      if (content) {
-        data.content = content;
+      const formatedContent = extractAndReplaceImages(content, attachments);
+      if (content && oldPost.content !== formatedContent) {
+        data.content = formatedContent;
       }
 
-      if (attachments) {
+      if (attachments && oldPost.attachments !== attachments) {
         data.attachments = attachments;
+      }
+      if (thumbnailUrl && oldPost.thumbnailUrl !== thumbnailUrl) {
+        data.thumbnailUrl = thumbnailUrl;
       }
       const post = await this.postRepository.updatePost(id, data, session);
 
       await this.database.commitTransaction(session);
 
-      cleanUpOldAttachments(oldPost.attachments);
+      if (oldPost.attachments.length > 0) {
+        await cleanUpFileArray(oldPost.attachments, "update");
+      }
+      if (oldPost.thumbnailUrl !== "") {
+        await cleanUpFile(oldPost.thumbnailUrl as string, "update");
+      }
 
       return post;
     } catch (error) {

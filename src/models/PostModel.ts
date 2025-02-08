@@ -19,6 +19,7 @@ const postSchema = new Schema<IPost>(
     attachments: {
       type: [String],
     },
+    thumbnailUrl: { type: String },
     createdAt: {
       type: Date,
       default: Date.now,

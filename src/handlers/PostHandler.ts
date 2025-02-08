@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { validateMongooseObjectId } from "../utils/validator";
+import { JSDOM } from "jsdom";
 import validator from "validator";
+
 class PostHandler {
   constructor() {}
 
@@ -19,6 +21,30 @@ class PostHandler {
 
     if (!content) {
       validationErrors.push({ field: "content", error: "Content is required" });
+    }
+
+    const dom = new JSDOM(content);
+    const document = dom.window.document;
+    const images = document.querySelectorAll("img");
+
+    if (images.length > 0) {
+      // console.log(images.length);
+
+      const files = req.files as
+        | { [key: string]: Express.Multer.File[] }
+        | undefined;
+
+      const attachmentCount = files?.postAttachments
+        ? files.postAttachments.length
+        : 0;
+      // console.log(attachmentCount);
+
+      if (images.length !== attachmentCount) {
+        validationErrors.push({
+          field: "postAttachments",
+          error: `The number of images in content (${images.length}) does not match the uploaded images (${attachmentCount}).`,
+        });
+      }
     }
 
     try {
@@ -111,6 +137,31 @@ class PostHandler {
         field: "title",
         error: "Title is required and should be between 6 and 150 characters",
       });
+    }
+
+    if (!content) {
+      validationErrors.push({ field: "content", error: "Content is required" });
+    }
+
+    const dom = new JSDOM(content);
+    const document = dom.window.document;
+    const images = document.querySelectorAll("img");
+
+    if (images.length > 0) {
+      const files = req.files as
+        | { [key: string]: Express.Multer.File[] }
+        | undefined;
+
+      const attachmentCount = files?.postAttachments
+        ? files.postAttachments.length
+        : 0;
+
+      if (images.length !== attachmentCount) {
+        validationErrors.push({
+          field: "postAttachments",
+          error: `The number of images in content (${images.length}) does not match the uploaded images (${attachmentCount}).`,
+        });
+      }
     }
 
     if (validationErrors.length > 0) {

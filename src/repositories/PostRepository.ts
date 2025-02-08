@@ -62,7 +62,9 @@ class PostRepository {
     };
 
     try {
-      const searchQuery: searchQuery = {};
+      const searchQuery: searchQuery = ignoreDeleted
+        ? {}
+        : { isDeleted: false };
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
@@ -139,7 +141,7 @@ class PostRepository {
       const post = await PostModel.findByIdAndUpdate(
         id,
         { $set: { isDeleted: true } },
-        { session }
+        { session, new: true }
       );
 
       if (!post) {
