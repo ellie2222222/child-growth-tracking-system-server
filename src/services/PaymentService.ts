@@ -1,7 +1,5 @@
 import CustomException from "../exceptions/CustomException";
-import PaymentQueue from "../queue/PaymentQueue";
 import MembershipPackageService from "./MembershipPackagesService";
-import ReceiptService from "./ReceiptService";
 import UserService from "./UserService";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
 import { IUser } from "../interfaces/IUser";
@@ -9,15 +7,11 @@ import { ObjectId } from "mongoose";
 import { PaypalPayment, VnpayPayment } from "../utils/payment";
 
 class PaymentService {
-  private paymentQueue: PaymentQueue;
-  private receiptService: ReceiptService;
   private membershipPackageService: MembershipPackageService;
   private userService: UserService;
 
   constructor() {
-    this.receiptService = new ReceiptService();
     this.membershipPackageService = new MembershipPackageService();
-    this.paymentQueue = new PaymentQueue();
     this.userService = new UserService();
   }
 

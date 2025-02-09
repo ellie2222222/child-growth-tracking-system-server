@@ -7,6 +7,7 @@ import Database from "../utils/database";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import UserEnum from "../enums/UserEnum";
 import UserRepository from "../repositories/UserRepository";
+import { IQuery } from "../interfaces/IQuery";
 
 class ReceiptService {
   private database: Database;
@@ -43,16 +44,12 @@ class ReceiptService {
           "Membership Package Not Found"
         );
       }
-      const product = {
-        name: mempack.name,
-        description: mempack.description,
-        id: mempack._id,
-      };
+
       const data = {
         userId,
         transactionId,
         totalAmount,
-        product,
+        packageId: mempack._id,
         paymentMethod,
         paymentGateway,
         type,
@@ -74,7 +71,10 @@ class ReceiptService {
     }
   };
 
-  getAllReceipts = async (requesterId: string): Promise<IReceipt[]> => {
+  getAllReceipts = async (
+    query: IQuery,
+    requesterId: string
+  ): Promise<IReceipt[]> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -93,6 +93,7 @@ class ReceiptService {
         ignoreDeleted = true;
       }
       const receipts = await this.receiptRepository.getAllReceipt(
+        query,
         ignoreDeleted
       );
       return receipts;
@@ -108,6 +109,7 @@ class ReceiptService {
   };
 
   getReceiptsByUserId = async (
+    query: IQuery,
     userId: string | mongoose.Types.ObjectId,
     requesterId: string | mongoose.Types.ObjectId
   ): Promise<IReceipt[]> => {
@@ -128,9 +130,15 @@ class ReceiptService {
       ) {
         ignoreDeleted = true;
       }
+      if (!ignoreDeleted && requesterId.toString() !== userId.toString()) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not view other people's receipts"
+        );
+      }
       const receipts = await this.receiptRepository.getReceiptsByUserId(
+        query,
         userId,
-        requesterId,
         ignoreDeleted
       );
       return receipts;
@@ -169,7 +177,6 @@ class ReceiptService {
 
       const receipt = await this.receiptRepository.getReceiptById(
         id,
-        requesterId,
         ignoreDeleted
       );
       return receipt;

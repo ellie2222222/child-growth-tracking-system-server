@@ -9,17 +9,24 @@ const postHandler = new PostHandler();
 
 router.post(
   "/",
-  uploadFile.array("createPosts"),
+  uploadFile.fields([
+    { name: "postAttachments" },
+    { name: "postThumbnail", maxCount: 1 },
+  ]),
   postHandler.createPost,
   postController.createPost
 );
 
 router.put(
   "/:id",
-  uploadFile.array("updatePosts"),
+  uploadFile.fields([
+    { name: "postAttachments" },
+    { name: "postThumbnail", maxCount: 1 },
+  ]),
   postHandler.updatePosts,
   postController.updatePosts
 );
+
 router.get("/", postHandler.getPosts, postController.getPosts);
 router.get("/:id", postHandler.getPost, postController.getPost);
 router.delete("/:id", postHandler.deletePost, postController.deletePost);

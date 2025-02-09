@@ -1,7 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import PostService from "../services/PostService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { cleanUpFileArray, formatPathArray } from "../utils/filePathFormater";
+import {
+  cleanUpFile,
+  cleanUpFileArray,
+  formatPathArray,
+  formatPathSingle,
+} from "../utils/fileUtils";
+
+type BlogFiles = {
+  postAttachments: Express.Multer.File[];
+  postThumbnail: Express.Multer.File[];
+};
 
 class PostController {
   private postService: PostService;
@@ -10,29 +20,56 @@ class PostController {
   }
 
   createPost = async (req: Request, res: Response, next: NextFunction) => {
+    const files = req.files as { [key: string]: Express.Multer.File[] };
+
+    let hasThumbnail: boolean = false;
+    hasThumbnail = (req.files && files.postAttachments.length > 0) as boolean;
+
+    let hasAttachments: boolean = false;
+    hasAttachments = (req.files && files.postAttachments.length > 0) as boolean;
+
     try {
       const { title, content } = req.body;
       const userId = req.userInfo.userId;
+      const files = req.files as unknown as BlogFiles;
 
-      const files = req.files as Express.Multer.File[]; // Explicitly cast req.files to array
       let attachments: string[] = [];
-      if (files) {
-        attachments = formatPathArray(files) as string[];
+      let thumbnailUrl: string = "";
+
+      if (hasAttachments) {
+        attachments = formatPathArray(
+          files.postAttachments as Express.Multer.File[]
+        ) as string[];
+      }
+
+      if (hasThumbnail) {
+        thumbnailUrl = formatPathSingle(
+          files.postThumbnail[0] as Express.Multer.File
+        ) as string;
       }
 
       const post = await this.postService.createPost(
         userId,
         title,
         content,
-        attachments
+        attachments,
+        thumbnailUrl
       );
 
       res
         .status(StatusCodeEnum.Created_201)
         .json({ Post: post, message: "Post created successfully" });
     } catch (error) {
-      if (req.files as Express.Multer.File[]) {
-        await cleanUpFileArray(req.files as Express.Multer.File[]);
+      if (hasAttachments) {
+        const attachments = files.postAttachments || [];
+
+        await cleanUpFileArray(attachments, "create");
+      }
+
+      if (hasThumbnail) {
+        const thumbnail = (files.postAttachments || [])[0];
+
+        await cleanUpFile(thumbnail, "create");
       }
       next(error);
     }
@@ -75,15 +112,32 @@ class PostController {
   };
 
   updatePosts = async (req: Request, res: Response, next: NextFunction) => {
+    const files = req.files as { [key: string]: Express.Multer.File[] };
+
+    let hasThumbnail: boolean = false;
+    hasThumbnail = (req.files && files.postAttachments.length > 0) as boolean;
+
+    let hasAttachments: boolean = false;
+    hasAttachments = (req.files && files.postAttachments.length > 0) as boolean;
     try {
       const { id } = req.params;
       const { title, content } = req.body;
-      const files = req.files as Express.Multer.File[]; // Explicitly cast req.files to array
       const requesterId = req.userInfo.userId;
+      const files = req.files as unknown as BlogFiles;
 
       let attachments: string[] = [];
-      if (files) {
-        attachments = formatPathArray(files) as string[];
+      let thumbnailUrl: string = "";
+
+      if (hasAttachments) {
+        attachments = formatPathArray(
+          files.postAttachments as Express.Multer.File[]
+        ) as string[];
+      }
+
+      if (hasThumbnail) {
+        thumbnailUrl = formatPathSingle(
+          files.postThumbnail[0] as Express.Multer.File
+        ) as string;
       }
 
       const post = await this.postService.updatePosts(
@@ -91,6 +145,7 @@ class PostController {
         title,
         content,
         attachments,
+        thumbnailUrl,
         requesterId
       );
 
@@ -98,9 +153,6 @@ class PostController {
         .status(StatusCodeEnum.OK_200)
         .json({ Post: post, message: "Post updated successfully" });
     } catch (error) {
-      if (req.files as Express.Multer.File[]) {
-        await cleanUpFileArray(req.files as Express.Multer.File[]);
-      }
       next(error);
     }
   };

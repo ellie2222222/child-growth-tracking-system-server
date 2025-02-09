@@ -35,11 +35,7 @@ export interface IReceipt extends IBaseEntity {
   paymentMethod: PaymentMethod;
   paymentGateway: PaymentGateway;
   bankCode?: string;
-  product: {
-    name: string;
-    description: string;
-    id: Schema.Types.ObjectId;
-  };
+  packageId: Schema.Types.ObjectId;
   type: TransactionType;
   createdAt: Date;
   updatedAt: Date;

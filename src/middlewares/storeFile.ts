@@ -76,36 +76,53 @@ const storage = multer.diskStorage({
   ) => {
     let dir = "";
     let userId = req.userInfo.userId;
-    let postId;
+    // let postId;
 
     switch (file.fieldname) {
       case "avatar":
         userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
-          return cb(new CustomException(StatusCodeEnum.BadRequest_400, "Invalid user ID"), "");
+          return cb(
+            new CustomException(
+              StatusCodeEnum.BadRequest_400,
+              "Invalid user ID"
+            ),
+            ""
+          );
         }
         dir = path.join(`assets/images/users/${userId}`);
         break;
 
-      case "createPosts":
+      case "postAttachments":
         userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
-          return cb(new CustomException(StatusCodeEnum.BadRequest_400, "Invalid user ID"), "");
+          return cb(
+            new CustomException(
+              StatusCodeEnum.BadRequest_400,
+              "Invalid user ID"
+            ),
+            ""
+          );
         }
         dir = path.join(`assets/images/${userId}/post-attachments`);
         break;
 
-      case "updatePosts":
+      case "postThumbnail":
         userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
-          return cb(new CustomException(StatusCodeEnum.BadRequest_400, "Invalid user ID"), "");
+          return cb(
+            new CustomException(
+              StatusCodeEnum.BadRequest_400,
+              "Invalid user ID"
+            ),
+            ""
+          );
         }
-        dir = path.join(`assets/images/${userId}/post-attachments`);
+        dir = path.join(`assets/images/${userId}/post-thumbnail`);
         break;
-
       case "excelFile":
         dir = path.join(`assets/growth-metrics`);
         break;
@@ -113,7 +130,10 @@ const storage = multer.diskStorage({
       default:
         logger.error(`Unknown field name: ${file.fieldname}`);
         return cb(
-          new CustomException(StatusCodeEnum.BadRequest_400, `Unknown field name '${file.fieldname}'`),
+          new CustomException(
+            StatusCodeEnum.BadRequest_400,
+            `Unknown field name '${file.fieldname}'`
+          ),
           ""
         );
     }
@@ -121,7 +141,13 @@ const storage = multer.diskStorage({
     fs.mkdir(dir, { recursive: true }, (err) => {
       if (err) {
         logger.error(`Failed to create directory ${dir}: ${err.message}`);
-        return cb(new CustomException(StatusCodeEnum.InternalServerError_500, `${err.message}`), "");
+        return cb(
+          new CustomException(
+            StatusCodeEnum.InternalServerError_500,
+            `${err.message}`
+          ),
+          ""
+        );
       }
 
       cb(null, dir);
@@ -138,7 +164,7 @@ const storage = multer.diskStorage({
 
     let fileName = "";
     let dirPath = "";
-    let postId;
+    // let postId;
     let userId = req.userInfo.userId;
 
     switch (file.fieldname) {
@@ -146,32 +172,49 @@ const storage = multer.diskStorage({
         userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
-          return cb(new CustomException(StatusCodeEnum.BadRequest_400, "Invalid user ID"), "");
+          return cb(
+            new CustomException(
+              StatusCodeEnum.BadRequest_400,
+              "Invalid user ID"
+            ),
+            ""
+          );
         }
         fileName = `${baseName}${ext}`;
         dirPath = path.join(`assets/images/users/${userId}`);
         break;
 
-      case "createPosts":
+      case "postAttachments":
         userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
-          return cb(new CustomException(StatusCodeEnum.BadRequest_400, "Invalid user ID"), "");
+          return cb(
+            new CustomException(
+              StatusCodeEnum.BadRequest_400,
+              "Invalid user ID"
+            ),
+            ""
+          );
         }
         fileName = `${baseName}${ext}`;
         dirPath = path.join(`assets/images/${userId}/post-attachments`);
         break;
 
-      case "updatePosts":
+      case "postThumbnail":
         userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
-          return cb(new CustomException(StatusCodeEnum.BadRequest_400, "Invalid user ID"), "");
+          return cb(
+            new CustomException(
+              StatusCodeEnum.BadRequest_400,
+              "Invalid user ID"
+            ),
+            ""
+          );
         }
         fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/${userId}/post-attachments`);
+        dirPath = path.join(`assets/images/${userId}/post-thumbnail`);
         break;
-
       case "excelFile":
         fileName = `${baseName}${ext}`;
         dirPath = path.join(`assets/growth-metrics`);
@@ -180,7 +223,10 @@ const storage = multer.diskStorage({
       default:
         logger.error(`Unknown field name: ${file.fieldname}`);
         return cb(
-          new CustomException(StatusCodeEnum.BadRequest_400, `Unknown field name '${file.fieldname}'`),
+          new CustomException(
+            StatusCodeEnum.BadRequest_400,
+            `Unknown field name '${file.fieldname}'`
+          ),
           ""
         );
     }
@@ -207,6 +253,16 @@ const allowedFormats = {
       "application/vnd.ms-excel", // .xls
     ],
     message: "Allowed format: xlsx or xls",
+  },
+  postAttachments: {
+    regex: /\.(jpeg|jpg|png|gif)$/i,
+    mime: ["image/jpeg", "image/png", "image/gif"],
+    message: "Allowed formats: jpeg, jpg, png, gif",
+  },
+  postThumbnail: {
+    regex: /\.(jpeg|jpg|png|gif)$/i,
+    mime: ["image/jpeg", "image/png", "image/gif"],
+    message: "Allowed formats: jpeg, jpg, png, gif",
   },
 };
 

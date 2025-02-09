@@ -191,7 +191,7 @@ class PaymentController {
           )[1],
           totalAmount: {
             value: amount,
-            currency: vnp_Params.vnp_CurrCode,
+            currency: vnp_Params.vnp_CurrCode || "VND",
           },
           transactionId: vnp_Params.vnp_TxnRef,
           paymentMethod: vnp_Params.vnp_CardType,

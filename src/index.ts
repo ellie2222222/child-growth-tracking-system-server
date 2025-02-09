@@ -67,7 +67,11 @@ app.use(limiter(15, 100000));
 app.use(securityHeaders);
 
 // Helmet
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
 // CSRF middleware to ensure CSRF protection
 // app.use(CSRFMiddleware);
