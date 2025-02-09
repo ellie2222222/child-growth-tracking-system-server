@@ -2,8 +2,10 @@ import { Document } from "mongoose";
 import { GenderEnumType } from "../enums/GenderEnum";
 
 export interface ILhfa extends Document {
-  ageMonth: number;
-  ageMonthRange: string;
+  age: { 
+    inMonths: number
+    inDays: number
+  },
   gender: GenderEnumType;
   percentiles: {
     L: number;

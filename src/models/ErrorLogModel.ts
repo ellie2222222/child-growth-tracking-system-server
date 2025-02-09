@@ -10,7 +10,7 @@ const errorLogModelSchema = new Schema<IErrorLog>(
     stackTrace: { type: String, required: true },
     ...baseModelSchema.obj,
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 const ErrorLogModel: Model<IErrorLog> = mongoose.model<IErrorLog>("ErrorLog", errorLogModelSchema);

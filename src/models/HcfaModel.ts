@@ -1,9 +1,9 @@
 import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
-import { IWfa } from "../interfaces/IWfa";
+import { IHcfa } from "../interfaces/IHcfa";
 import baseModelSchema from "./BaseModel";
 
-const wfaModelSchema = new Schema<IWfa>(
+const hcfaModelSchema = new Schema<IHcfa>(
   {
     age: { 
       inMonths: { type: Number, required: true, },
@@ -31,6 +31,6 @@ const wfaModelSchema = new Schema<IWfa>(
   { timestamps: true, strict: true }
 );
 
-const WfaModel: Model<IWfa> = mongoose.model<IWfa>("WFA", wfaModelSchema);
+const HcfaModel: Model<IHcfa> = mongoose.model<IHcfa>("HCFA", hcfaModelSchema);
 
-export default WfaModel;
+export default HcfaModel;

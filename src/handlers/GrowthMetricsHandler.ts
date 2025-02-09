@@ -38,7 +38,14 @@ class GrowthMetricsHandler {
     });
 
     // Validate file data
-    lowerCaseJsonData.forEach((item, index) => {
+    lowerCaseJsonData.some((item, index) => {
+      if (item.gender === undefined || item.gender === null) {
+        validationErrors.push({
+          field: "excelFile",
+          error: `Expected gender field and value`
+        });
+      }
+
       if (
         item.gender !== undefined &&
         (!Number.isInteger(item.gender) ||
@@ -77,36 +84,50 @@ class GrowthMetricsHandler {
         });
       }
 
-      if (
-        item.agemonth === undefined &&
-        item.agemonthrange === undefined
-      ) {
-        validationErrors.push({
-          field: "excelFile",
-          error: `Row ${index + 1}: Either field's value is required`
-        });
+      switch (metric) {
+        case "HCFA":
+        case "ACFA":
+        case "BFA":
+        case "WFA":
+        case "LHFA":
+          if (
+            item.ageindays === undefined &&
+            item.ageinmonths === undefined
+          ) {
+            validationErrors.push({
+              field: "excelFile",
+              error: `Row ${index + 1}: Either field ageInDays or ageInMonths value is required`
+            });
+          }
+
+          if (item.ageindays !== undefined && (!Number.isInteger(item.ageindays) || item.ageindays < 0)) {
+            validationErrors.push({
+              field: "excelFile",
+              error: `Invalid ageInDays ${item.ageindays}. Expected a positive whole number`
+            });
+          }
+
+          if (item.ageinmonths !== undefined && (!Number.isInteger(item.ageinmonths) || item.ageinmonths < 0)) {
+            validationErrors.push({
+              field: "excelFile",
+              error: `Invalid ageInMonths ${item.ageinmonths}. Expected a positive whole number`
+            });
+          }   
+
+          break;
+
+        case "WFLH":
+          if (!item.height) {
+            validationErrors.push({
+              field: "excelFile",
+              error: `Expected height field and value`
+            });
+          }
+          
+          break;
       }
 
-      if (item.agemonth !== undefined && !Number.isInteger(item.agemonth)) {
-        validationErrors.push({
-          field: "excelFile",
-          error: `Invalid ageMonth ${item.agemonth}. Expected a whole number`
-        });
-      }
-
-      if (
-        item.agemonth === undefined &&
-        !Number.isInteger(item.agemonth)
-      ) {
-        return;
-      }
-
-      if (item.agemonthrange !== undefined && item.agemonthrange % 1 !== 0.5) {
-        validationErrors.push({
-          field: "excelFile",
-          error: `Invalid ageMonthRange ${item.agemonthrange}. Expected a .5 value`
-        });
-      }
+      return validationErrors.length > 0;
     });
 
     // Attach json data to request

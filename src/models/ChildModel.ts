@@ -41,7 +41,7 @@ const childModelSchema = new Schema<IChild>(
     ],
     ...baseModelSchema.obj,
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 childModelSchema.index({ "relationships.memberId": 1, _id: 1 }, { unique: true });

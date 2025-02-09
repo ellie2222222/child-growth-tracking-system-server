@@ -1,11 +1,14 @@
 import mongoose, { Model, Schema } from "mongoose";
-import { IBmi } from "../interfaces/IBmi";
 import GenderEnum from "../enums/GenderEnum";
+import { IAcfa } from "../interfaces/IAcfa";
+import baseModelSchema from "./BaseModel";
 
-const bmiModelSchema = new Schema<IBmi>(
+const acfaModelSchema = new Schema<IAcfa>(
   {
-    ageMonth: { type: Number, required: true },
-    ageMonthRange: { type: String, required: true },
+    age: { 
+      inMonths: { type: Number, required: true, },
+      inDays: { type: Number, required: true, }
+    },
     gender: {
       type: Number,
       enum: [GenderEnum.BOY, GenderEnum.GIRL],
@@ -23,11 +26,11 @@ const bmiModelSchema = new Schema<IBmi>(
         },
       ],
     },
-    isDeleted: { type: Boolean, default: false },
+    ...baseModelSchema.obj,
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
-const BmiModel: Model<IBmi> = mongoose.model<IBmi>("BMI", bmiModelSchema);
+const AcfaModel: Model<IAcfa> = mongoose.model<IAcfa>("ACFA", acfaModelSchema);
 
-export default BmiModel;
+export default AcfaModel;
