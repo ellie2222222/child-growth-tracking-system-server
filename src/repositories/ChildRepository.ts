@@ -28,16 +28,16 @@ class ChildRepository {
       const result = await ChildModel.create([childData], { session });
       return result[0];
     } catch (error) {
-        if ((error as Error) || (error as CustomException)) {
-            throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            `Failed to create child: ${(error as Error).message}`
-            );
-        }
+      if ((error as Error) || (error as CustomException)) {
         throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            "Internal Server Error"
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to create child: ${(error as Error).message}`
         );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -47,21 +47,24 @@ class ChildRepository {
    * @returns The child document or null if not found.
    * @throws CustomException when retrieval fails.
    */
-  async getChildById(childId: string, isDeleted: boolean): Promise<IChild | null> {
+  async getChildById(
+    childId: string,
+    isDeleted: boolean
+  ): Promise<IChild | null> {
     try {
       const child = await ChildModel.findOne({ _id: childId, isDeleted });
       return child;
     } catch (error) {
-        if ((error as Error) || (error as CustomException)) {
-            throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            `Failed to retrieve child: ${(error as Error).message}`
-            );
-        }
+      if (error as Error) {
         throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            "Internal Server Error"
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to retrieve child: ${(error as Error).message}`
         );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -71,7 +74,11 @@ class ChildRepository {
    * @returns A list of child documents.
    * @throws CustomException when retrieval fails.
    */
-  async getChildrenByUserId(memberId: string, query: IQuery, isDeleted: boolean): Promise<ChildrenData> {
+  async getChildrenByUserId(
+    memberId: string,
+    query: IQuery,
+    isDeleted: boolean
+  ): Promise<ChildrenData> {
     try {
       type SearchQuery = {
         isDeleted: boolean;
@@ -81,7 +88,9 @@ class ChildRepository {
       const { page, size, search, order, sortBy } = query;
       const searchQuery: SearchQuery = {
         isDeleted,
-        relationships: { $elemMatch: { memberId: new mongoose.Types.ObjectId(memberId) } },
+        relationships: {
+          $elemMatch: { memberId: new mongoose.Types.ObjectId(memberId) },
+        },
       };
 
       if (search) {
@@ -124,16 +133,16 @@ class ChildRepository {
         totalPages: Math.ceil(totalChildren / size),
       };
     } catch (error) {
-        if ((error as Error) || (error as CustomException)) {
-            throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            `Failed to retrieve children by user ID: ${(error as Error).message}`
-            );
-        }
+      if (error as Error) {
         throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            "Internal Server Error"
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to retrieve children by user ID: ${(error as Error).message}`
         );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -158,7 +167,7 @@ class ChildRepository {
       ).exec();
       return updatedChild;
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
           `Failed to update child: ${(error as Error).message}`
@@ -190,7 +199,7 @@ class ChildRepository {
       ).exec();
       return deletedChild;
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
           `Failed to delete child: ${(error as Error).message}`

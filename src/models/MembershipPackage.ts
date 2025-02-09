@@ -38,7 +38,7 @@ const MembershipPackageSchema = new Schema<IMembershipPackage>(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 const MembershipModel = mongoose.model<IMembershipPackage>(

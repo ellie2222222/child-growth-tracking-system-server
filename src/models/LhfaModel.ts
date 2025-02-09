@@ -1,11 +1,14 @@
 import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
 import { ILhfa } from "../interfaces/ILhfa";
+import baseModelSchema from "./BaseModel";
 
 const lhfaModelSchema = new Schema<ILhfa>(
   {
-    ageMonth: { type: Number },
-    ageMonthRange: { type: String },
+    age: { 
+      inMonths: { type: Number, required: true, },
+      inDays: { type: Number, required: true, }
+    },
     gender: {
       type: Number,
       enum: [GenderEnum.BOY, GenderEnum.GIRL],
@@ -23,12 +26,9 @@ const lhfaModelSchema = new Schema<ILhfa>(
         },
       ],
     },
-    isDeleted: { 
-        type: Boolean, 
-        default: false 
-    },
+    ...baseModelSchema.obj,
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 const LhfaModel: Model<ILhfa> = mongoose.model<ILhfa>("LHFA", lhfaModelSchema);

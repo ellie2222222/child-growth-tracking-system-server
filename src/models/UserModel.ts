@@ -81,7 +81,7 @@ const userModelSchema = new Schema<IUser>(
     },
     ...baseModelSchema.obj,
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 // Unique except default value

@@ -68,6 +68,7 @@ const ReceiptSchema = new Schema<IReceipt>(
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    strict: true
   }
 );
 

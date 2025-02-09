@@ -8,11 +8,6 @@ dotenv.config();
 
 const logger = getLoggers("MONGOOSE");
 
-if (!process.env.DATABASE_URI || !process.env.DATABASE_NAME) {
-  logger.error("Missing required environment variables: DATABASE_URI or DATABASE_NAME");
-}
-const URI: string = process.env.DATABASE_URI!;
-const DBName: string = process.env.DATABASE_NAME!;
 
 class Database {
   private static instance: Database | null = null;
@@ -35,6 +30,13 @@ class Database {
   // Connect to MongoDB
   private async connect(): Promise<void> {
     try {
+      if (!process.env.DATABASE_URI || !process.env.DATABASE_NAME) {
+        logger.error("Missing required environment variables: DATABASE_URI or DATABASE_NAME");
+        throw new CustomException(StatusCodeEnum.InternalServerError_500, "Internal Server Error");
+      }
+      const URI: string = process.env.DATABASE_URI!;
+      const DBName: string = process.env.DATABASE_NAME!;
+
       await mongoose.connect(URI, { dbName: DBName });
       logger.info(`Successfully connected to the database ${DBName}`);
     } catch (error) {

@@ -32,7 +32,7 @@ const postSchema = new Schema<IPost>(
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 const PostModel = mongoose.model<IPost>("Post", postSchema);
