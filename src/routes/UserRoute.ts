@@ -24,4 +24,8 @@ userRoutes.get("/allowed-users", userHandler.getUsers, userController.getUsers);
 userRoutes.get("/:id", userHandler.getUserById, userController.getUserById);
 userRoutes.patch("/:id", userHandler.updateUser, userController.updateUser);
 userRoutes.delete("/:id", userHandler.deleteUser, userController.deleteUser);
+userRoutes.put(
+  "/remove-membership/:id",
+  userController.removeCurrentSubscription
+);
 export default userRoutes;

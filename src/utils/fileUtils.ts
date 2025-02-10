@@ -4,7 +4,17 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { deleteFile } from "../middlewares/storeFile";
 import { JSDOM } from "jsdom";
 import sanitizeHtml from "sanitize-html";
+import fs from "fs/promises";
 dotenv.config();
+
+const fileExists = async (filePath: string): Promise<boolean> => {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const formatPathSingle = (file: Express.Multer.File) => {
   try {
@@ -59,14 +69,21 @@ const cleanUpFile = async (
   usage: "create" | "update"
 ) => {
   try {
+    let filePath;
     switch (usage) {
       case "create":
-        await deleteFile((file as Express.Multer.File).path);
+        filePath = (file as Express.Multer.File).path;
+        if (await fileExists(filePath)) {
+          await deleteFile(filePath);
+        }
         break;
       case "update":
-        await deleteFile(
-          (file as string).split(`${process.env.SERVER_URL}/`).pop() as string
-        );
+        filePath = (file as string)
+          .split(`${process.env.SERVER_URL}/`)
+          .pop() as string;
+        if (await fileExists(filePath)) {
+          await deleteFile(filePath);
+        }
         break;
       default:
         break;
@@ -91,13 +108,19 @@ const cleanUpFileArray = async (
       switch (usage) {
         case "create":
           (files as Express.Multer.File[]).forEach(async (file) => {
-            await deleteFile(file.path);
+            if (await fileExists(file.path)) {
+              await deleteFile(file.path);
+            }
           });
           break;
         case "update":
           (files as Array<string>).forEach(async (file) => {
-            const filePath = file.split(`${process.env.SERVER_URL}/`).pop();
-            await deleteFile(filePath as string);
+            const filePath = file
+              .split(`${process.env.SERVER_URL}/`)
+              .pop() as string;
+            if (await fileExists(filePath)) {
+              await deleteFile(filePath);
+            }
           });
           break;
         default:

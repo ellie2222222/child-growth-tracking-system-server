@@ -11,14 +11,18 @@ import {
 } from "../utils/fileUtils";
 import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
+import TierRepository from "../repositories/TierRepository";
 class PostService {
   private postRepository: PostRepository;
   private database: Database;
   private userRepository: UserRepository;
+  private tierRepository: TierRepository;
+
   constructor() {
     this.postRepository = new PostRepository();
     this.database = Database.getInstance();
     this.userRepository = new UserRepository();
+    this.tierRepository = new TierRepository();
   }
   createPost = async (
     userId: string | ObjectId,
@@ -30,6 +34,7 @@ class PostService {
     const session = await this.database.startTransaction();
 
     try {
+      await this.checkTierPostLimit(userId);
       const formatedContent = extractAndReplaceImages(content, attachments);
 
       const post = await this.postRepository.createPost(
@@ -214,6 +219,43 @@ class PostService {
       );
     } finally {
       await session.endSession();
+    }
+  };
+
+  checkTierPostLimit = async (userId: string | ObjectId) => {
+    try {
+      const user = await this.userRepository.getUserById(
+        userId as string,
+        false
+      );
+
+      if (!user) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      const tierData = await this.tierRepository.getCurrentTierData(
+        user.subscription.tier as number
+      );
+
+      const PostsCount = await this.postRepository.countPosts(userId);
+
+      if (PostsCount >= tierData.postsLimit) {
+        throw new CustomException(
+          StatusCodeEnum.TooManyRequests_429,
+          "You have exceed your current tier post limit"
+        );
+      }
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 }

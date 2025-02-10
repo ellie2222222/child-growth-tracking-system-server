@@ -97,14 +97,14 @@ class CommentHandler {
     if (page && isNaN(parseInt(page as string))) {
       validationErrors.push({
         field: "page",
-        error: "Page is required and must be a number",
+        error: "Page must be a number",
       });
     }
 
     if (size && isNaN(parseInt(size as string))) {
       validationErrors.push({
         field: "size",
-        error: "Size is required and must be a number",
+        error: "Size must be a number",
       });
     }
 

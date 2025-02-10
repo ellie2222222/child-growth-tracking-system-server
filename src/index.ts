@@ -25,6 +25,7 @@ import commentRoute from "./routes/CommentRoute";
 import membershipPackageRoute from "./routes/MembershipPackageRoute";
 import cronJob from "./utils/cron";
 import growthMetricsRoute from "./routes/GrowthMetricsRoute";
+import tierRoutes from "./routes/TierRoute";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -112,7 +113,7 @@ app.use("/api/posts", postRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/growth-metrics", growthMetricsRoute);
 app.use("/api/receipt", receiptRoutes);
-
+app.use("/api/tiers", tierRoutes);
 // Google Login
 app.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a><br>");

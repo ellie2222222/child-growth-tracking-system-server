@@ -554,6 +554,89 @@ class UserService {
       );
     }
   };
+
+  removeCurrentSubscription = async (
+    userId: string | ObjectId,
+    requesterId: string
+  ) => {
+    const session = await this.database.startTransaction();
+    try {
+      if (requesterId !== userId.toString()) {
+        throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
+      }
+      const checkUser = await this.userRepository.getUserById(
+        userId as string,
+        false
+      );
+
+      if (!checkUser) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      if (checkUser.subscription.currentPlan === null) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User has no subscription"
+        );
+      }
+      const subscription = checkUser.subscription;
+
+      if (checkUser.subscription.futureMembership !== null) {
+        const checkMembershipPackage =
+          await this.membershipPackageRepository.getMembershipPackage(
+            checkUser.subscription.futureMembership as unknown as string,
+            true
+          );
+
+        if (!checkMembershipPackage) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Membership package not found in database"
+          );
+        }
+
+        subscription.currentPlan = checkUser.subscription.futureMembership;
+        subscription.startDate = new Date();
+        subscription.endDate = new Date(
+          Date.now() + 3600 * 24 * checkMembershipPackage.duration.value * 1000
+        );
+        subscription.tier = checkMembershipPackage.tier;
+        subscription.futureMembership = null;
+      } else {
+        subscription.tier = 0;
+        subscription.endDate = null;
+        subscription.startDate = null;
+        subscription.currentPlan = null;
+      }
+
+      const user = await this.userRepository.updateUserById(
+        userId as string,
+        {
+          ...checkUser,
+          subscription: subscription,
+        },
+        session
+      );
+
+      await this.database.commitTransaction(session);
+      return user;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
+    }
+  };
 }
 
 export default UserService;

@@ -60,17 +60,19 @@ class PostController {
         .status(StatusCodeEnum.Created_201)
         .json({ Post: post, message: "Post created successfully" });
     } catch (error) {
-      if (hasAttachments) {
-        const attachments = files.postAttachments || [];
-
-        await cleanUpFileArray(attachments, "create");
-      }
+      // await new Promise((resolve) => setTimeout(resolve, 3000));
 
       if (hasThumbnail) {
-        const thumbnail = (files.postAttachments || [])[0];
+        const thumbnail = (files.postThumbnail || [])[0];
 
         await cleanUpFile(thumbnail, "create");
       }
+
+      if (hasAttachments) {
+        const attachments = files.postAttachments || [];
+        await cleanUpFileArray(attachments, "create");
+      }
+
       next(error);
     }
   };
@@ -153,6 +155,20 @@ class PostController {
         .status(StatusCodeEnum.OK_200)
         .json({ Post: post, message: "Post updated successfully" });
     } catch (error) {
+      // await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      if (hasThumbnail) {
+        const thumbnail = (files.postThumbnail || [])[0];
+
+        await cleanUpFile(thumbnail, "create");
+      }
+
+      if (hasAttachments) {
+        const attachments = files.postAttachments || [];
+
+        await cleanUpFileArray(attachments, "create");
+      }
+
       next(error);
     }
   };
