@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import UserModel from "../models/UserModel";
 import { IUser } from "../interfaces/IUser";
 import { IQuery } from "../interfaces/IQuery";
@@ -6,6 +6,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import getLogger from "../utils/logger";
 import MembershipModel from "../models/MembershipPackage";
+import { IMembershipPackage } from "../interfaces/IMembershipPackage";
 export type returnData = {
   users: IUser[];
   page: number;
@@ -160,14 +161,14 @@ class UserRepository {
    * @throws Error when the update fails.
    */
   async deleteUserById(
-    userId: string, 
+    userId: string,
     session?: mongoose.ClientSession
   ): Promise<boolean> {
     try {
       await UserModel.findByIdAndUpdate(
         userId,
         { isDeleted: true },
-        { session, new: true },
+        { session, new: true }
       );
       return true;
     } catch (error) {
@@ -418,6 +419,7 @@ class UserRepository {
       );
     }
   }
+
   async handleExpirations(userIds: Array<IUser>) {
     try {
       const Logger = getLogger("MEMBERSHIP_EXPIRATION");

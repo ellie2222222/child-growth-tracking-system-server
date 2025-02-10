@@ -126,6 +126,29 @@ class UserController {
       next(error);
     }
   };
+
+  //removeCurrentSubscription
+  removeCurrentSubscription = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const requesterId = req.userInfo.userId;
+
+      const user = await this.userService.removeCurrentSubscription(
+        id,
+        requesterId
+      );
+
+      res
+        .status(StatusCodeEnum.OK_200)
+        .json({ user: user, message: "Removed membership successfully" });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default UserController;

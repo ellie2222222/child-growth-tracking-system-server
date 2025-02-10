@@ -163,5 +163,31 @@ class PostRepository {
       );
     }
   }
+
+  async countPosts(userId: string | ObjectId) {
+    try {
+      const year = new Date().getFullYear();
+      const month = new Date().getMonth();
+
+      const firstDay = new Date(year, month, 1); // Local timezone start of the month
+      const lastDay = new Date(year, month + 1, 0, 23, 59, 59, 999);
+
+      const count = await PostModel.countDocuments({
+        userId: new mongoose.Types.ObjectId(userId as string),
+        createdAt: { $gte: firstDay, $lte: lastDay },
+      });
+
+      return count;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
 }
 export default PostRepository;
