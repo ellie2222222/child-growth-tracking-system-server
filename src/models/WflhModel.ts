@@ -1,13 +1,13 @@
 import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
-import { IWfa } from "../interfaces/IWfa";
+import { IWflh } from "../interfaces/IWflh";
 import baseModelSchema from "./BaseModel";
 
-const wfaModelSchema = new Schema<IWfa>(
+const wflhModelSchema = new Schema<IWflh>(
   {
-    age: { 
-      inMonths: { type: Number, required: true, },
-      inDays: { type: Number, required: true, }
+    height: { 
+      type: Number,
+      required: true,
     },
     gender: {
       type: Number,
@@ -31,6 +31,6 @@ const wfaModelSchema = new Schema<IWfa>(
   { timestamps: true, strict: true }
 );
 
-const WfaModel: Model<IWfa> = mongoose.model<IWfa>("WFA", wfaModelSchema);
+const WflhModel: Model<IWflh> = mongoose.model<IWflh>("WFLH", wflhModelSchema);
 
-export default WfaModel;
+export default WflhModel;

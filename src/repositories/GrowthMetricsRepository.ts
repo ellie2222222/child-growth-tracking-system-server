@@ -1,61 +1,66 @@
 import mongoose, { UpdateWriteOpResult } from "mongoose";
-import { IBmi } from "../interfaces/IBmi";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import BmiModel from "../models/BmiModel";
+import BfaModel from "../models/BfaModel";
 import WfaModel from "../models/WfaModel";
-import Lhfa from "../models/LhfaModel";
+import LhfaModel from "../models/LhfaModel";
+import WflhModel from "../models/WflhModel";
 import { GenderEnumType } from "../enums/GenderEnum";
 import { ILhfa } from "../interfaces/ILhfa";
 import { IWfa } from "../interfaces/IWfa";
+import { IBfa } from "../interfaces/IBfa";
+import { IWflh } from "../interfaces/IWflh";
+import HcfaModel from "../models/HcfaModel";
+import { IHcfa } from "../interfaces/IHcfa";
+import AcfaModel from "../models/AcfaModel";
+import { IAcfa } from "../interfaces/IAcfa";
 
 export type GrowthMetricsQuery = {
-  ageMonth: number;
-  ageMonthRange: string;
+  age: number;
   gender: GenderEnumType;
   percentiles: Array<{ percentile: number; value: number }>;
 };
 
 class GrowthMetricsRepository {
-  async insertBmiData(
-    bmiDataArray: Partial<IBmi>[],
+  async insertBfaData(
+    bfaDataArray: Partial<IBfa>[],
     session?: mongoose.ClientSession
-  ): Promise<IBmi[]> {
+  ): Promise<IBfa[]> {
     try {
-      return await BmiModel.insertMany(bmiDataArray, { session });
+      return await BfaModel.insertMany(bfaDataArray, { session });
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        `Failed to insert BMI data: ${(error as Error).message}`
+        `Failed to insert BFA data: ${(error as Error).message}`
       );
     }
   }
 
-  async getBmiData(query: Partial<GrowthMetricsQuery>): Promise<IBmi[]> {
+  async getBfaData(query: Partial<GrowthMetricsQuery>): Promise<IBfa[]> {
     try {
-      return await BmiModel.find(query);
+      return await BfaModel.find(query);
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        `Failed to get BMI data: ${(error as Error).message}`
+        `Failed to get BFA data: ${(error as Error).message}`
       );
     }
   }
 
-  async updateBmiData(
-    bmiData: Partial<IBmi>,
+  async updateBfaData(
+    bfaData: Partial<IBfa>,
     session?: mongoose.ClientSession
   ): Promise<UpdateWriteOpResult> {
     try {
-      return await BmiModel.updateMany(
-        { gender: bmiData.gender, ageMonth: bmiData.ageMonth, ageMonthRange: bmiData.ageMonthRange }, 
-        { $set: bmiData },
+      return await BfaModel.updateMany(
+        { gender: bfaData.gender, age: bfaData.age }, 
+        { $set: bfaData },
         { upsert: true, session }
       );
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        `Failed to update BMI data: ${(error as Error).message}`
+        `Failed to update BFA data: ${(error as Error).message}`
       );
     }
   }
@@ -91,7 +96,7 @@ class GrowthMetricsRepository {
   ): Promise<UpdateWriteOpResult> {
     try {
       return await WfaModel.updateMany(
-        { gender: wfaData.gender, ageMonth: wfaData.ageMonth, ageMonthRange: wfaData.ageMonthRange }, 
+        { gender: wfaData.gender, age: wfaData.age }, 
         { $set: wfaData },
         { upsert: true, session }
       );
@@ -108,7 +113,7 @@ class GrowthMetricsRepository {
     session?: mongoose.ClientSession
   ): Promise<ILhfa[]> {
     try {
-      return await Lhfa.insertMany(lhfaDataArray, { session });
+      return await LhfaModel.insertMany(lhfaDataArray, { session });
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
@@ -119,7 +124,7 @@ class GrowthMetricsRepository {
 
   async getLhfaData(query: Partial<GrowthMetricsQuery>): Promise<ILhfa[]> {
     try {
-      return await Lhfa.find(query);
+      return await LhfaModel.find(query);
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
@@ -133,8 +138,8 @@ class GrowthMetricsRepository {
     session?: mongoose.ClientSession
   ): Promise<UpdateWriteOpResult> {
     try {
-      return await Lhfa.updateMany(
-        { gender: lhfaData.gender, ageMonth: lhfaData.ageMonth, ageMonthRange: lhfaData.ageMonthRange }, 
+      return await LhfaModel.updateMany(
+        { gender: lhfaData.gender, age: lhfaData.age }, 
         { $set: lhfaData },
         { upsert: true, session }
       );
@@ -142,6 +147,60 @@ class GrowthMetricsRepository {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         `Failed to update LHFA data: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async updateWflhData(
+    wflhData: Partial<IWflh>,
+    session?: mongoose.ClientSession
+  ): Promise<UpdateWriteOpResult> {
+    try {
+      return await WflhModel.updateMany(
+        { gender: wflhData.gender, height: wflhData.height }, 
+        { $set: wflhData },
+        { upsert: true, session }
+      );
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Failed to update WFLH data: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async updateHcfaData(
+    hcfaData: Partial<IHcfa>,
+    session?: mongoose.ClientSession
+  ): Promise<UpdateWriteOpResult> {
+    try {
+      return await HcfaModel.updateMany(
+        { gender: hcfaData.gender, age: hcfaData.age }, 
+        { $set: hcfaData },
+        { upsert: true, session }
+      );
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Failed to update HCFA data: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async updateAcfaData(
+    acfaData: Partial<IAcfa>,
+    session?: mongoose.ClientSession
+  ): Promise<UpdateWriteOpResult> {
+    try {
+      return await AcfaModel.updateMany(
+        { gender: acfaData.gender, age: acfaData.age }, 
+        { $set: acfaData },
+        { upsert: true, session }
+      );
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Failed to update ACFA data: ${(error as Error).message}`
       );
     }
   }

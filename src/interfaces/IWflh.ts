@@ -1,11 +1,8 @@
 import { Document } from "mongoose";
 import { GenderEnumType } from "../enums/GenderEnum";
 
-export interface IWfa extends Document {
-  age: { 
-    inMonths: number
-    inDays: number
-  },
+export interface IWflh extends Document {
+  height: number,
   gender: GenderEnumType;
   percentiles: {
     L: number;
