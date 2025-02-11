@@ -20,9 +20,8 @@ class ChildController {
   ): Promise<void> => {
     try {
       const { name, gender, relationship, birthDate, note } = req.body;
-      const { userId } = req.userInfo;
-
-      const child = await this.childService.createChild(userId, {
+      const userInfo = req.userInfo;
+      const child = await this.childService.createChild(userInfo, {
         name,
         gender,
         relationship,
@@ -32,7 +31,7 @@ class ChildController {
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Child created successfully",
-        child
+        child,
       });
     } catch (error) {
       next(error);
@@ -52,17 +51,21 @@ class ChildController {
       const { childId } = req.params;
       const { name, gender, relationships, birthDate, note } = req.body;
 
-      const updatedChild = await this.childService.updateChild(childId, requesterInfo, {
-        name,
-        gender,
-        relationships,
-        birthDate,
-        note,
-      });
+      const updatedChild = await this.childService.updateChild(
+        childId,
+        requesterInfo,
+        {
+          name,
+          gender,
+          relationships,
+          birthDate,
+          note,
+        }
+      );
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Child updated successfully",
-        updatedChild
+        updatedChild,
       });
     } catch (error) {
       next(error);
@@ -103,11 +106,14 @@ class ChildController {
       const { childId } = req.params;
       const requesterInfo = req.userInfo;
 
-      const child = await this.childService.getChildById(childId, requesterInfo);
+      const child = await this.childService.getChildById(
+        childId,
+        requesterInfo
+      );
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Child retrieved successfully",
-        child
+        child,
       });
     } catch (error) {
       next(error);
@@ -123,24 +129,29 @@ class ChildController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { userId } = req.userInfo
+      const { userId } = req.userInfo;
       const requesterInfo = req.userInfo;
       const query: IQuery = {
         page: parseInt(req.query.page as string, 10) || 1,
         size: parseInt(req.query.size as string, 10) || 10,
-        search: req.query.search as string || "",
+        search: (req.query.search as string) || "",
         sortBy: (req.query.sortBy as "date" | "name") || "date",
         order: (req.query.order as "ascending" | "descending") || "descending",
       };
-      
-      const { children, page, total, totalPages } = await this.childService.getChildrenByUserId(userId, requesterInfo, query);
+
+      const { children, page, total, totalPages } =
+        await this.childService.getChildrenByUserId(
+          userId,
+          requesterInfo,
+          query
+        );
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Children retrieved successfully",
         children,
         page,
         total,
-        totalPages
+        totalPages,
       });
     } catch (error) {
       next(error);

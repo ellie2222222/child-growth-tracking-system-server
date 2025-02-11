@@ -8,34 +8,46 @@ import { IQuery } from "../interfaces/IQuery";
 import UserRepository from "../repositories/UserRepository";
 import { Request } from "express";
 import UserEnum from "../enums/UserEnum";
+import TierRepository from "../repositories/TierRepository";
+import mongoose, { ObjectId } from "mongoose";
 
 class ChildService {
   private childRepository: ChildRepository;
   private userRepository: UserRepository;
-  private sessionService: SessionService;
   private database: Database;
+  private tierRepository: TierRepository;
 
   constructor() {
     this.childRepository = new ChildRepository();
     this.userRepository = new UserRepository();
-    this.sessionService = new SessionService();
     this.database = Database.getInstance();
+    this.tierRepository = new TierRepository();
   }
 
   /**
    * Create a child
    */
   createChild = async (
-    userId: string,
+    requesterInfo: Request["userInfo"],
     childData: Partial<IChild>
   ): Promise<IChild> => {
     const session = await this.database.startTransaction();
     try {
+      const requesterId = requesterInfo.userId;
+      await this.checkTierChildrenLimit(requesterId);
+
+      const user = await this.userRepository.getUserById(requesterId, false);
+      if (!user) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
       // Prepare data
-      childData.memberId = userId;
       childData.relationships = [
         {
-          memberId: userId,
+          memberId: requesterId,
           type: childData.relationship!,
         },
       ];
@@ -326,6 +338,45 @@ class ChildService {
     } catch (error) {
       await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  checkTierChildrenLimit = async (userId: string | ObjectId) => {
+    try {
+      const user = await this.userRepository.getUserById(
+        userId as string,
+        false
+      );
+
+      if (!user) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      const tierData = await this.tierRepository.getCurrentTierData(
+        user.subscription.tier as number
+      );
+
+      const ChildCount = await this.childRepository.countUserChildren(
+        userId as string
+      );
+
+      if (Number(ChildCount) >= Number(tierData.childrenLimit)) {
+        throw new CustomException(
+          StatusCodeEnum.TooManyRequests_429,
+          "You have exceeded your current tier children limit"
+        );
+      }
+    } catch (error) {
+      if (error as Error | CustomException) {
         throw error;
       }
       throw new CustomException(
