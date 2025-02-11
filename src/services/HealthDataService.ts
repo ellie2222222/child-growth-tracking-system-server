@@ -1,130 +1,65 @@
 import Database from "../utils/database";
-import ChildRepository, { ChildrenData } from "../repositories/ChildRepository";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import { IChild } from "../interfaces/IChild";
+import { IHealthData } from "../interfaces/IHealthData";
 import { IQuery } from "../interfaces/IQuery";
 import UserRepository from "../repositories/UserRepository";
 import { Request } from "express";
 import UserEnum from "../enums/UserEnum";
-import TierRepository from "../repositories/TierRepository";
-import mongoose, { ObjectId } from "mongoose";
+import ChildRepository from "../repositories/ChildRepository";
+import { IChild } from "../interfaces/IChild";
+import mongoose from "mongoose";
+import HealthDataRepository, { HealthData } from "../repositories/HealthDataRepository";
 
-class ChildService {
-  private childRepository: ChildRepository;
+class HealthDataService {
+  private healthDataRepository: HealthDataRepository;
   private userRepository: UserRepository;
+  private childRepository: ChildRepository;
   private database: Database;
-  private tierRepository: TierRepository;
 
   constructor() {
-    this.childRepository = new ChildRepository();
+    this.healthDataRepository = new HealthDataRepository();
     this.userRepository = new UserRepository();
+    this.childRepository = new ChildRepository();
     this.database = Database.getInstance();
-    this.tierRepository = new TierRepository();
   }
 
   /**
-   * Create a child
+   * Create a healthData
    */
-  createChild = async (
+  createHealthData = async (
     requesterInfo: Request["userInfo"],
-    childData: Partial<IChild>
-  ): Promise<IChild> => {
+    childId: string,
+    healthData: Partial<IHealthData>
+  ): Promise<IHealthData| null> => {
     const session = await this.database.startTransaction();
     try {
       const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
-      await this.checkTierChildrenLimit(requesterId);
-
       const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
+        throw new CustomException(StatusCodeEnum.NotFound_404, "User not found");
       }
 
-      switch (requesterRole) {
-        case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
-        case UserEnum.MEMBER:
-          break;
-        
-        case UserEnum.DOCTOR:
-          throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
-
-        default:
-          throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
-      }
-
-      // Prepare data
-      childData.relationships = [
-        {
-          memberId: new mongoose.Types.ObjectId(requesterId),
-          type: childData.relationship!,
-        },
-      ];
-
-      const createdChild = await this.childRepository.createChild(
-        childData,
-        session
-      );
-
-      await this.database.commitTransaction(session);
-      return createdChild;
-    } catch (error) {
-      await this.database.abortTransaction(session);
-      if ((error as Error) || (error as CustomException)) {
-        throw error;
-      }
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
-      );
-    }
-  };
-
-  /**
-   * Get a single child by ID
-   */
-  getChildById = async (
-    childId: string,
-    requesterInfo: Request["userInfo"]
-  ): Promise<IChild | null> => {
-    try {
-      const requesterId = requesterInfo.userId;
-      const requesterRole = requesterInfo.role;
-
-      // Check user existence
-      const user = await this.userRepository.getUserById(requesterId, false);
-      if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
-      }
-
-      // Get child with conditions
       let child: IChild | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
         case UserEnum.SUPER_ADMIN:
           child = await this.childRepository.getChildById(childId, true);
           break;
-
+        
         case UserEnum.MEMBER:
-        case UserEnum.DOCTOR:
-          child = await this.childRepository.getChildById(childId, false);
+          child = await this.childRepository.getChildById(childId, false)
           break;
         
+        case UserEnum.DOCTOR:
+          throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
+
         default:
-          throw new CustomException(StatusCodeEnum.NotFound_404, "Child not found");
+          throw new CustomException(StatusCodeEnum.NotFound_404, "Health data not found");
       }
       if (!child) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Child not found"
-        );
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Child not found");
       }
 
       // Check if user is associated with the child in relationships
@@ -139,8 +74,14 @@ class ChildService {
         );
       }
 
-      return child;
+      healthData.childId = new mongoose.Types.ObjectId(childId);
+      const createdHealthData = await this.healthDataRepository.createHealthData(healthData, session);
+      
+      await this.database.commitTransaction(session);
+      
+      return createdHealthData;
     } catch (error) {
+      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -152,16 +93,18 @@ class ChildService {
   };
 
   /**
-   * Get multiple children for a user
+   * Get a single healthData by ID
    */
-  getChildrenByUserId = async (
-    userId: string,
-    requesterInfo: Request["userInfo"],
-    query: IQuery
-  ): Promise<ChildrenData> => {
+  getHealthDataById = async (
+    healthDataId: string,
+    requesterInfo: Request["userInfo"]
+  ): Promise<IHealthData | null> => {
     try {
+      const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
-      const user = await this.userRepository.getUserById(userId, false);
+
+      // Check user existence
+      const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -169,32 +112,48 @@ class ChildService {
         );
       }
 
-      // Get child with conditions
-      let data: ChildrenData;
+      // Get health data with conditions
+      let healthData: IHealthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
         case UserEnum.SUPER_ADMIN:
-          data = await this.childRepository.getChildrenByUserId(
-            userId,
-            query,
-            true
-          );
-          break;
-
-        case UserEnum.MEMBER:
-        case UserEnum.DOCTOR:
-          data = await this.childRepository.getChildrenByUserId(
-            userId,
-            query,
-            false,
-          );
+          healthData = await this.healthDataRepository.getHealthDataById(healthDataId, true);
           break;
         
-        default:
-          throw new CustomException(StatusCodeEnum.NotFound_404, "Child not found");
+        case UserEnum.MEMBER:
+        case UserEnum.DOCTOR:
+          healthData = await this.healthDataRepository.getHealthDataById(healthDataId, false);
+          break;
+
+        default: 
+          throw new CustomException(StatusCodeEnum.NotFound_404, "Health data not found");
+      }
+      if (!healthData) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Health data not found"
+        );
       }
 
-      return data!;
+      // Get child data
+      const child: IChild | null = await this.childRepository.getChildById(healthData.childId.toString(), false);
+      if (!child) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Child not found")
+      }
+
+      // Check if user is associated with the child in relationships
+      const isRelated = child.relationships.some(
+        (relationship) => relationship.memberId.toString() === requesterId
+      );
+
+      if (!isRelated && requesterRole === UserEnum.MEMBER) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Health data not found"
+        );
+      }
+
+      return healthData;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw error;
@@ -207,10 +166,76 @@ class ChildService {
   };
 
   /**
-   * Delete a child
+   * Get multiple healthData for a user
    */
-  deleteChild = async (
+  getHealthDataByChildId = async (
     childId: string,
+    requesterInfo: Request["userInfo"],
+    query: IQuery
+  ): Promise<HealthData> => {
+    try {
+      const requesterId = requesterInfo.userId;
+      const requesterRole = requesterInfo.role;
+      const user = await this.userRepository.getUserById(requesterId, false);
+      if (!user) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      // Get healthData with conditions
+      let healthData: HealthData;
+      switch (requesterRole) {
+        case UserEnum.ADMIN:
+        case UserEnum.SUPER_ADMIN:
+          healthData = await this.healthDataRepository.getHealthDataByChildId(childId, query, true);
+          break;
+        
+        case UserEnum.MEMBER:
+        case UserEnum.DOCTOR:
+          healthData = await this.healthDataRepository.getHealthDataByChildId(childId, query, false);
+          break;
+
+        default: 
+          throw new CustomException(StatusCodeEnum.NotFound_404, "Health data not found");
+      }
+
+      // Get child data
+      const child: IChild | null = await this.childRepository.getChildById(childId.toString(), false);
+      if (!child) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Child not found")
+      }
+
+      // Check if user is associated with the child in relationships
+      const isRelated = child.relationships.some(
+        (relationship) => relationship.memberId.toString() === requesterId
+      );
+
+      if (!isRelated && requesterRole === UserEnum.MEMBER) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Health data not found"
+        );
+      }
+
+      return healthData;
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  /**
+   * Delete a healthData
+   */
+  deleteHealthData = async (
+    healthDataId: string,
     requesterInfo: Request["userInfo"]
   ): Promise<void> => {
     const session = await this.database.startTransaction();
@@ -225,29 +250,35 @@ class ChildService {
         );
       }
 
-      // Get child with conditions
-      let child: IChild | null = null;
+      // Get healthData with conditions
+      let healthData: IHealthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
         case UserEnum.SUPER_ADMIN:
-          child = await this.childRepository.getChildById(childId, true);
-          break;
-
-        case UserEnum.MEMBER:
-          child = await this.childRepository.getChildById(childId, false);
+          healthData = await this.healthDataRepository.getHealthDataById(healthDataId, true);
           break;
         
+        case UserEnum.MEMBER:
+          healthData = await this.healthDataRepository.getHealthDataById(healthDataId, false);
+          break;
+          
         case UserEnum.DOCTOR:
           throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
 
-        default:
-          throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
+        default: 
+          throw new CustomException(StatusCodeEnum.NotFound_404, "Health data not found");
       }
-      if (!child) {
+      if (!healthData) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
-          "Child not found"
+          "Health data not found"
         );
+      }
+
+      // Get child data
+      const child: IChild | null = await this.childRepository.getChildById(healthData.childId.toString(), false);
+      if (!child) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Child not found")
       }
 
       // Check if user is associated with the child in relationships
@@ -255,24 +286,21 @@ class ChildService {
         (relationship) => relationship.memberId.toString() === requesterId
       );
 
-      if (
-        !isRelated &&
-        (requesterRole === UserEnum.DOCTOR || requesterRole === UserEnum.MEMBER)
-      ) {
+      if (!isRelated && requesterRole === UserEnum.MEMBER) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
-          "Child not found"
+          "Health data not found"
         );
       }
 
-      const deletedChild = await this.childRepository.deleteChild(
-        childId,
+      const deletedHealthData = await this.healthDataRepository.deleteHealthData(
+        healthDataId,
         session
       );
-      if (!deletedChild) {
+      if (!deletedHealthData) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
-          "Child not found"
+          "Health data not found"
         );
       }
 
@@ -290,13 +318,13 @@ class ChildService {
   };
 
   /**
-   * Update a child's details
+   * Update a healthData's details
    */
-  updateChild = async (
-    childId: string,
+  updateHealthData = async (
+    healthDataId: string,
     requesterInfo: Request["userInfo"],
-    updateData: Partial<IChild>
-  ): Promise<IChild | null> => {
+    updateData: Partial<IHealthData>
+  ): Promise<IHealthData | null> => {
     const session = await this.database.startTransaction();
     try {
       const requesterId = requesterInfo.userId;
@@ -309,29 +337,35 @@ class ChildService {
         );
       }
 
-      // Get child with conditions
-      let child: IChild | null = null;
+      // Get healthData with conditions
+      let healthData: IHealthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
         case UserEnum.SUPER_ADMIN:
-          child = await this.childRepository.getChildById(childId, true);
-          break;
-
-        case UserEnum.MEMBER:
-          child = await this.childRepository.getChildById(childId, false);
+          healthData = await this.healthDataRepository.getHealthDataById(healthDataId, true);
           break;
         
+        case UserEnum.MEMBER:
+          healthData = await this.healthDataRepository.getHealthDataById(healthDataId, false);
+          break;
+          
         case UserEnum.DOCTOR:
           throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
 
-        default:
-          throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
+        default: 
+          throw new CustomException(StatusCodeEnum.NotFound_404, "Health data not found");
       }
-      if (!child) {
+      if (!healthData) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
-          "Child not found"
+          "Health data not found"
         );
+      }
+
+      // Get child data
+      const child: IChild | null = await this.childRepository.getChildById(healthData.childId.toString(), false);
+      if (!child) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Child not found")
       }
 
       // Check if user is associated with the child in relationships
@@ -339,31 +373,28 @@ class ChildService {
         (relationship) => relationship.memberId.toString() === requesterId
       );
 
-      if (
-        !isRelated &&
-        (requesterRole === UserEnum.DOCTOR || requesterRole === UserEnum.MEMBER)
-      ) {
+      if (!isRelated && requesterRole === UserEnum.MEMBER) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
-          "Child not found"
+          "Health data not found"
         );
       }
 
-      const updatedChild = await this.childRepository.updateChild(
-        childId,
+      const updatedHealthData = await this.healthDataRepository.updateHealthData(
+        healthDataId,
         updateData,
         session
       );
 
-      if (!updatedChild) {
+      if (!updatedHealthData) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
-          "Child not found or cannot be updated"
+          "Health data not found or cannot be updated"
         );
       }
 
       await this.database.commitTransaction(session);
-      return updatedChild;
+      return updatedHealthData;
     } catch (error) {
       await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
@@ -375,45 +406,6 @@ class ChildService {
       );
     }
   };
-
-  checkTierChildrenLimit = async (userId: string | ObjectId) => {
-    try {
-      const user = await this.userRepository.getUserById(
-        userId as string,
-        false
-      );
-
-      if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
-      }
-
-      const tierData = await this.tierRepository.getCurrentTierData(
-        user.subscription.tier as number
-      );
-
-      const ChildCount = await this.childRepository.countUserChildren(
-        userId as string
-      );
-
-      if (Number(ChildCount) >= Number(tierData.childrenLimit)) {
-        throw new CustomException(
-          StatusCodeEnum.Forbidden_403,
-          "You have exceeded your current tier children limit"
-        );
-      }
-    } catch (error) {
-      if (error as Error | CustomException) {
-        throw error;
-      }
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
-      );
-    }
-  };
 }
 
-export default ChildService;
+export default HealthDataService;
