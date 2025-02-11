@@ -245,7 +245,7 @@ class PostService {
       if (PostsCount >= tierData.postsLimit) {
         throw new CustomException(
           StatusCodeEnum.TooManyRequests_429,
-          "You have exceed your current tier post limit"
+          "You have exceeded your current tier post limit"
         );
       }
     } catch (error) {

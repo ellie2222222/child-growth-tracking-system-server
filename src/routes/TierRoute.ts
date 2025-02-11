@@ -22,7 +22,7 @@ router.put(
   tierController.updateTier
 );
 
-router.get("/", tierController.getTiers);
+router.get("/", tierHandler.getTiers, tierController.getTiers);
 
 router.get("/:id", tierController.getTier);
 

@@ -211,6 +211,29 @@ class ChildRepository {
       );
     }
   }
+
+  async countUserChildren(userId: string) {
+    try {
+      const count = await ChildModel.countDocuments({
+        relationships: {
+          $elemMatch: { memberId: new mongoose.Types.ObjectId(userId) },
+        },
+      });
+
+      return count;
+    } catch (error) {
+      if (error as Error) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to delete child: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
 }
 
 export default ChildRepository;
