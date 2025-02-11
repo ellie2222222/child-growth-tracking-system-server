@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import { isValidObjectId, ObjectId } from "mongoose";
 import PostRepository from "../repositories/PostRepository";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
@@ -12,17 +12,20 @@ import {
 import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
 import TierRepository from "../repositories/TierRepository";
+import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 class PostService {
   private postRepository: PostRepository;
   private database: Database;
   private userRepository: UserRepository;
   private tierRepository: TierRepository;
+  private membershipPackageRepository: MembershipPackageRepository;
 
   constructor() {
     this.postRepository = new PostRepository();
     this.database = Database.getInstance();
     this.userRepository = new UserRepository();
     this.tierRepository = new TierRepository();
+    this.membershipPackageRepository = new MembershipPackageRepository();
   }
   createPost = async (
     userId: string | ObjectId,
@@ -240,11 +243,58 @@ class PostService {
         user.subscription.tier as number
       );
 
+      if (user.subscription.tier !== 0) {
+        const currentPlanId = user?.subscription?.currentPlan;
+
+        if (!currentPlanId || !isValidObjectId(currentPlanId)) {
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "User current plan is invalid"
+          );
+        }
+
+        const CheckPack =
+          await this.membershipPackageRepository.getMembershipPackage(
+            currentPlanId.toString(),
+            false
+          );
+
+        if (!CheckPack) {
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "Membership package not found"
+          );
+        }
+
+        const endDate = new Date(
+          (user.subscription.startDate as Date).getTime() +
+            3600 * 24 * CheckPack.duration.value * 1000
+        );
+
+        if (endDate !== user.subscription.endDate) {
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "User endDate is invalid"
+          );
+        }
+      } else {
+        if (
+          user.subscription.currentPlan ||
+          user.subscription.startDate ||
+          user.subscription.endDate
+        ) {
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "Tier 0 cannot have subscription details"
+          );
+        }
+      }
+
       const PostsCount = await this.postRepository.countPosts(userId);
 
       if (PostsCount >= tierData.postsLimit) {
         throw new CustomException(
-          StatusCodeEnum.TooManyRequests_429,
+          StatusCodeEnum.Forbidden_403,
           "You have exceeded your current tier post limit"
         );
       }
