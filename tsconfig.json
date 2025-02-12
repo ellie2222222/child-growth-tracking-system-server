@@ -11,7 +11,6 @@
     "sourceMap": false,
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "express"],
-    "typeRoots": ["./src/node_modules/@types", "./src/types"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
