@@ -59,6 +59,7 @@ class PaymentQueue {
                   data.type
                 );
 
+                // console.log("IN QUEUE");
                 await this.userService.updateSubscription(
                   data.userId,
                   data.membershipPackageId

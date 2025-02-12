@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { validateMongooseObjectId } from "../utils/validator";
 class TierHandler {
   createTier = (req: Request, res: Response, next: NextFunction): void => {
     const validationErrors: { field: string; error: string }[] = [];
@@ -113,6 +114,29 @@ class TierHandler {
 
     if (sortBy && !["date"].includes(sortBy as string)) {
       validationErrors.push({ field: "sortBy", error: "Invalid sort by" });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
+      next();
+    }
+  };
+
+  getTier = async (req: Request, res: Response, next: NextFunction) => {
+    const validationErrors: { field: string; error: string }[] = [];
+
+    const { id } = req.params;
+    try {
+      await validateMongooseObjectId(id);
+    } catch {
+      validationErrors.push({
+        field: "TierId",
+        error: "Invalid TierId",
+      });
     }
 
     if (validationErrors.length > 0) {

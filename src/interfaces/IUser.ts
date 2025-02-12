@@ -24,8 +24,9 @@ export interface IUser extends Document {
     endDate: Date | null;
     currentPlan: Types.ObjectId | null;
     tier: number | null;
-    futureMembership: Types.ObjectId | null;
+    futurePlan: Types.ObjectId | null;
   };
+  childrenIds: [Types.ObjectId];
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

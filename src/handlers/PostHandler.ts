@@ -120,7 +120,7 @@ class PostHandler {
     }
   };
 
-  updatePosts = async (req: Request, res: Response, next: NextFunction) => {
+  updatePost = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
 
     const { id } = req.params;

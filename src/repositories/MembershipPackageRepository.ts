@@ -3,6 +3,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import MembershipModel from "../models/MembershipPackage";
 import { IQuery } from "../interfaces/IQuery";
+import UserModel from "../models/UserModel";
 
 class MembershipPackageRepository {
   constructor() {}
@@ -116,12 +117,15 @@ class MembershipPackageRepository {
       );
     }
   }
+
   async updateMembershipPackage(
     id: string | ObjectId,
     data: object,
     session?: ClientSession
   ) {
     try {
+      await this.checkMembershipInUsers(id);
+
       const membershipPackage = await MembershipModel.findOneAndUpdate(
         {
           _id: new mongoose.Types.ObjectId(id as string),
@@ -148,11 +152,13 @@ class MembershipPackageRepository {
       );
     }
   }
+
   async deleteMembershipPackage(
     id: string | ObjectId,
     session?: ClientSession
   ) {
     try {
+      await this.checkMembershipInUsers(id);
       const membershipPackage = await MembershipModel.findOneAndUpdate(
         {
           _id: new mongoose.Types.ObjectId(id as string),
@@ -169,6 +175,41 @@ class MembershipPackageRepository {
         );
       }
       return true;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async checkMembershipInUsers(membershipId: string | ObjectId) {
+    try {
+      const user = await UserModel.findOne({
+        $or: [
+          {
+            "subscription.currentPlan": new mongoose.Types.ObjectId(
+              membershipId as string
+            ),
+          },
+          {
+            "subscription.futurePlan": new mongoose.Types.ObjectId(
+              membershipId as string
+            ),
+          },
+        ],
+        isDeleted: false,
+      });
+
+      if (user) {
+        throw new CustomException(
+          StatusCodeEnum.Conflict_409,
+          "This membership package is currently in use by some user"
+        );
+      }
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
