@@ -1,4 +1,4 @@
-import mongoose, { ObjectId } from "mongoose";
+import mongoose, { ObjectId, Types } from "mongoose";
 import UserModel from "../models/UserModel";
 import { IUser } from "../interfaces/IUser";
 import { IQuery } from "../interfaces/IQuery";
@@ -7,6 +7,8 @@ import CustomException from "../exceptions/CustomException";
 import getLogger from "../utils/logger";
 import MembershipModel from "../models/MembershipPackage";
 import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import ChildModel from "../models/ChildModel";
+import TierModel from "../models/TierModel";
 export type returnData = {
   users: IUser[];
   page: number;
@@ -432,9 +434,30 @@ class UserRepository {
           continue;
         }
 
-        const nextMembershipId = user.subscription.futureMembership;
+        const nextMembershipId = user.subscription.futurePlan;
 
         if (!nextMembershipId) {
+          const tier = await TierModel.findOne({
+            tier: 0,
+            isDeleted: false,
+          });
+
+          if (!tier) {
+            throw new CustomException(
+              StatusCodeEnum.NotFound_404,
+              "Tier info not found"
+            );
+          }
+
+          let children = await this.getUserChildrenIds(user._id as string);
+          if (tier.childrenLimit === 0) {
+            children = [] as unknown as [Types.ObjectId];
+          } else {
+            children = children.slice(0, tier.childrenLimit - 1) as [
+              Types.ObjectId
+            ];
+          }
+
           // No future memberships, clear subscription
           await UserModel.updateOne(
             { _id: userId },
@@ -443,7 +466,8 @@ class UserRepository {
                 "subscription.endDate": null,
                 "subscription.startDate": null,
                 "subscription.currentPlan": null,
-                "subscription.tier": null,
+                "subscription.tier": 0,
+                childrenIds: children,
               },
             }
           );
@@ -465,14 +489,16 @@ class UserRepository {
           Date.now() +
             3600 * 24 * (membershipPackage.duration.value as number) * 1000
         );
-
-        // Update user's subscription and remove the used membership from futureMembership
+        const children = await this.getUserChildrenIds(userId.toString());
+        // Update user's subscription and remove the used membership from futurePlan
         await UserModel.findByIdAndUpdate(userId, {
           $set: {
+            "subscription.tier": membershipPackage.tier,
             "subscription.currentPlan": nextMembershipId,
             "subscription.startDate": new Date(),
             "subscription.endDate": newEndDate,
-            "subscription.futureMembership": null,
+            "subscription.futurePlan": null,
+            childrenIds: children,
           },
         });
       }
@@ -480,6 +506,49 @@ class UserRepository {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         `Failed to handle expirations: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async getUserChildrenIds(userId: string): Promise<[Types.ObjectId]> {
+    try {
+      const user = await UserModel.findOne({
+        _id: new mongoose.Types.ObjectId(userId),
+        isDeleted: false,
+      });
+
+      if (!user) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      const childrens = await ChildModel.aggregate([
+        {
+          $match: {
+            relationships: {
+              $elemMatch: { memberId: new mongoose.Types.ObjectId(userId) },
+            },
+            isDeleted: false,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+          },
+        },
+        { $sort: { ["createdAt"]: 1 } },
+      ]);
+
+      return childrens as [Types.ObjectId];
+    } catch (error) {
+      if (error as CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Error update user childrenIds: ${(error as Error).message}`
       );
     }
   }

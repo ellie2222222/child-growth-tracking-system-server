@@ -23,8 +23,8 @@ router.put(
     { name: "postAttachments" },
     { name: "postThumbnail", maxCount: 1 },
   ]),
-  postHandler.updatePosts,
-  postController.updatePosts
+  postHandler.updatePost,
+  postController.updatePost
 );
 
 router.get("/", postHandler.getPosts, postController.getPosts);

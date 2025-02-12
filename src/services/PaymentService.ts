@@ -23,7 +23,7 @@ class PaymentService {
         "User not found"
       );
     }
-    if ((user as IUser).subscription.futureMembership != null) {
+    if ((user as IUser).subscription.futurePlan != null) {
       throw new CustomException(
         StatusCodeEnums.BadRequest_400,
         "You can only have 1 prepurchased package"

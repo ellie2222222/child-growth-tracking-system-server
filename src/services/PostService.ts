@@ -249,9 +249,13 @@ class PostService {
         if (!currentPlanId || !isValidObjectId(currentPlanId)) {
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,
-            "User current plan is invalid"
+            "Invalid user's current membership plan"
           );
         }
+
+        //else {
+        //console.log("currentPlan not null");
+        //}
 
         const CheckPack =
           await this.membershipPackageRepository.getMembershipPackage(
@@ -262,7 +266,18 @@ class PostService {
         if (!CheckPack) {
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,
-            "Membership package not found"
+            "User's current membership package not found"
+          );
+        }
+
+        //else {
+        //   console.log("currentPlan found");
+        // }
+
+        if (!user.subscription.endDate) {
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "Your membership expiration date not found"
           );
         }
 
@@ -271,10 +286,25 @@ class PostService {
             3600 * 24 * CheckPack.duration.value * 1000
         );
 
-        if (endDate !== user.subscription.endDate) {
+        const timeMargin = 5 * 60 * 1000;
+        if (
+          Math.abs(endDate.getTime() - user.subscription.endDate?.getTime()) >
+          timeMargin
+        ) {
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,
-            "User endDate is invalid"
+            "Invalid user's membership expiration date "
+          );
+        }
+        //  else {
+        //   console.log("valid end date");
+        // }
+
+        //cron job late?(run each mins so late seconds?)
+        if (user.subscription.endDate?.getTime() < Date.now()) {
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "Current pack has expires, please wait for the system to handle"
           );
         }
       } else {

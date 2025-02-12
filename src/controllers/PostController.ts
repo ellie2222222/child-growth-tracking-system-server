@@ -113,7 +113,7 @@ class PostController {
     }
   };
 
-  updatePosts = async (req: Request, res: Response, next: NextFunction) => {
+  updatePost = async (req: Request, res: Response, next: NextFunction) => {
     const files = req.files as { [key: string]: Express.Multer.File[] };
 
     let hasThumbnail: boolean = false;

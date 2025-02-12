@@ -4,7 +4,7 @@ import { ITier } from "../interfaces/ITier";
 const TierSchema = new Schema<ITier>(
   {
     tier: {
-      type: "Number",
+      type: Number,
       required: true,
       enums: [0, 1, 2],
     },

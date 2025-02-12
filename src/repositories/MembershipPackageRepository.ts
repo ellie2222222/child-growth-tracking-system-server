@@ -196,7 +196,7 @@ class MembershipPackageRepository {
             ),
           },
           {
-            "subscription.futureMembership": new mongoose.Types.ObjectId(
+            "subscription.futurePlan": new mongoose.Types.ObjectId(
               membershipId as string
             ),
           },
