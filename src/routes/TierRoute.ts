@@ -22,8 +22,27 @@ router.put(
   tierController.updateTier
 );
 
-router.get("/", tierHandler.getTiers, tierController.getTiers);
+router.get(
+  "/",
+  RoleMiddleware([
+    UserEnum.SUPER_ADMIN,
+    UserEnum.ADMIN,
+    UserEnum.MEMBER,
+    UserEnum.DOCTOR,
+  ]),
+  tierHandler.getTiers,
+  tierController.getTiers
+);
 
-router.get("/:id", tierController.getTier);
+router.get(
+  "/:id",
+  RoleMiddleware([
+    UserEnum.SUPER_ADMIN,
+    UserEnum.ADMIN,
+    UserEnum.MEMBER,
+    UserEnum.DOCTOR,
+  ]),
+  tierController.getTier
+);
 
 export default router;

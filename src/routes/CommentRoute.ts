@@ -1,24 +1,59 @@
 import CommentController from "../controllers/CommentController";
 import { Router } from "express";
 import CommentHandler from "../handlers/CommentHandler";
+import RoleMiddleware from "../middlewares/RoleMiddleware";
+import UserEnum from "../enums/UserEnum";
 
 const router = Router();
 const commentController = new CommentController();
 const commentHandler = new CommentHandler();
-router.post("/", commentHandler.createComment, commentController.createComment);
+
+router.post(
+  "/",
+  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
+  commentHandler.createComment,
+  commentController.createComment
+);
+
 router.put(
   "/:id",
+  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
   commentHandler.updateComment,
   commentController.updateComment
 );
+
 router.get(
   "/",
+  RoleMiddleware([
+    UserEnum.DOCTOR,
+    UserEnum.MEMBER,
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+  ]),
   commentHandler.getComments,
   commentController.getCommentsByPostId
 );
-router.get("/:id", commentHandler.getComment, commentController.getComment);
+
+router.get(
+  "/:id",
+  RoleMiddleware([
+    UserEnum.DOCTOR,
+    UserEnum.MEMBER,
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+  ]),
+  commentHandler.getComment,
+  commentController.getComment
+);
+
 router.delete(
   "/:id",
+  RoleMiddleware([
+    UserEnum.DOCTOR,
+    UserEnum.MEMBER,
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+  ]),
   commentHandler.deleteComment,
   commentController.deleteComment
 );
