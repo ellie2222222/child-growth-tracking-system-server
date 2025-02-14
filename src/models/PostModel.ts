@@ -4,7 +4,7 @@ import { IPost } from "../interfaces/IPost";
 const postSchema = new Schema<IPost>(
   {
     userId: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },

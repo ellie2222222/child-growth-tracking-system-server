@@ -174,6 +174,7 @@ class UserHandler {
       next();
     }
   };
+
   getUsers = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
     const { page, size, search, order, sortBy } = req.query;
