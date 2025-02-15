@@ -18,7 +18,7 @@ import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
 import userRoutes from "./routes/UserRoute";
-import limiter from "./middlewares/rateLimiter";
+import limiter from "./middlewares/RateLimiter";
 import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
@@ -26,6 +26,7 @@ import membershipPackageRoute from "./routes/MembershipPackageRoute";
 import cronJob from "./utils/cron";
 import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 import tierRoutes from "./routes/TierRoute";
+import { swaggerDoc } from "./config/swaggerConfig";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -136,5 +137,6 @@ server.listen(port, async (err?: Error) => {
     process.exit(1);
   } else {
     logger.info(`Server is running at port ${port}`);
+    swaggerDoc(app);
   }
 });

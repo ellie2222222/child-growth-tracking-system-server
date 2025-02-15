@@ -1,9 +1,9 @@
-import { Express, Request, Response } from "express";
+import { Application, Express, Request, Response } from "express";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import dotenv from "dotenv";
 import getLogger from "../utils/logger";
-const packageJson = require("../package.json");
+const packageJson = require("../../package.json");
 const version = packageJson.version;
 
 dotenv.config();
@@ -53,7 +53,7 @@ const options: swaggerJsdoc.Options = {
 
 const swaggerSpec = swaggerJsdoc(options);
 
-export function swaggerDoc(app: Express, port: number): void {
+export function swaggerDoc(app: Application): void {
   const logger = getLogger("SWAGGER");
 
   app.use(
@@ -74,5 +74,5 @@ export function swaggerDoc(app: Express, port: number): void {
     res.send(swaggerSpec);
   });
 
-  logger.info(`Swagger is running at: ${process.env.APP_BASE_URL}/api-docs`);
+  logger.info(`Swagger is running at: ${process.env.SERVER_URL}/api-docs`);
 }
