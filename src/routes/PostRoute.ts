@@ -2,6 +2,8 @@ import { Router } from "express";
 import PostController from "../controllers/PostController";
 import { uploadFile } from "../middlewares/storeFile";
 import PostHandler from "../handlers/PostHandler";
+import RoleMiddleware from "../middlewares/RoleMiddleware";
+import UserEnum from "../enums/UserEnum";
 
 const router = Router();
 const postController = new PostController();
@@ -9,6 +11,7 @@ const postHandler = new PostHandler();
 
 router.post(
   "/",
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER]),
   uploadFile.fields([
     { name: "postAttachments" },
     { name: "postThumbnail", maxCount: 1 },
@@ -19,16 +22,49 @@ router.post(
 
 router.put(
   "/:id",
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER]),
   uploadFile.fields([
     { name: "postAttachments" },
     { name: "postThumbnail", maxCount: 1 },
   ]),
-  postHandler.updatePosts,
-  postController.updatePosts
+  postHandler.updatePost,
+  postController.updatePost
 );
 
-router.get("/", postHandler.getPosts, postController.getPosts);
-router.get("/:id", postHandler.getPost, postController.getPost);
-router.delete("/:id", postHandler.deletePost, postController.deletePost);
+router.get(
+  "/",
+  RoleMiddleware([
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+    UserEnum.DOCTOR,
+    UserEnum.MEMBER,
+  ]),
+  postHandler.getPosts,
+  postController.getPosts
+);
+
+router.get(
+  "/:id",
+  RoleMiddleware([
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+    UserEnum.DOCTOR,
+    UserEnum.MEMBER,
+  ]),
+  postHandler.getPost,
+  postController.getPost
+);
+
+router.delete(
+  "/:id",
+  RoleMiddleware([
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+    UserEnum.DOCTOR,
+    UserEnum.MEMBER,
+  ]),
+  postHandler.deletePost,
+  postController.deletePost
+);
 
 export default router;

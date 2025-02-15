@@ -1,4 +1,4 @@
-import mongoose, { Schema, Model } from "mongoose";
+import mongoose, { Schema, Model, Types } from "mongoose";
 import baseModelSchema from "./BaseModel";
 import { IUser } from "../interfaces/IUser";
 
@@ -70,11 +70,15 @@ const userModelSchema = new Schema<IUser>(
         type: Number,
         default: 0,
       },
-      futureMembership: {
+      futurePlan: {
         type: Schema.Types.ObjectId,
         ref: "MembershipPackage",
         default: null,
       },
+    },
+    childrenIds: {
+      type: [{ type: Schema.Types.ObjectId, ref: "Child" }],
+      default: [] as unknown as [Types.ObjectId],
     },
     ...baseModelSchema.obj,
   },

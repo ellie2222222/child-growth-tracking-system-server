@@ -19,8 +19,8 @@ const publicRoutes: PublicRoutes[] = [
   { path: "/api/users", method: "GET" },
 
   // Payment
-  { path: "/api/payment/paypal/success", method: "GET" },
-  { path: "/api/payment/paypal/failed", method: "GET" },
+  { path: "/api/payments/paypal/success", method: "GET" },
+  { path: "/api/payments/paypal/failed", method: "GET" },
   { path: "/api/payments/vnpay/callback", method: "GET" },
 
   //Assets

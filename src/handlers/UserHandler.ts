@@ -149,6 +149,7 @@ class UserHandler {
       next();
     }
   };
+
   getUserById = async (
     req: Request,
     res: Response,
@@ -173,6 +174,7 @@ class UserHandler {
       next();
     }
   };
+
   getUsers = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
     const { page, size, search, order, sortBy } = req.query;
@@ -243,6 +245,7 @@ class UserHandler {
   deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
     const { id } = req.params;
+
     try {
       await validateMongooseObjectId(id);
     } catch (error) {
@@ -251,11 +254,41 @@ class UserHandler {
         error: (error as Error | CustomException).message,
       });
     }
+
     if (validationErrors.length > 0) {
       res.status(StatusCodeEnum.BadRequest_400).json({
         message: "Validation failed",
         validationErrors,
       });
+      return;
+    } else {
+      next();
+    }
+  };
+
+  removeCurrentSubscription = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const validationErrors: { field: string; error: string }[] = [];
+    const { id } = req.params;
+
+    try {
+      await validateMongooseObjectId(id);
+    } catch (error) {
+      validationErrors.push({
+        field: "Invalid userId",
+        error: (error as Error | CustomException).message,
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+      return;
     } else {
       next();
     }

@@ -1,4 +1,4 @@
-import mongoose, { ObjectId } from "mongoose";
+import mongoose, { ObjectId, Types } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
@@ -9,18 +9,21 @@ import SessionService from "./SessionService";
 import { IQuery } from "../interfaces/IQuery";
 import { returnData } from "../repositories/UserRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import TierRepository from "../repositories/TierRepository";
 
 class UserService {
   private userRepository: UserRepository;
   private sessionService: SessionService;
   private database: Database;
   private membershipPackageRepository: MembershipPackageRepository;
+  private tierRepository: TierRepository;
 
   constructor() {
     this.userRepository = new UserRepository();
     this.sessionService = new SessionService();
     this.database = Database.getInstance();
     this.membershipPackageRepository = new MembershipPackageRepository();
+    this.tierRepository = new TierRepository();
   }
 
   /**
@@ -523,7 +526,7 @@ class UserService {
         membershipPackageId as string
       );
       if (checkUser.subscription.currentPlan !== null) {
-        subscription.futureMembership = membershipPackageObjectId;
+        subscription.futurePlan = membershipPackageObjectId;
       } else {
         subscription.currentPlan = membershipPackageObjectId;
         subscription.tier = checkMembershipPackage.tier;
@@ -532,16 +535,45 @@ class UserService {
           Date.now() + 3600 * 24 * checkMembershipPackage.duration.value * 1000
         );
       }
+
+      //tier handling for accessible children based on tier limit
+      const tier = await this.tierRepository.getCurrentTierData(
+        subscription.tier as number
+      );
+      if (!tier) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Tier info not found"
+        );
+      }
+
+      let children = [] as unknown as [Types.ObjectId];
+
+      if (tier.childrenLimit !== 0) {
+        children = (
+          await this.userRepository.getUserChildrenIds(id as string)
+        ).map((child) => child._id) as unknown as [Types.ObjectId];
+
+        if (tier.childrenLimit < children.length) {
+          children = children.slice(0, tier.childrenLimit - 1) as [
+            Types.ObjectId
+          ];
+        }
+      }
+
+      const data = {
+        subscription: subscription,
+        childrenIds: children,
+      };
+
       const user = await this.userRepository.updateUserById(
         id as string,
-        {
-          ...checkUser,
-          subscription: subscription,
-        },
+        data,
         session
       );
 
       await session.commitTransaction(session);
+
       return user;
     } catch (error) {
       await session.abortTransaction(session);
@@ -582,12 +614,13 @@ class UserService {
           "User has no subscription"
         );
       }
+
       const subscription = checkUser.subscription;
 
-      if (checkUser.subscription.futureMembership !== null) {
+      if (checkUser.subscription.futurePlan !== null) {
         const checkMembershipPackage =
           await this.membershipPackageRepository.getMembershipPackage(
-            checkUser.subscription.futureMembership as unknown as string,
+            checkUser.subscription.futurePlan as unknown as string,
             true
           );
 
@@ -598,13 +631,13 @@ class UserService {
           );
         }
 
-        subscription.currentPlan = checkUser.subscription.futureMembership;
+        subscription.currentPlan = checkUser.subscription.futurePlan;
         subscription.startDate = new Date();
         subscription.endDate = new Date(
           Date.now() + 3600 * 24 * checkMembershipPackage.duration.value * 1000
         );
         subscription.tier = checkMembershipPackage.tier;
-        subscription.futureMembership = null;
+        subscription.futurePlan = null;
       } else {
         subscription.tier = 0;
         subscription.endDate = null;
@@ -612,16 +645,45 @@ class UserService {
         subscription.currentPlan = null;
       }
 
+      //tier handling for accessible children based on tier limit
+      const tier = await this.tierRepository.getCurrentTierData(
+        subscription.tier as number
+      );
+
+      if (!tier) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Tier info not found"
+        );
+      }
+
+      let children = [] as unknown as [Types.ObjectId];
+
+      if (tier.childrenLimit !== 0) {
+        children = (
+          await this.userRepository.getUserChildrenIds(userId as string)
+        ).map((child) => child._id) as unknown as [Types.ObjectId];
+
+        if (tier.childrenLimit < children.length) {
+          children = children.slice(0, tier.childrenLimit - 1) as [
+            Types.ObjectId
+          ];
+        }
+      }
+
+      const data = {
+        subscription: subscription,
+        childrenIds: children,
+      };
+
       const user = await this.userRepository.updateUserById(
         userId as string,
-        {
-          ...checkUser,
-          subscription: subscription,
-        },
+        data,
         session
       );
 
       await this.database.commitTransaction(session);
+
       return user;
     } catch (error) {
       await session.abortTransaction(session);
