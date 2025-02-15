@@ -1,12 +1,18 @@
 import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
-import { IHcfa } from "../interfaces/IHcfa";
+import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
 import baseModelSchema from "./BaseModel";
 
-const hcfaModelSchema = new Schema<IHcfa>(
+const growthVelocityModelSchema = new Schema<IGrowthVelocity>(
   {
-    age: { 
+    firstInterval: { 
       inMonths: { type: Number, required: true, },
+      inWeeks: { type: Number, required: true, },
+      inDays: { type: Number, required: true, }
+    },
+    lastInterval: { 
+      inMonths: { type: Number, required: true, },
+      inWeeks: { type: Number, required: true, },
       inDays: { type: Number, required: true, }
     },
     gender: {
@@ -18,6 +24,7 @@ const hcfaModelSchema = new Schema<IHcfa>(
       L: { type: Number, required: true },
       M: { type: Number, required: true },
       S: { type: Number, required: true },
+      delta: { type: Number, required: true },
       values: [
         {
           percentile: { type: Number, required: true },
@@ -31,6 +38,6 @@ const hcfaModelSchema = new Schema<IHcfa>(
   { timestamps: true, strict: true }
 );
 
-const HcfaModel: Model<IHcfa> = mongoose.model<IHcfa>("HCFA", hcfaModelSchema);
+const GrowthVelocityModel: Model<IGrowthVelocity> = mongoose.model<IGrowthVelocity>("GrowthVelocity", growthVelocityModelSchema);
 
-export default HcfaModel;
+export default GrowthVelocityModel;

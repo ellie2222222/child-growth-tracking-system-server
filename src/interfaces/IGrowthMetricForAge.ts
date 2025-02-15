@@ -1,12 +1,14 @@
 import { Document } from "mongoose";
 import { GenderEnumType } from "../enums/GenderEnum";
+import { GrowthMetricsEnumType } from "../enums/GrowthMetricsEnum";
 
-export interface IBfa extends Document {
+export interface IGrowthMetricForAge extends Document {
   age: { 
     inMonths: number
     inDays: number
   },
   gender: GenderEnumType;
+  type: GrowthMetricsEnumType;
   percentiles: {
     L: number;
     M: number;

@@ -1,8 +1,8 @@
 import mongoose, { Model, Schema } from "mongoose";
 import baseModelSchema from "./BaseModel";
-import { IHealthData } from "../interfaces/IHealthData";
+import { IGrowthData } from "../interfaces/IGrowthData";
 
-const healthDataSchema = new Schema<IHealthData>(
+const growthDataSchema = new Schema<IGrowthData>(
   {
     childId: {
         type: Schema.Types.ObjectId,
@@ -32,9 +32,9 @@ const healthDataSchema = new Schema<IHealthData>(
   { timestamps: true, strict: true }
 );
 
-const HealthDataModel: Model<IHealthData> = mongoose.model<IHealthData>(
-  "HealthData",
-  healthDataSchema
+const GrowthDataModel: Model<IGrowthData> = mongoose.model<IGrowthData>(
+  "GrowthData",
+  growthDataSchema
 );
 
-export default HealthDataModel;
+export default GrowthDataModel;

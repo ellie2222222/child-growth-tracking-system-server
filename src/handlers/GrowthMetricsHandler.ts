@@ -23,6 +23,21 @@ class GrowthMetricsHandler {
       });
     }
 
+    if (!metric) {
+      validationErrors.push({
+        field: "metric",
+        error: `Unsupported metric. Must be one of: ${this.validMetrics.join(", ")}`,
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+      return;
+    }
+
     // Parse file
     const filePath = path.join(req.file!.path);
     const fileBuffer = fs.readFileSync(filePath);
@@ -41,7 +56,7 @@ class GrowthMetricsHandler {
     lowerCaseJsonData.some((item, index) => {
       if (item.gender === undefined || item.gender === null) {
         validationErrors.push({
-          field: "excelFile",
+          field: "gender",
           error: `Expected gender field and value`
         });
       }
@@ -52,35 +67,62 @@ class GrowthMetricsHandler {
           (item.gender !== 0 && item.gender !== 1))
       ) {
         validationErrors.push({
-          field: "excelFile",
+          field: "gender",
           error: `Invalid gender ${item.gender}. Expected either 0: Boy or 1: Girl`
+        });
+      }
+
+      if (item.l === undefined || item.l === null) {
+        validationErrors.push({
+          field: "L",
+          error: `Expected L field and value`
+        });
+      }
+
+      if (item.m === undefined || item.m === null) {
+        validationErrors.push({
+          field: "M",
+          error: `Expected M field and value`
+        });
+      }
+
+      if (item.s === undefined || item.s === null) {
+        validationErrors.push({
+          field: "S",
+          error: `Expected S field and value`
         });
       }
 
       if (!Number.isFinite(item.l)) {
         validationErrors.push({
-          field: "excelFile",
-          error: `Invalid L value ${item.l} at row ${
-            index + 1
-          }. Expected a valid floating-point number`
+          field: "L",
+          error: `Invalid L value ${item.l}. Expected a valid floating-point number`
         });
       }
 
       if (!Number.isFinite(item.m)) {
         validationErrors.push({
-          field: "excelFile",
-          error: `Invalid M value ${item.m} at row ${
-            index + 1
-          }. Expected a valid floating-point number`
+          field: "M",
+          error: `Invalid M value ${item.m}. Expected a valid floating-point number`
         });
       }
 
       if (!Number.isFinite(item.s)) {
         validationErrors.push({
-          field: "excelFile",
-          error: `Invalid S value ${item.s} at row ${
-            index + 1
-          }. Expected a valid floating-point number`
+          field: "S",
+          error: `Invalid S value ${item.s}. Expected a valid floating-point number`
+        });
+      }
+
+      const invalidEntry = Object.entries(item).find(
+        ([key, value]) => key.startsWith("p") && !Number.isFinite(value)
+      );
+      if (invalidEntry) {
+        const [invalidKey, invalidValue] = invalidEntry;
+        
+        validationErrors.push({
+          field: invalidKey.toUpperCase(),
+          error: `Invalid P value ${invalidValue}. Expected a valid floating-point number`
         });
       }
 
@@ -95,21 +137,21 @@ class GrowthMetricsHandler {
             item.ageinmonths === undefined
           ) {
             validationErrors.push({
-              field: "excelFile",
+              field: "age",
               error: `Row ${index + 1}: Either field ageInDays or ageInMonths value is required`
             });
           }
 
           if (item.ageindays !== undefined && (!Number.isInteger(item.ageindays) || item.ageindays < 0)) {
             validationErrors.push({
-              field: "excelFile",
+              field: "ageIndDays",
               error: `Invalid ageInDays ${item.ageindays}. Expected a positive whole number`
             });
           }
 
           if (item.ageinmonths !== undefined && (!Number.isInteger(item.ageinmonths) || item.ageinmonths < 0)) {
             validationErrors.push({
-              field: "excelFile",
+              field: "ageInMonths",
               error: `Invalid ageInMonths ${item.ageinmonths}. Expected a positive whole number`
             });
           }   
@@ -119,11 +161,30 @@ class GrowthMetricsHandler {
         case "WFLH":
           if (!item.height) {
             validationErrors.push({
-              field: "excelFile",
+              field: "height",
               error: `Expected height field and value`
             });
           }
           
+          break;
+
+        case "WV":
+        case "HV":
+          if (item.delta === undefined || item.delta === null) {
+            validationErrors.push({
+              field: "delta",
+              error: `Expected delta field and value`
+            });
+          }
+          if (!Number.isFinite(item.delta)) {
+            validationErrors.push({
+              field: "delta",
+              error: `Invalid delta value ${item.delta}. Expected a valid floating-point number`
+            });
+          }
+          break;
+
+        case "HCV":
           break;
       }
 
@@ -151,6 +212,7 @@ class GrowthMetricsHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }

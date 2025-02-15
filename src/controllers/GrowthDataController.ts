@@ -1,19 +1,19 @@
 import { Request, Response, NextFunction } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
-import HealthDataService from "../services/HealthDataService";
+import GrowthDataService from "../services/GrowthDataService";
 
-class HealthDataController {
-  private healthDataService: HealthDataService;
+class GrowthDataController {
+  private growthDataService: GrowthDataService;
 
   constructor() {
-    this.healthDataService = new HealthDataService();
+    this.growthDataService = new GrowthDataService();
   }
 
   /**
-   * Handles healthData creation.
+   * Handles growthData creation.
    */
-  createHealthData = async (
+  createGrowthData = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -23,13 +23,13 @@ class HealthDataController {
       const { childId } = req.params;
       const requesterInfo = req.userInfo;
 
-      const healthData = await this.healthDataService.createHealthData(requesterInfo, childId, {
+      const growthData = await this.growthDataService.createGrowthData(requesterInfo, childId, {
         inputDate, height, weight, headCircumference, armCircumference
       });
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        healthData
+        growthData
       });
     } catch (error) {
       next(error);
@@ -37,25 +37,25 @@ class HealthDataController {
   };
 
   /**
-   * Handles updating a healthData.
+   * Handles updating a growthData.
    */
-  updateHealthData = async (
+  updateGrowthData = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
       const requesterInfo = req.userInfo;
-      const { healthDataId } = req.params;
+      const { growthDataId } = req.params;
       const { inputDate, height, weight, headCircumference, armCircumference } = req.body;
 
-      const updatedHealthData = await this.healthDataService.updateHealthData(healthDataId, requesterInfo, {
+      const updatedGrowthData = await this.growthDataService.updateGrowthData(growthDataId, requesterInfo, {
         inputDate, height, weight, headCircumference, armCircumference
       });
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        updatedHealthData
+        updatedGrowthData
       });
     } catch (error) {
       next(error);
@@ -63,18 +63,18 @@ class HealthDataController {
   };
 
   /**
-   * Handles deleting a healthData.
+   * Handles deleting a growthData.
    */
-  deleteHealthData = async (
+  deleteGrowthData = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { healthDataId } = req.params;
+      const { growthDataId } = req.params;
       const requesterInfo = req.userInfo;
 
-      await this.healthDataService.deleteHealthData(healthDataId, requesterInfo);
+      await this.growthDataService.deleteGrowthData(growthDataId, requesterInfo);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
@@ -85,22 +85,22 @@ class HealthDataController {
   };
 
   /**
-   * Handles retrieving a single healthData by ID.
+   * Handles retrieving a single growthData by ID.
    */
-  getHealthDataById = async (
+  getGrowthDataById = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { healthDataId } = req.params;
+      const { growthDataId } = req.params;
       const requesterInfo = req.userInfo;
 
-      const healthData = await this.healthDataService.getHealthDataById(healthDataId, requesterInfo);
+      const growthData = await this.growthDataService.getGrowthDataById(growthDataId, requesterInfo);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        healthData
+        growthData
       });
     } catch (error) {
       next(error);
@@ -108,9 +108,9 @@ class HealthDataController {
   };
 
   /**
-   * Handles retrieving a list of healthData for a specific user.
+   * Handles retrieving a list of growthData by child ID.
    */
-  getHealthDataByChildId = async (
+  getGrowthDataByChildId = async (
     req: Request,
     res: Response,
     next: NextFunction
@@ -121,16 +121,15 @@ class HealthDataController {
       const query: IQuery = {
         page: parseInt(req.query.page as string, 10) || 1,
         size: parseInt(req.query.size as string, 10) || 10,
-        search: req.query.search as string || "",
-        sortBy: (req.query.sortBy as "date" | "name") || "date",
+        sortBy: (req.query.sortBy as "date") || "date",
         order: (req.query.order as "ascending" | "descending") || "descending",
       };
       
-      const { healthData, page, total, totalPages } = await this.healthDataService.getHealthDataByChildId(childId, requesterInfo, query);
+      const { growthData, page, total, totalPages } = await this.growthDataService.getGrowthDataByChildId(childId, requesterInfo, query);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        healthData,
+        growthData,
         page,
         total,
         totalPages
@@ -141,4 +140,4 @@ class HealthDataController {
   };
 }
 
-export default HealthDataController;
+export default GrowthDataController;

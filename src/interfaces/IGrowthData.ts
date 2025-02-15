@@ -1,6 +1,6 @@
 import { Document, Types } from "mongoose";
 
-export interface IHealthData extends Document {
+export interface IGrowthData extends Document {
   childId: Types.ObjectId;
   inputDate: Date;
   weight: number;

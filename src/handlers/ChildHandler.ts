@@ -142,9 +142,13 @@ class ChildHandler {
   deleteChild = (req: Request, res: Response, next: NextFunction): void => {
     const { childId } = req.params;
 
+    const validationErrors: { field: string; error: string }[] = [];
+
+    // Validate child ID
     if (!validateMongooseObjectId(childId)) {
-      res.status(StatusCodeEnum.BadRequest_400).json({
-        message: "Invalid child ID",
+      validationErrors.push({
+        field: "childId",
+        error: "Invalid child ID",
       });
     } else {
       next();
@@ -154,12 +158,16 @@ class ChildHandler {
   /**
    * Validate input for getting a single child.
    */
-  getChild = (req: Request, res: Response, next: NextFunction): void => {
+  getChildById = (req: Request, res: Response, next: NextFunction): void => {
     const { childId } = req.params;
 
+    const validationErrors: { field: string; error: string }[] = [];
+
+    // Validate child ID
     if (!validateMongooseObjectId(childId)) {
-      res.status(StatusCodeEnum.BadRequest_400).json({
-        message: "Invalid child ID",
+      validationErrors.push({
+        field: "childId",
+        error: "Invalid child ID",
       });
     } else {
       next();
@@ -169,8 +177,8 @@ class ChildHandler {
   /**
    * Validate input for getting all children.
    */
-  getChildren = (req: Request, res: Response, next: NextFunction): void => {
-    const { page, size, search, order, sortBy } = req.query;
+  getChildrenByUserId = (req: Request, res: Response, next: NextFunction): void => {
+    const { page, size, order, sortBy } = req.query;
 
     const validationErrors: { field: string; error: string }[] = [];
 
