@@ -31,6 +31,18 @@ router.put(
   postController.updatePost
 );
 
+router.put(
+  "/post-status/:id",
+  RoleMiddleware([
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+    UserEnum.MEMBER,
+    UserEnum.DOCTOR,
+  ]),
+  postHandler.updatePostStatus,
+  postController.updatePostStatus
+);
+
 router.get(
   "/",
   RoleMiddleware([

@@ -7,6 +7,7 @@ import {
   formatPathArray,
   formatPathSingle,
 } from "../utils/fileUtils";
+import { PostStatus } from "../interfaces/IPost";
 
 type BlogFiles = {
   postAttachments: Express.Multer.File[];
@@ -142,7 +143,7 @@ class PostController {
         ) as string;
       }
 
-      const post = await this.postService.updatePosts(
+      const post = await this.postService.updatePost(
         id,
         title,
         content,
@@ -183,6 +184,30 @@ class PostController {
       res
         .status(StatusCodeEnum.OK_200)
         .json({ message: "Post deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updatePostStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.query;
+      const requesterId = req.userInfo.userId;
+      const post = await this.postService.updatePostStatus(
+        id,
+        status as PostStatus,
+        requesterId
+      );
+
+      res.status(StatusCodeEnum.OK_200).json({
+        post: post,
+        message: `Updated post status successfully to ${status}`,
+      });
     } catch (error) {
       next(error);
     }

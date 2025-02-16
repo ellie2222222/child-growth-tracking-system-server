@@ -3,6 +3,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import PostModel from "../models/PostModel";
 import { IQuery } from "../interfaces/IQuery";
+import { PostStatus } from "../interfaces/IPost";
 
 class PostRepository {
   constructor() {}
@@ -111,10 +112,18 @@ class PostRepository {
     session?: mongoose.ClientSession
   ) {
     try {
-      const post = await PostModel.findByIdAndUpdate(id, data, {
-        session,
-        new: true,
-      });
+      console.log(id);
+      const post = await PostModel.findOneAndUpdate(
+        {
+          _id: new mongoose.Types.ObjectId(id as string),
+          isDeleted: false,
+        },
+        data,
+        {
+          session,
+          new: true,
+        }
+      );
 
       if (!post) {
         throw new CustomException(
@@ -140,7 +149,7 @@ class PostRepository {
     try {
       const post = await PostModel.findByIdAndUpdate(
         id,
-        { $set: { isDeleted: true } },
+        { $set: { isDeleted: true, status: PostStatus.DELETED } },
         { session, new: true }
       );
 

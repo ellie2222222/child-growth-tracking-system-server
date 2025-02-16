@@ -3,6 +3,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { validateMongooseObjectId } from "../utils/validator";
 import { JSDOM } from "jsdom";
 import validator from "validator";
+import { PostStatus } from "../interfaces/IPost";
 
 class PostHandler {
   constructor() {}
@@ -183,6 +184,48 @@ class PostHandler {
       await validateMongooseObjectId(id);
     } catch {
       validationErrors.push({ field: "id", error: "Invalid post Id" });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
+      next();
+    }
+  };
+
+  updatePostStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const validationErrors: { field: string; error: string }[] = [];
+
+    const { id } = req.params;
+    const { status } = req.query;
+
+    try {
+      validateMongooseObjectId(id);
+    } catch {
+      validationErrors.push({ field: "id", error: "Invalid post Id" });
+    }
+
+    if (!status) {
+      validationErrors.push({ field: "status", error: "Status is required" });
+    } else if (
+      ![
+        PostStatus.DELETED,
+        PostStatus.PENDING,
+        PostStatus.PUBLISHED,
+        PostStatus.REJECTED,
+      ].includes(status as PostStatus)
+    ) {
+      validationErrors.push({
+        field: "status",
+        error: "Invalid status",
+      });
     }
 
     if (validationErrors.length > 0) {
