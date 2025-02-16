@@ -4,10 +4,13 @@ import UserController from "../controllers/UserController";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import UserHandler from "../handlers/UserHandler";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 
 const userController: UserController = new UserController();
 const userHandler: UserHandler = new UserHandler();
 const userRoutes = express.Router();
+
+userRoutes.use(AuthMiddleware);
 
 userRoutes.get(
   "/:userId/role",

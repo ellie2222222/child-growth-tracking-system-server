@@ -105,7 +105,6 @@ app.use("/assets", express.static("assets"));
 // Routers
 app.use(RouteMiddleware);
 app.use(SessionMiddleware);
-app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/users", userRoutes);
@@ -115,13 +114,14 @@ app.use("/api/comments", commentRoute);
 app.use("/api/growth-metrics", growthMetricsRoute);
 app.use("/api/receipt", receiptRoutes);
 app.use("/api/tiers", tierRoutes);
+app.use("/api/membership-packages", membershipPackageRoute);
+
 // Google Login
 app.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a><br>");
 });
 
 // Middleware for error logging
-app.use("/api/membership-packages", membershipPackageRoute);
 app.use(ErrorLogMiddleware);
 
 cronJob.start();

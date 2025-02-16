@@ -3,9 +3,13 @@ import PaymentController from "../controllers/PaymentController";
 import PaymentHandler from "../handlers/PaymentHandler";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 const route = Router();
 const paymentController = new PaymentController();
 const handler = new PaymentHandler();
+
+route.use(AuthMiddleware);
+
 route.post(
   "/paypal/create",
   RoleMiddleware([

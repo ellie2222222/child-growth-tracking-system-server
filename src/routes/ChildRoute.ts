@@ -4,11 +4,14 @@ import ChildController from "../controllers/ChildController";
 import GrowthDataController from "../controllers/GrowthDataController";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 
 const childRoutes = express.Router();
 const childHandler = new ChildHandler();
 const childController = new ChildController();
 const growthDataController = new GrowthDataController();
+
+childRoutes.use(AuthMiddleware);
 
 childRoutes.post(
   "/",

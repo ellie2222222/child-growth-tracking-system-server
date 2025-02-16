@@ -30,8 +30,6 @@ const options: swaggerJsdoc.Options = {
     tags: [
       { name: "Auth", description: "Operations about Authorization" },
       { name: "Users", description: "Operations about users" },
-      { name: "Comments", description: "Operations about comments" },
-      { name: "Receipts", description: "Operations about receipts" },
     ],
     components: {
       securitySchemes: {
@@ -48,7 +46,7 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: ["./routes/*.ts", "./interfaces/*.ts", "./enums/*.ts"],
+  apis: ["./routes/*.ts", "./interfaces/*.ts", "./enums/*.ts", "./swagger/*.ts", "./**/*.ts"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

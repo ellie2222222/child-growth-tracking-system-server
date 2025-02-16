@@ -2,11 +2,14 @@ import express from "express";
 import AuthController from "../controllers/AuthController";
 import AuthHandler from "../handlers/AuthHandler";
 import passport from "../config/passportConfig";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 
 const authController = new AuthController();
 const authHandler = new AuthHandler();
 
 const authRoutes = express.Router();
+
+authRoutes.use(AuthMiddleware);
 
 authRoutes.get(
   "/google",

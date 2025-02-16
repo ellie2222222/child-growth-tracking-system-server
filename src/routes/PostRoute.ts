@@ -4,10 +4,13 @@ import { uploadFile } from "../middlewares/storeFile";
 import PostHandler from "../handlers/PostHandler";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 
 const router = Router();
 const postController = new PostController();
 const postHandler = new PostHandler();
+
+router.use(AuthMiddleware);
 
 router.post(
   "/",
