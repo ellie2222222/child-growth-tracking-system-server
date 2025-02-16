@@ -1,31 +1,81 @@
 import express from "express";
 import ChildHandler from "../handlers/ChildHandler";
 import ChildController from "../controllers/ChildController";
-import HealthDataController from "../controllers/HealthDataController";
+import GrowthDataController from "../controllers/GrowthDataController";
+import RoleMiddleware from "../middlewares/RoleMiddleware";
+import UserEnum from "../enums/UserEnum";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 
 const childRoutes = express.Router();
 const childHandler = new ChildHandler();
 const childController = new ChildController();
-const healthDataController = new HealthDataController();
+const growthDataController = new GrowthDataController();
 
-childRoutes.post("/", childHandler.createChild, childController.createChild);
+childRoutes.use(AuthMiddleware);
 
-childRoutes.get("/", childHandler.getChildren, childController.getChildrenByUserId);
+childRoutes.post(
+  "/",
+  RoleMiddleware([UserEnum.MEMBER]),
+  childHandler.createChild,
+  childController.createChild
+);
 
-childRoutes.put("/:childId", childHandler.updateChild, childController.updateChild);
+childRoutes.get(
+  "/",
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
+  childHandler.getChildrenByUserId,
+  childController.getChildrenByUserId
+);
 
-childRoutes.delete("/:childId", childHandler.deleteChild, childController.deleteChild);
+childRoutes.put(
+  "/:childId",
+  RoleMiddleware([UserEnum.MEMBER]),
+  childHandler.updateChild,
+  childController.updateChild
+);
 
-childRoutes.get("/:childId", childHandler.getChild, childController.getChildById);
+childRoutes.delete(
+  "/:childId",
+  RoleMiddleware([UserEnum.MEMBER]),
+  childHandler.deleteChild,
+  childController.deleteChild
+);
 
-childRoutes.get("/:childId/health-data", childHandler.getChild, healthDataController.getHealthDataByChildId);
+childRoutes.get(
+  "/:childId",
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
+  childHandler.getChildById,
+  childController.getChildById
+);
 
-childRoutes.post("/:childId/health-data", healthDataController.createHealthData);
+childRoutes.get(
+  "/:childId/growth-data",
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
+  growthDataController.getGrowthDataByChildId
+);
 
-childRoutes.put("/:childId/health-data/:healthDataId", healthDataController.updateHealthData);
+childRoutes.post(
+  "/:childId/growth-data",
+  RoleMiddleware([UserEnum.MEMBER]),
+  growthDataController.createGrowthData
+);
 
-childRoutes.delete("/:childId/health-data/:healthDataId", healthDataController.deleteHealthData);
+childRoutes.put(
+  "/:childId/growth-data/:growthDataId",
+  RoleMiddleware([UserEnum.MEMBER]),
+  growthDataController.updateGrowthData
+);
 
-childRoutes.get("/:childId/health-data/:healthDataId", healthDataController.getHealthDataById);
+childRoutes.delete(
+  "/:childId/growth-data/:growthDataId",
+  RoleMiddleware([UserEnum.MEMBER]),
+  growthDataController.deleteGrowthData
+);
+
+childRoutes.get(
+  "/:childId/growth-data/:growthDataId",
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
+  growthDataController.getGrowthDataById
+);
 
 export default childRoutes;

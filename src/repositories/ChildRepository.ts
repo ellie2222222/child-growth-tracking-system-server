@@ -119,6 +119,8 @@ class ChildRepository {
             birthDate: 1,
             note: 1,
             relationships: 1,
+            createdAt: 1,
+            updatedAt: 1,
           },
         },
         { $sort: { [sortField]: sortOrder } },

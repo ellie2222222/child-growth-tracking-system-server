@@ -1,37 +1,37 @@
 import mongoose from "mongoose";
-import HealthDataModel from "../models/HealthDataModel";
-import { IHealthData } from "../interfaces/IHealthData";
+import GrowthDataModel from "../models/GrowthDataModel";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { IGrowthData } from "../interfaces/IGrowthData";
 
-export type HealthData = {
-  healthData: IHealthData[];
+export type GrowthData = {
+  growthData: IGrowthData[];
   page: number;
   total: number;
   totalPages: number;
 };
 
-class HealthDataRepository {
+class GrowthDataRepository {
   /**
-   * Create a new healthData entry.
-   * @param healthData - Object containing healthData details adhering to IHealthData.
+   * Create a new growthData entry.
+   * @param growthData - Object containing growthData details adhering to IGrowthData.
    * @param session - Optional Mongoose client session for transactions.
-   * @returns The created healthData document.
+   * @returns The created growthData document.
    * @throws CustomException when the creation fails.
    */
-  async createHealthData(
-    healthData: Partial<IHealthData>,
+  async createGrowthData(
+    growthData: Partial<IGrowthData>,
     session?: mongoose.ClientSession
-  ): Promise<IHealthData> {
+  ): Promise<IGrowthData> {
     try {
-      const result = await HealthDataModel.create([healthData], { session });
+      const result = await GrowthDataModel.create([growthData], { session });
       return result[0];
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
-          `Failed to create health data: ${(error as Error).message}`
+          `Failed to create growth data: ${(error as Error).message}`
         );
       }
       throw new CustomException(
@@ -42,23 +42,23 @@ class HealthDataRepository {
   }
 
   /**
-   * Retrieve a single healthData by ID.
-   * @param healthDataId - The ID of the healthData to retrieve.
-   * @returns The healthData document or null if not found.
+   * Retrieve a single growthData by ID.
+   * @param growthDataId - The ID of the growthData to retrieve.
+   * @returns The growthData document or null if not found.
    * @throws CustomException when retrieval fails.
    */
-  async getHealthDataById(
-    healthDataId: string,
+  async getGrowthDataById(
+    growthDataId: string,
     isDeleted: boolean
-  ): Promise<IHealthData | null> {
+  ): Promise<IGrowthData | null> {
     try {
-      const healthData = await HealthDataModel.findOne({ _id: healthDataId, isDeleted });
-      return healthData;
+      const growthData = await GrowthDataModel.findOne({ _id: growthDataId, isDeleted });
+      return growthData;
     } catch (error) {
       if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
-          `Failed to retrieve health data: ${(error as Error).message}`
+          `Failed to retrieve growth data: ${(error as Error).message}`
         );
       }
       throw new CustomException(
@@ -69,31 +69,27 @@ class HealthDataRepository {
   }
 
   /**
-   * Retrieve healthData by member ID.
-   * @param memberId - The member ID to filter healthData by.
-   * @returns A list of healthData documents.
+   * Retrieve growthData by member ID.
+   * @param memberId - The member ID to filter growthData by.
+   * @returns A list of growthData documents.
    * @throws CustomException when retrieval fails.
    */
-  async getHealthDataByChildId(
+  async getGrowthDataByChildId(
     childId: string,
     query: IQuery,
     isDeleted: boolean
-  ): Promise<HealthData> {
+  ): Promise<GrowthData> {
     try {
       type SearchQuery = {
         isDeleted: boolean;
         childId: mongoose.Types.ObjectId;
-        name?: { $regex: string; $options: string };
       };
-      const { page, size, search, order, sortBy } = query;
+      const { page, size, order, sortBy } = query;
       const searchQuery: SearchQuery = {
         isDeleted,
         childId: new mongoose.Types.ObjectId(childId),
       };
 
-      if (search) {
-        searchQuery.name = { $regex: search, $options: "i" };
-      }
       let sortField = "createdAt";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
 
@@ -101,7 +97,7 @@ class HealthDataRepository {
 
       const skip = (page - 1) * size;
 
-      const healthData = await HealthDataModel.aggregate([
+      const growthData = await GrowthDataModel.aggregate([
         { $match: searchQuery },
         {
           $skip: skip,
@@ -124,19 +120,19 @@ class HealthDataRepository {
         { $sort: { [sortField]: sortOrder } },
       ]);
 
-      const totalHealthData = await HealthDataModel.countDocuments(searchQuery);
+      const totalGrowthData = await GrowthDataModel.countDocuments(searchQuery);
 
       return {
-        healthData,
+        growthData,
         page,
-        total: totalHealthData,
-        totalPages: Math.ceil(totalHealthData / size),
+        total: totalGrowthData,
+        totalPages: Math.ceil(totalGrowthData / size),
       };
     } catch (error) {
       if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
-          `Failed to retrieve health data by user ID: ${(error as Error).message}`
+          `Failed to retrieve growth data by user ID: ${(error as Error).message}`
         );
       }
       throw new CustomException(
@@ -147,30 +143,30 @@ class HealthDataRepository {
   }
 
   /**
-   * Update a healthData by ID.
-   * @param healthDataId - The ID of the healthData to update.
-   * @param updateData - Partial object of healthData data to update.
+   * Update a growthData by ID.
+   * @param growthDataId - The ID of the growthData to update.
+   * @param updateData - Partial object of growthData data to update.
    * @param session - Optional Mongoose client session for transactions.
-   * @returns The updated healthData document or null if not found.
+   * @returns The updated growthData document or null if not found.
    * @throws CustomException when update fails.
    */
-  async updateHealthData(
-    healthDataId: string,
-    updateData: Partial<IHealthData>,
+  async updateGrowthData(
+    growthDataId: string,
+    updateData: Partial<IGrowthData>,
     session?: mongoose.ClientSession
-  ): Promise<IHealthData | null> {
+  ): Promise<IGrowthData | null> {
     try {
-      const updatedHealthData = await HealthDataModel.findByIdAndUpdate(
-        healthDataId,
+      const updatedGrowthData = await GrowthDataModel.findByIdAndUpdate(
+        growthDataId,
         { $set: updateData },
         { new: true, session, runValidators: true }
       ).exec();
-      return updatedHealthData;
+      return updatedGrowthData;
     } catch (error) {
       if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
-          `Failed to update health data: ${(error as Error).message}`
+          `Failed to update growth data: ${(error as Error).message}`
         );
       }
       throw new CustomException(
@@ -181,24 +177,24 @@ class HealthDataRepository {
   }
 
   /**
-   * Soft delete a healthData by setting isDeleted to true.
-   * @param healthDataId - The ID of the healthData to delete.
+   * Soft delete a growthData by setting isDeleted to true.
+   * @param growthDataId - The ID of the growthData to delete.
    * @param session - Optional Mongoose client session for transactions.
-   * @returns The deleted healthData document or null if not found.
+   * @returns The deleted growthData document or null if not found.
    * @throws CustomException when delete fails.
    */
-  async deleteHealthData(
-    healthDataId: string,
+  async deleteGrowthData(
+    growthDataId: string,
     session?: mongoose.ClientSession
-  ): Promise<IHealthData | null> {
+  ): Promise<IGrowthData | null> {
     try {
-      const deletedHealthData = await HealthDataModel.findOneAndDelete({ _id: healthDataId }, { session }).exec();
-      return deletedHealthData;
+      const deletedGrowthData = await GrowthDataModel.findOneAndDelete({ _id: growthDataId }, { session }).exec();
+      return deletedGrowthData;
     } catch (error) {
       if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
-          `Failed to delete health data: ${(error as Error).message}`
+          `Failed to delete growth data: ${(error as Error).message}`
         );
       }
       throw new CustomException(
@@ -209,4 +205,4 @@ class HealthDataRepository {
   }
 }
 
-export default HealthDataRepository;
+export default GrowthDataRepository;

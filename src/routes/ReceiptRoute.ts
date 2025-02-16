@@ -3,10 +3,13 @@ import ReceiptController from "../controllers/ReceiptController";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import ReceiptHandler from "../handlers/ReceiptHandler";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 const receiptController = new ReceiptController();
 const router = Router();
 
 const receiptHandler = new ReceiptHandler();
+
+router.use(AuthMiddleware);
 
 router.get(
   "/",

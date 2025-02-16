@@ -3,10 +3,13 @@ import { Router } from "express";
 import CommentHandler from "../handlers/CommentHandler";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 
 const router = Router();
 const commentController = new CommentController();
 const commentHandler = new CommentHandler();
+
+router.use(AuthMiddleware);
 
 router.post(
   "/",

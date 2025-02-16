@@ -3,10 +3,13 @@ import TierController from "../controllers/TierController";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import TierHandler from "../handlers/TierHandler";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 
 const router = Router();
 const tierController = new TierController();
 const tierHandler = new TierHandler();
+
+router.use(AuthMiddleware);
 
 router.post(
   "/",

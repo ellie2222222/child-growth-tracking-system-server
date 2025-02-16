@@ -3,10 +3,13 @@ import MembershipPackageController from "../controllers/MembershipPackageControl
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import MembershipPackageHandler from "../handlers/MembershipPackageHandler";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 
 const membershipPackageController = new MembershipPackageController();
 const membershipPackageHandler = new MembershipPackageHandler();
 const router = Router();
+
+router.use(AuthMiddleware);
 
 router.post(
   "/",

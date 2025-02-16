@@ -18,7 +18,7 @@ import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
 import userRoutes from "./routes/UserRoute";
-import limiter from "./middlewares/rateLimiter";
+import limiter from "./middlewares/RateLimiter";
 import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
@@ -26,6 +26,7 @@ import membershipPackageRoute from "./routes/MembershipPackageRoute";
 import cronJob from "./utils/cron";
 import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 import tierRoutes from "./routes/TierRoute";
+import { swaggerDoc } from "./config/swaggerConfig";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -104,7 +105,6 @@ app.use("/assets", express.static("assets"));
 // Routers
 app.use(RouteMiddleware);
 app.use(SessionMiddleware);
-app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/users", userRoutes);
@@ -114,13 +114,14 @@ app.use("/api/comments", commentRoute);
 app.use("/api/growth-metrics", growthMetricsRoute);
 app.use("/api/receipt", receiptRoutes);
 app.use("/api/tiers", tierRoutes);
+app.use("/api/membership-packages", membershipPackageRoute);
+
 // Google Login
 app.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a><br>");
 });
 
 // Middleware for error logging
-app.use("/api/membership-packages", membershipPackageRoute);
 app.use(ErrorLogMiddleware);
 
 cronJob.start();
@@ -136,5 +137,6 @@ server.listen(port, async (err?: Error) => {
     process.exit(1);
   } else {
     logger.info(`Server is running at port ${port}`);
+    swaggerDoc(app);
   }
 });

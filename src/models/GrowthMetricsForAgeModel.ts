@@ -1,9 +1,10 @@
 import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
-import { IAcfa } from "../interfaces/IAcfa";
 import baseModelSchema from "./BaseModel";
+import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
+import GrowthMetricsEnum from "../enums/GrowthMetricsEnum";
 
-const acfaModelSchema = new Schema<IAcfa>(
+const growthMetricForAgeModelSchema = new Schema<IGrowthMetricForAge>(
   {
     age: { 
       inMonths: { type: Number, required: true, },
@@ -11,8 +12,12 @@ const acfaModelSchema = new Schema<IAcfa>(
     },
     gender: {
       type: Number,
-      enum: [GenderEnum.BOY, GenderEnum.GIRL],
+      enum: Object.keys(GenderEnum),
       required: true,
+    },
+    type: {
+        type: String,
+        enum: Object.keys(GrowthMetricsEnum)
     },
     percentiles: {
       L: { type: Number, required: true },
@@ -31,6 +36,6 @@ const acfaModelSchema = new Schema<IAcfa>(
   { timestamps: true, strict: true }
 );
 
-const AcfaModel: Model<IAcfa> = mongoose.model<IAcfa>("ACFA", acfaModelSchema);
+const GrowthMetricForAgeModel: Model<IGrowthMetricForAge> = mongoose.model<IGrowthMetricForAge>("GrowthMetricForAge", growthMetricForAgeModelSchema);
 
-export default AcfaModel;
+export default GrowthMetricForAgeModel;

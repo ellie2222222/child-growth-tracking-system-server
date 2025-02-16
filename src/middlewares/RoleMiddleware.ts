@@ -2,6 +2,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { Request, Response, NextFunction } from "express";
 import UserRepository from "../repositories/UserRepository";
 import { IUser } from "../interfaces/IUser";
+import UserEnum from "../enums/UserEnum";
 
 /**
  *
@@ -27,6 +28,10 @@ const RoleMiddleware = (roles: Array<number>) => {
           .status(StatusCodeEnum.NotFound_404)
           .json({ message: "User not found" });
         return;
+      }
+
+      if (user.role === UserEnum.ADMIN || user.role === UserEnum.SUPER_ADMIN)  { 
+        next();
       }
 
       if (!user?.isVerified) {
