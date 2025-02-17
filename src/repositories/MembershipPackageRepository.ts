@@ -224,7 +224,7 @@ class MembershipPackageRepository {
   async getMembershipByName(name: string) {
     try {
       const Pack = await MembershipModel.findOne({
-        name: name,
+        name: { $eq: name },
         isDeleted: false,
       });
 

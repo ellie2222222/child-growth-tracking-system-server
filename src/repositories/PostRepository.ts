@@ -207,7 +207,10 @@ class PostRepository {
 
   async getPostByTitle(title: string) {
     try {
-      const post = await PostModel.findOne({ title, isDeleted: false });
+      const post = await PostModel.findOne({
+        title: { $eq: title },
+        isDeleted: false,
+      });
       return post;
     } catch (error) {
       if (error as Error | CustomException) {
