@@ -268,6 +268,7 @@ class UserService {
         "Requester not found"
       );
     }
+
     ignoreDeleted = [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
       checkRequester.role
     );

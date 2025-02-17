@@ -34,6 +34,18 @@ router.put(
   postController.updatePost
 );
 
+router.put(
+  "/post-status/:id",
+  RoleMiddleware([
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+    UserEnum.MEMBER,
+    UserEnum.DOCTOR,
+  ]),
+  postHandler.updatePostStatus,
+  postController.updatePostStatus
+);
+
 router.get(
   "/",
   RoleMiddleware([
@@ -46,6 +58,17 @@ router.get(
   postController.getPosts
 );
 
+router.get(
+  "/by-userId",
+  RoleMiddleware([
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+    UserEnum.DOCTOR,
+    UserEnum.MEMBER,
+  ]),
+  postHandler.getPostsByUserId,
+  postController.getPostsByUserId
+);
 router.get(
   "/:id",
   RoleMiddleware([

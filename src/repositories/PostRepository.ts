@@ -3,6 +3,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import PostModel from "../models/PostModel";
 import { IQuery } from "../interfaces/IQuery";
+import { PostStatus } from "../interfaces/IPost";
 
 class PostRepository {
   constructor() {}
@@ -54,11 +55,12 @@ class PostRepository {
     }
   }
 
-  async getPosts(query: IQuery, ignoreDeleted: boolean) {
+  async getPosts(query: IQuery, ignoreDeleted: boolean, status: string) {
     const { page, size, search, order, sortBy } = query;
     type searchQuery = {
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
+      status?: string;
     };
 
     try {
@@ -68,8 +70,13 @@ class PostRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
+
       if (search && search !== "") {
         searchQuery.title = { $regex: search, $options: "i" };
+      }
+
+      if (status) {
+        searchQuery.status = status;
       }
 
       let sortField = "createdAt";
@@ -111,10 +118,18 @@ class PostRepository {
     session?: mongoose.ClientSession
   ) {
     try {
-      const post = await PostModel.findByIdAndUpdate(id, data, {
-        session,
-        new: true,
-      });
+      console.log(id);
+      const post = await PostModel.findOneAndUpdate(
+        {
+          _id: new mongoose.Types.ObjectId(id as string),
+          isDeleted: false,
+        },
+        data,
+        {
+          session,
+          new: true,
+        }
+      );
 
       if (!post) {
         throw new CustomException(
@@ -140,7 +155,7 @@ class PostRepository {
     try {
       const post = await PostModel.findByIdAndUpdate(
         id,
-        { $set: { isDeleted: true } },
+        { $set: { isDeleted: true, status: PostStatus.DELETED } },
         { session, new: true }
       );
 
@@ -178,6 +193,84 @@ class PostRepository {
       });
 
       return count;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getPostByTitle(title: string) {
+    try {
+      const post = await PostModel.findOne({
+        title: { $eq: title },
+        isDeleted: false,
+      });
+      return post;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getPostsByUserId(id: string, query: IQuery, status: string) {
+    type searchQuery = {
+      userId: mongoose.Types.ObjectId;
+      status?: string;
+      isDeleted?: boolean;
+
+      title?: string;
+    };
+    try {
+      const searchQuery: searchQuery = {
+        userId: new mongoose.Types.ObjectId(id),
+      };
+      if (status) {
+        searchQuery.status = status;
+      }
+
+      const { page, size, search, sortBy, order } = query;
+
+      if (search) {
+        searchQuery.title = search;
+      }
+
+      let sortField = "createdAt";
+      if (sortBy === "date") sortField = "createdAt";
+      const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
+      const skip = (page - 1) * size;
+
+      const Posts = await PostModel.aggregate([
+        { $match: searchQuery },
+        { $sort: { [sortField]: sortOrder } },
+        { $skip: skip },
+      ]);
+
+      if (!Posts) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "No posts found for this user"
+        );
+      }
+
+      const totalPosts = await PostModel.countDocuments(searchQuery);
+      return {
+        Posts,
+        page,
+        totalPosts,
+        totalPage: Math.ceil(totalPosts / size),
+      };
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

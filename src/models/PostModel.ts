@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IPost } from "../interfaces/IPost";
+import { IPost, PostStatus } from "../interfaces/IPost";
 
 const postSchema = new Schema<IPost>(
   {
@@ -20,13 +20,10 @@ const postSchema = new Schema<IPost>(
       type: [String],
     },
     thumbnailUrl: { type: String },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
+    status: {
+      type: String,
+      enum: PostStatus,
+      default: PostStatus.PENDING,
     },
     isDeleted: {
       type: Boolean,

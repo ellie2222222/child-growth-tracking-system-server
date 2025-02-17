@@ -61,6 +61,7 @@ const AuthMiddleware = async (
     res
       .status(StatusCodeEnum.Unauthorized_401)
       .json({ message: "Authorization token required" });
+    return;
   } else {
     const token = authorization.split(" ")[1];
 
@@ -105,6 +106,7 @@ const AuthMiddleware = async (
       res
         .status(StatusCodeEnum.InternalServerError_500)
         .json({ message: (error as Error).message });
+      return;
     }
   }
 };

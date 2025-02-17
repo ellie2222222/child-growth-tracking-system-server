@@ -30,8 +30,8 @@ const RoleMiddleware = (roles: Array<number>) => {
         return;
       }
 
-      if (user.role === UserEnum.ADMIN || user.role === UserEnum.SUPER_ADMIN)  { 
-        next();
+      if (user.role === UserEnum.ADMIN || user.role === UserEnum.SUPER_ADMIN) {
+        return next();
       }
 
       if (!user?.isVerified) {
