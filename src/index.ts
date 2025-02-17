@@ -18,7 +18,7 @@ import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
 import userRoutes from "./routes/UserRoute";
-import limiter from "./middlewares/RateLimiter";
+import limiter from "./middlewares/rateLimiter";
 import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
