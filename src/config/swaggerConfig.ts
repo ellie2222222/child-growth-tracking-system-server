@@ -30,6 +30,8 @@ const options: swaggerJsdoc.Options = {
     tags: [
       { name: "Auth", description: "Operations about Authorization" },
       { name: "Users", description: "Operations about users" },
+      { name: "Membership Packages", description: "Operations about membership packages" },
+      { name: "Posts", description: "Operations about posts" },
     ],
     components: {
       securitySchemes: {
