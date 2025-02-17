@@ -143,7 +143,7 @@
  *  get:
  *     tags: [Auth]
  *     summary: Google Login
- *     description: Redirects user to Google login. URL: <Backend URL + /api/auth/google>
+ *     description: Redirects user to Google login. The URL for this endpoint is the backend URL followed by `/api/auth/google`.
  *     responses:
  *       302:
  *         description: Redirects to Google OAuth
