@@ -31,7 +31,7 @@ class AuthController {
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
         maxAge: refreshTokenMaxAge,
       });
@@ -39,19 +39,49 @@ class AuthController {
       // Set session ID in cookies
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
         maxAge: refreshTokenMaxAge, // 30 days
       });
 
       res.status(StatusCodeEnum.OK_200).json({
-        message: "Login successful",
+        message: "Success",
         accessToken,
       });
     } catch (error) {
       next(error);
     }
   };
+
+  logout = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { userId } = req.userInfo;
+
+      await this.authService.logout(userId);
+      
+      res.clearCookie("sessionId", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+      });
+
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+      });
+
+      res.status(StatusCodeEnum.OK_200).json({
+        message: "Success"
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   /**
    * Handle Google login 
@@ -68,7 +98,7 @@ class AuthController {
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
         maxAge: refreshTokenMaxAge,
       });
@@ -76,7 +106,7 @@ class AuthController {
       // Set session ID in cookies
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
         maxAge: refreshTokenMaxAge, // 30 days
       });
@@ -101,7 +131,7 @@ class AuthController {
       await this.authService.signup(name, email, password);
 
       res.status(StatusCodeEnum.Created_201).json({
-        message: "Signup successful",
+        message: "Success",
       });
     } catch (error) {
       next(error);

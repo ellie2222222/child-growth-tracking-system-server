@@ -221,6 +221,29 @@ class AuthService {
     }
   };
 
+  logout = async (userId: string): Promise<void> => {
+    const session = await this.database.startTransaction();
+    try {
+      const user = await this.userRepository.getUserById(userId, false);
+      if (!user) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "User not found");
+      }
+
+      await this.sessionService.deleteSessionsByUserId(userId);
+
+      await this.database.commitTransaction(session);
+    } catch (error) {
+      await this.database.abortTransaction(session);
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
   loginGoogle = async (
     googleUser: any,
     sessionData: Partial<ISession>
