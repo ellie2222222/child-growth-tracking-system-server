@@ -38,8 +38,10 @@ class MembershipPackageController {
         package: membershipPackage,
         message: "Membership package created successfully",
       });
+      return;
     } catch (error) {
       next(error);
+      return;
     }
   };
 
@@ -60,6 +62,7 @@ class MembershipPackageController {
         package: membershipPackage,
         message: "Get membership package successfully",
       });
+      return;
     } catch (error) {
       next(error);
     }
@@ -88,6 +91,7 @@ class MembershipPackageController {
         ...membershipPackages,
         message: "Get membership packages successfully",
       });
+      return;
     } catch (error) {
       next(error);
     }
@@ -126,6 +130,7 @@ class MembershipPackageController {
         package: membershipPackage,
         message: "Updated membership package successfully",
       });
+      return;
     } catch (error) {
       next(error);
     }

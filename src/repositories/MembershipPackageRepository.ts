@@ -220,6 +220,25 @@ class MembershipPackageRepository {
       );
     }
   }
+
+  async getMembershipByName(name: string) {
+    try {
+      const Pack = await MembershipModel.findOne({
+        name: name,
+        isDeleted: false,
+      });
+
+      return Pack;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
 }
 
 export default MembershipPackageRepository;

@@ -36,8 +36,18 @@ class MembershipPackageService {
   ) => {
     const session = await this.database.startTransaction();
     try {
+      const checkmembership =
+        await this.membershipPackageRepository.getMembershipByName(name);
+
+      if (checkmembership) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Membership package name already exists"
+        );
+      }
+
       const membershipPackage =
-        this.membershipPackageRepository.createMembershipPackage(
+        await this.membershipPackageRepository.createMembershipPackage(
           {
             name,
             description,
@@ -157,6 +167,17 @@ class MembershipPackageService {
     try {
       const oldPackage =
         await this.membershipPackageRepository.getMembershipPackage(id, false);
+
+      const checkmembership =
+        await this.membershipPackageRepository.getMembershipByName(name);
+
+      if (checkmembership) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Membership package name already exists"
+        );
+      }
+
       type data = {
         name?: string;
         description?: string;
@@ -164,14 +185,17 @@ class MembershipPackageService {
         duration?: DurationType;
         tier?: number;
       };
+
       const data: data = {};
 
       if (name) {
         data.name = name;
       }
+
       if (description) {
         data.description = description;
       }
+
       if (price && !isNaN(price.value)) {
         if (!data.price) {
           data.price = {
@@ -182,6 +206,7 @@ class MembershipPackageService {
         data.price.value = price.value;
         data.price.unit = price.unit || oldPackage.price.unit;
       }
+
       if (duration && !isNaN(duration.value)) {
         data.duration = duration;
       }

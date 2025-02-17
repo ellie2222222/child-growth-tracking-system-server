@@ -26,7 +26,7 @@ authRoutes.post("/login", authHandler.login, authController.login);
 
 authRoutes.post("/signup", authHandler.signup, authController.signup);
 
-authRoutes.get("/logout", () => {} );
+authRoutes.get("/logout", () => {});
 
 authRoutes.post("/renew-access-token", authController.renewAccessToken);
 

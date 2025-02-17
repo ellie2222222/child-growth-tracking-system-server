@@ -56,10 +56,10 @@ class MembershipPackageHandler {
       });
     }
 
-    if (!tier || ![0, 1, 2].includes(tier)) {
+    if (!tier || ![1, 2].includes(tier)) {
       validationErrors.push({
         field: "Tier",
-        error: "Invalid tier: tier must be 0, 1 or 2",
+        error: "Invalid tier: premium tier must be 1 or 2",
       });
     }
 
@@ -68,6 +68,7 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }
@@ -129,10 +130,10 @@ class MembershipPackageHandler {
       });
     }
 
-    if (tier && ![0, 1, 2].includes(tier)) {
+    if (tier && ![1, 2].includes(tier)) {
       validationErrors.push({
         field: "Tier",
-        error: "Invalid tier: tier must be 0, 1 or 2",
+        error: "Invalid tier: premium tier must be 1 or 2",
       });
     }
 
@@ -141,10 +142,12 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }
   };
+
   deleteMembershipPackage = async (
     req: Request,
     res: Response,
@@ -169,10 +172,12 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }
   };
+
   getMembershipPackage = async (
     req: Request,
     res: Response,
@@ -197,10 +202,12 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }
   };
+
   getMembershipPackages = async (
     req: Request,
     res: Response,
@@ -237,6 +244,7 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }

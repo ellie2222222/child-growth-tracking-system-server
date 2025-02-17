@@ -55,11 +55,12 @@ class PostRepository {
     }
   }
 
-  async getPosts(query: IQuery, ignoreDeleted: boolean) {
+  async getPosts(query: IQuery, ignoreDeleted: boolean, status: string) {
     const { page, size, search, order, sortBy } = query;
     type searchQuery = {
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
+      status?: string;
     };
 
     try {
@@ -69,8 +70,13 @@ class PostRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
+
       if (search && search !== "") {
         searchQuery.title = { $regex: search, $options: "i" };
+      }
+
+      if (status) {
+        searchQuery.status = status;
       }
 
       let sortField = "createdAt";
@@ -187,6 +193,81 @@ class PostRepository {
       });
 
       return count;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getPostByTitle(title: string) {
+    try {
+      const post = await PostModel.findOne({ title, isDeleted: false });
+      return post;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getPostsByUserId(id: string, query: IQuery, status: string) {
+    type searchQuery = {
+      userId: mongoose.Types.ObjectId;
+      status?: string;
+      isDeleted?: boolean;
+
+      title?: string;
+    };
+    try {
+      const searchQuery: searchQuery = {
+        userId: new mongoose.Types.ObjectId(id),
+      };
+      if (status) {
+        searchQuery.status = status;
+      }
+
+      const { page, size, search, sortBy, order } = query;
+
+      if (search) {
+        searchQuery.title = search;
+      }
+
+      let sortField = "createdAt";
+      if (sortBy === "date") sortField = "createdAt";
+      const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
+      const skip = (page - 1) * size;
+
+      const Posts = await PostModel.aggregate([
+        { $match: searchQuery },
+        { $sort: { [sortField]: sortOrder } },
+        { $skip: skip },
+      ]);
+
+      if (!Posts) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "No posts found for this user"
+        );
+      }
+
+      const totalPosts = await PostModel.countDocuments(searchQuery);
+      return {
+        Posts,
+        page,
+        totalPosts,
+        totalPage: Math.ceil(totalPosts / size),
+      };
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

@@ -24,10 +24,14 @@ class PostController {
     const files = req.files as { [key: string]: Express.Multer.File[] };
 
     let hasThumbnail: boolean = false;
-    hasThumbnail = (req.files && files.postAttachments.length > 0) as boolean;
+    hasThumbnail = (files &&
+      files.postThumbnail &&
+      files.postThumbnail.length > 0) as boolean;
 
     let hasAttachments: boolean = false;
-    hasAttachments = (req.files && files.postAttachments.length > 0) as boolean;
+    hasAttachments = (req.files &&
+      files.postAttachments &&
+      files.postAttachments.length > 0) as boolean;
 
     try {
       const { title, content } = req.body;
@@ -95,7 +99,7 @@ class PostController {
 
   getPosts = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, size, search, order, sortBy } = req.query;
+      const { page, size, search, order, sortBy, status } = req.query;
       const requesterId = req.userInfo.userId;
       const posts = await this.postService.getPosts(
         {
@@ -105,7 +109,35 @@ class PostController {
           order: (order as "ascending" | "descending") || "ascending",
           sortBy: (sortBy as "date") || "date",
         },
-        requesterId
+        requesterId,
+        status as string
+      );
+
+      res.status(StatusCodeEnum.OK_200).json(posts);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPostsByUserId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const requesterId = req.userInfo.userId;
+      const { page, size, search, order, sortBy, userId } = req.query;
+
+      const posts = await this.postService.getPostsByUserId(
+        requesterId,
+        userId as string,
+        {
+          page: parseInt(page as string) || 1,
+          size: parseInt(size as string) || 10,
+          search: search as string,
+          order: (order as "ascending" | "descending") || "ascending",
+          sortBy: (sortBy as "date") || "date",
+        }
       );
 
       res.status(StatusCodeEnum.OK_200).json(posts);
@@ -118,10 +150,14 @@ class PostController {
     const files = req.files as { [key: string]: Express.Multer.File[] };
 
     let hasThumbnail: boolean = false;
-    hasThumbnail = (req.files && files.postAttachments.length > 0) as boolean;
+    hasThumbnail = (files &&
+      files.postThumbnail &&
+      files.postThumbnail.length > 0) as boolean;
 
     let hasAttachments: boolean = false;
-    hasAttachments = (req.files && files.postAttachments.length > 0) as boolean;
+    hasAttachments = (files &&
+      files.postAttachments &&
+      files.postAttachments.length > 0) as boolean;
     try {
       const { id } = req.params;
       const { title, content } = req.body;

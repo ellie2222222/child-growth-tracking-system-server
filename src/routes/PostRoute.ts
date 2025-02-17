@@ -59,6 +59,17 @@ router.get(
 );
 
 router.get(
+  "/by-userId",
+  RoleMiddleware([
+    UserEnum.ADMIN,
+    UserEnum.SUPER_ADMIN,
+    UserEnum.DOCTOR,
+    UserEnum.MEMBER,
+  ]),
+  postHandler.getPostsByUserId,
+  postController.getPostsByUserId
+);
+router.get(
   "/:id",
   RoleMiddleware([
     UserEnum.ADMIN,

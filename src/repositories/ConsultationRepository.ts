@@ -1,4 +1,4 @@
-import mongoose, { ObjectId, PipelineStage } from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import ConsultationModel from "../models/ConsultationModel";
@@ -57,12 +57,11 @@ class ConsultationRepository {
 
   async getConsultations(query: IQuery, ignoreDeleted: boolean) {
     type searchQuery = {
-      "requestDetails.title"?: string;
       isDeleted?: boolean;
     };
 
     try {
-      const { page, size, search, order, sortBy } = query;
+      const { page, size, order, sortBy } = query;
 
       const searchQuery: searchQuery = {};
 
@@ -77,48 +76,14 @@ class ConsultationRepository {
 
       const skip = (page - 1) * size;
 
-      const pipeline: PipelineStage[] = [];
-      if (search) {
-        searchQuery["requestDetails.title"] = search;
-        pipeline.push(
-          {
-            $lookup: {
-              from: "Request",
-              localField: "requestId",
-              foreignField: "_id",
-              as: "requestDetails",
-            },
-          },
-          { $unwind: "$requestDetails" },
-          { $match: searchQuery },
-          {
-            $project: {
-              _id: 1,
-              requestId: 1,
-              status: 1,
-              "requestDetails.memberId": 1,
-              "requestDetails.childIds": 1,
-              "requestDetails.doctorId": 1,
-              "requestDetails.title": 1,
-              "requestDetails.userFeedback": 1,
-            },
-          },
-          { $skip: skip },
-          {
-            $sort: { [sortField]: sortOrder },
-          }
-        );
-      } else {
-        pipeline.push(
-          { $match: searchQuery },
-          { $skip: skip },
-          {
-            $sort: { [sortField]: sortOrder },
-          }
-        );
-      }
-
-      const consultations = await ConsultationModel.aggregate(pipeline);
+      const consultations = await ConsultationModel.aggregate([
+        {
+          $match: searchQuery,
+        },
+        { $sort: { [sortField]: sortOrder } },
+        { $skip: skip },
+        { $limit: size },
+      ]);
 
       if (consultations.length === 0) {
         throw new CustomException(
@@ -129,7 +94,7 @@ class ConsultationRepository {
 
       const totalConsultation = await ConsultationModel.countDocuments(
         searchQuery
-      ); //missing the aggregate to find title in request?
+      );
 
       return {
         consultations: consultations,
@@ -137,6 +102,81 @@ class ConsultationRepository {
         totalConsultation: totalConsultation,
         totalPages: Math.ceil(totalConsultation / size),
       };
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getConsultationsByUserId(
+    query: IQuery,
+    ignoreDeleted: boolean,
+    userId: string,
+    as: "MEMBER" | "DOCTOR"
+  ) {}
+
+  async updateConsultation(
+    id: string,
+    data: object,
+    session?: mongoose.ClientSession
+  ) {
+    try {
+      const consultation = await ConsultationModel.findOneAndUpdate(
+        {
+          _id: new mongoose.Types.ObjectId(id),
+          isDeleted: false,
+        },
+        data,
+        { session, new: true }
+      );
+
+      if (!consultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
+
+      return consultation;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async deleteConsultation(id: string, session?: mongoose.ClientSession) {
+    try {
+      const consultation = await ConsultationModel.findOneAndUpdate(
+        {
+          _id: new mongoose.Types.ObjectId(id),
+          isDeleted: false,
+        },
+        {
+          $set: {
+            isDeleted: true,
+          },
+        },
+        { session, new: true }
+      );
+
+      if (!consultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
+
+      return consultation;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

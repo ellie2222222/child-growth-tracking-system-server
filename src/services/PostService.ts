@@ -39,6 +39,16 @@ class PostService {
 
     try {
       await this.checkTierPostLimit(userId);
+
+      const checkPost = await this.postRepository.getPostByTitle(title);
+
+      if (checkPost) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Post title already been taken"
+        );
+      }
+
       const formatedContent = extractAndReplaceImages(content, attachments);
 
       const post = await this.postRepository.createPost(
@@ -86,7 +96,21 @@ class PostService {
       ) {
         ignoreDeleted = true;
       }
+
       const post = await this.postRepository.getPost(id, ignoreDeleted);
+
+      if (
+        (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
+          checkRequester.role
+        ) ||
+          requesterId.toString() !== post.userId.toString()) &&
+        post.status !== PostStatus.PUBLISHED
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Post not found"
+        );
+      }
       return post;
     } catch (error) {
       if (error as Error | CustomException) {
@@ -99,7 +123,7 @@ class PostService {
     }
   };
 
-  getPosts = async (query: IQuery, requesterId: string) => {
+  getPosts = async (query: IQuery, requesterId: string, status: string) => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -117,7 +141,18 @@ class PostService {
       ) {
         ignoreDeleted = true;
       }
-      const posts = await this.postRepository.getPosts(query, ignoreDeleted);
+
+      let formatedStatus;
+      if ([UserEnum.DOCTOR, UserEnum.MEMBER].includes(checkRequester.role)) {
+        formatedStatus = "PUBLISHED";
+      } else {
+        formatedStatus = status;
+      }
+      const posts = await this.postRepository.getPosts(
+        query,
+        ignoreDeleted,
+        formatedStatus
+      );
       return posts;
     } catch (error) {
       if (error as Error | CustomException) {
@@ -146,6 +181,15 @@ class PostService {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You are not allowed to update this post"
+        );
+      }
+
+      const checkPost = await this.postRepository.getPostByTitle(title);
+
+      if (checkPost) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Post title already been taken"
         );
       }
 
@@ -292,6 +336,30 @@ class PostService {
       await session.endSession();
     }
   };
+
+  async getPostsByUserId(requesterId: string, userId: string, query: IQuery) {
+    try {
+      let status;
+      if (requesterId !== userId) {
+        status = PostStatus.PUBLISHED;
+      }
+      const posts = await this.postRepository.getPostsByUserId(
+        userId,
+        query,
+        status as string
+      );
+
+      return posts;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
 
   checkTierPostLimit = async (userId: string | ObjectId) => {
     try {
