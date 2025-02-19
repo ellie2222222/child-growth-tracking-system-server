@@ -114,17 +114,22 @@ class GrowthMetricsHandler {
         });
       }
 
-      const invalidEntry = Object.entries(item).find(
-        ([key, value]) => key.startsWith("p") && !Number.isFinite(value)
-      );
+      const invalidEntry = Object.entries(item).find(([key, value]) => {
+        if (key.toLowerCase().startsWith("p") && Number.isFinite(value)) {
+          const numericKey = parseFloat(key.slice(1).replace(",", "."));
+          return numericKey < 0.1 || numericKey > 99.9;
+        }
+        return key.toLowerCase().startsWith("p") && !Number.isFinite(value);
+      });
+      
       if (invalidEntry) {
         const [invalidKey, invalidValue] = invalidEntry;
-        
+      
         validationErrors.push({
           field: invalidKey.toUpperCase(),
-          error: `Invalid P value ${invalidValue}. Expected a valid floating-point number`
+          error: `Invalid P value ${invalidValue}. Expected a valid floating-point number between P0.1 and P99.9`,
         });
-      }
+      }      
 
       switch (metric) {
         case "HCFA":

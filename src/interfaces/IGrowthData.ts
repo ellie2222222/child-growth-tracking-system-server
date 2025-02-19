@@ -1,4 +1,4 @@
-import { Document, Types } from "mongoose";
+import { Document, Schema, Types } from "mongoose";
 
 export interface IGrowthData extends Document {
   childId: Types.ObjectId;
@@ -7,6 +7,7 @@ export interface IGrowthData extends Document {
   height: number;
   headCircumference: number;
   armCircumference: number;
+  growthResult: Schema,
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
