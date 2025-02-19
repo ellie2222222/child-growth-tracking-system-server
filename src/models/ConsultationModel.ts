@@ -10,6 +10,7 @@ const ConsultationSchema = new mongoose.Schema<IConsultation>(
     status: {
       type: String,
       enum: ConsultationStatus,
+      default: ConsultationStatus.OnGoing,
     },
     userFeedback: {
       type: String,

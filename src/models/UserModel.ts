@@ -88,15 +88,24 @@ const userModelSchema = new Schema<IUser>(
 // Unique except default value
 userModelSchema.index(
   { googleId: 1 },
-  { unique: true, partialFilterExpression: { googleId: { $exists: true } } }
+  {
+    unique: true,
+    partialFilterExpression: { googleId: { $exists: true, $ne: null } },
+  }
 );
 userModelSchema.index(
   { email: 1 },
-  { unique: true, partialFilterExpression: { email: { $exists: true } } }
+  {
+    unique: true,
+    partialFilterExpression: { email: { $exists: true, $ne: "" } },
+  }
 );
 userModelSchema.index(
   { phoneNumber: 1 },
-  { unique: true, partialFilterExpression: { phoneNumber: { $exists: true } } }
+  {
+    unique: true,
+    partialFilterExpression: { phoneNumber: { $exists: true, $ne: null } },
+  }
 );
 
 const UserModel: Model<IUser> = mongoose.model<IUser>("User", userModelSchema);

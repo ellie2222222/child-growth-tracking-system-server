@@ -5,8 +5,8 @@ import GenderEnum from "../enums/GenderEnum";
 
 const childModelSchema = new Schema<IChild>(
   {
-    name: { 
-      type: String, 
+    name: {
+      type: String,
       required: true,
       trim: true,
     },
@@ -14,26 +14,26 @@ const childModelSchema = new Schema<IChild>(
       type: Date,
       required: true,
     },
-    note: { 
-      type: String, 
+    note: {
+      type: String,
       default: "",
       trim: true,
     },
-    gender: { 
+    gender: {
       type: Number,
-      enum: Object.keys(GenderEnum),
+      enum: Object.values(GenderEnum),
       required: true,
     },
     relationships: [
       {
-        memberId: { 
-          type: Schema.Types.ObjectId, 
-          ref: "User", 
-          required: true, 
+        memberId: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
         },
-        type: { 
-          type: String, 
-          required: true, 
+        type: {
+          type: String,
+          required: true,
           trim: true,
           enum: [...Relationship],
         },
@@ -44,8 +44,14 @@ const childModelSchema = new Schema<IChild>(
   { timestamps: true, strict: true }
 );
 
-childModelSchema.index({ "relationships.memberId": 1, _id: 1 }, { unique: true });
+childModelSchema.index(
+  { "relationships.memberId": 1, _id: 1 },
+  { unique: true }
+);
 
-const ChildModel: Model<IChild> = mongoose.model<IChild>("Child", childModelSchema);
+const ChildModel: Model<IChild> = mongoose.model<IChild>(
+  "Child",
+  childModelSchema
+);
 
 export default ChildModel;

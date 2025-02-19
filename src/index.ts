@@ -23,6 +23,7 @@ import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
 import membershipPackageRoute from "./routes/MembershipPackageRoute";
+import requestRouter from "./routes/RequestRoute";
 import cronJob from "./utils/cron";
 import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 import tierRoutes from "./routes/TierRoute";
@@ -115,6 +116,7 @@ app.use("/api/growth-metrics", growthMetricsRoute);
 app.use("/api/receipt", receiptRoutes);
 app.use("/api/tiers", tierRoutes);
 app.use("/api/membership-packages", membershipPackageRoute);
+app.use("/api/requests", requestRouter);
 
 // Google Login
 app.get("/", (req, res) => {

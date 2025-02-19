@@ -3,12 +3,13 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import RequestModel from "../models/RequestModel";
 import { IQuery } from "../interfaces/IQuery";
-import { RequestStatus } from "../interfaces/IRequest";
+import dotenv from "dotenv";
+dotenv.config();
 
 class RequestRepository {
   async createRequest(data: object, session?: mongoose.ClientSession) {
     try {
-      const request = await RequestModel.create(data, { session });
+      const request = await RequestModel.create([data], { session });
       return request;
     } catch (error) {
       if (error as Error | CustomException) {
@@ -21,12 +22,16 @@ class RequestRepository {
     }
   }
 
-  async getRequest(id: string | ObjectId) {
+  async getRequest(id: string | ObjectId, ignoreDeleted: boolean) {
     try {
-      const request = await RequestModel.findOne({
-        _id: id,
-        isDeleted: false,
-      });
+      const searchQuery = ignoreDeleted
+        ? { _id: new mongoose.Types.ObjectId(id as string) }
+        : {
+            _id: new mongoose.Types.ObjectId(id as string),
+            isDeleted: false,
+          };
+
+      const request = await RequestModel.findOne(searchQuery);
 
       if (!request) {
         throw new CustomException(
@@ -47,15 +52,11 @@ class RequestRepository {
     }
   }
 
-  async getAllRequest(
-    query: IQuery,
-    ignoreDeleted: boolean,
-    status?: RequestStatus
-  ) {
+  async getAllRequests(query: IQuery, ignoreDeleted: boolean, status?: string) {
     type SearchQuery = {
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
-      status?: RequestStatus;
+      status?: string;
     };
     try {
       const { page, size, search, order, sortBy } = query;
@@ -112,15 +113,15 @@ class RequestRepository {
     userId: string,
     query: IQuery,
     ignoreDeleted: boolean,
-    status?: RequestStatus,
-    as?: "MEMBER" | "DOCTER"
+    status?: string,
+    as?: "MEMBER" | "DOCTOR"
   ) {
     type SearchQuery = {
       memberId?: mongoose.Types.ObjectId;
       doctorId?: mongoose.Types.ObjectId;
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
-      status?: RequestStatus;
+      status?: string;
     };
 
     try {
@@ -139,7 +140,7 @@ class RequestRepository {
         searchQuery.status = status;
       }
 
-      if (as === "DOCTER") {
+      if (as === "DOCTOR") {
         searchQuery.doctorId = new mongoose.Types.ObjectId(userId);
       } else {
         searchQuery.memberId = new mongoose.Types.ObjectId(userId);
@@ -237,6 +238,38 @@ class RequestRepository {
       }
 
       return request;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async validateRequestDailyLimit(userId: string) {
+    try {
+      const now = new Date();
+      const today = now.setHours(0, 0, 0, 0); //0h today
+      const tmr = new Date();
+      tmr.setDate(now.getDate() + 1);
+      tmr.setHours(0, 0, 0, 0);
+
+      const requestNumber = await RequestModel.countDocuments({
+        memberId: new mongoose.Types.ObjectId(userId),
+        createdAt: { $gte: today, $lte: tmr },
+      });
+
+      if (
+        requestNumber >= (parseInt(process.env.DAILY_REQ_LIM as string) || 3)
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "You have exceeded the daily limit number of request"
+        );
+      }
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
