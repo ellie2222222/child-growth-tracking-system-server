@@ -180,25 +180,25 @@ class UserHandler {
     const { page, size, search, order, sortBy } = req.query;
     if (Number.isNaN(page)) {
       validationErrors.push({
-        field: "Invalid query field",
+        field: "Page",
         error: "Invalid page number in query",
       });
     }
     if (Number.isNaN(size)) {
       validationErrors.push({
-        field: "Invalid query field",
-        error: "Invalid page number in query",
+        field: "Size",
+        error: "Invalid size number in query",
       });
     }
     if (!["ascending", "descending"].includes(order as string)) {
       validationErrors.push({
-        field: "Invalid query field",
+        field: "Order",
         error: "Invalid order in query",
       });
     }
     if (!["date"].includes(sortBy as string)) {
       validationErrors.push({
-        field: "Invalid query field",
+        field: "Date",
         error: "Invalid sortBy in query",
       });
     }

@@ -25,6 +25,7 @@ class ChildRepository {
     session?: mongoose.ClientSession
   ): Promise<IChild> {
     try {
+      console.log(childData);
       const result = await ChildModel.create([childData], { session });
       return result[0];
     } catch (error) {
