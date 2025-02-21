@@ -130,7 +130,7 @@
 
 /**
  * @swagger
- * /api/posts/by-userId:
+ * /api/posts/users:
  *   get:
  *     summary: Get posts by a specific user
  *     description: Retrieve a paginated list of posts created by a specific user.

@@ -98,10 +98,10 @@ class ChildHandler {
     }
 
     // Validate gender (0 or 1 expected)
-    if (gender !== undefined && gender !== 0 && gender !== 1) {
+    if (gender !== GenderEnum.BOY && gender !== GenderEnum.GIRL) {
       validationErrors.push({
         field: "gender",
-        error: "Gender must be 0 (Male) or 1 (Female)",
+        error: "Gender must be 0 (Boy) or 1 (Girl)",
       });
     }
 
