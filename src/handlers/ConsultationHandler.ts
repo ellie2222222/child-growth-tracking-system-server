@@ -1,54 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { validateMongooseObjectId } from "../utils/validator";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { ObjectId } from "mongoose";
-import validator from "validator";
-import { RequestStatus } from "../interfaces/IRequest";
+import { ConsultationStatus } from "../interfaces/IConsultation";
 
-class RequestHandler {
-  createRequest = (req: Request, res: Response, next: NextFunction): void => {
-    const validationErrors: { field: string; error: string }[] = [];
-
-    const { childIds, doctorId, title } = req.body;
-
-    childIds.forEach((childId: string | ObjectId) => {
-      try {
-        validateMongooseObjectId(childId as string);
-      } catch {
-        validationErrors.push({
-          field: "childIds",
-          error: "Invalid childIds",
-        });
-      }
-    });
-
-    try {
-      validateMongooseObjectId(doctorId as string);
-    } catch {
-      validationErrors.push({
-        field: "doctorId",
-        error: "Invalid doctorId",
-      });
-    }
-
-    if (!title || !validator.isLength(title, { min: 6, max: 100 })) {
-      validationErrors.push({
-        field: "title",
-        error: "Invalid title",
-      });
-    }
-
-    if (validationErrors.length > 0) {
-      res.status(StatusCodeEnum.BadRequest_400).json({
-        message: "Validation failed",
-        validationErrors,
-      });
-    } else {
-      next();
-    }
-  };
-
-  getRequest = (req: Request, res: Response, next: NextFunction): void => {
+class ConsultationHandler {
+  getConsultation = (req: Request, res: Response, next: NextFunction): void => {
     const validationErrors: { field: string; error: string }[] = [];
 
     const { id } = req.params;
@@ -72,7 +28,11 @@ class RequestHandler {
     }
   };
 
-  getAllRequests = (req: Request, res: Response, next: NextFunction): void => {
+  getConsultations = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
     const validationErrors: { field: string; error: string }[] = [];
 
     const { page, size, order, sortBy, status } = req.query;
@@ -107,12 +67,9 @@ class RequestHandler {
 
     if (
       status &&
-      ![
-        RequestStatus.Accepted,
-        RequestStatus.Canceled,
-        RequestStatus.Pending,
-        RequestStatus.Rejected,
-      ].includes(status as RequestStatus)
+      ![ConsultationStatus.Ended, ConsultationStatus.OnGoing].includes(
+        status as ConsultationStatus
+      )
     ) {
       validationErrors.push({
         field: "Invalid status",
@@ -130,7 +87,7 @@ class RequestHandler {
     }
   };
 
-  getRequestsByUserId = (
+  getConsultationsByUserId = (
     req: Request,
     res: Response,
     next: NextFunction
@@ -179,12 +136,9 @@ class RequestHandler {
 
     if (
       status &&
-      ![
-        RequestStatus.Accepted,
-        RequestStatus.Canceled,
-        RequestStatus.Pending,
-        RequestStatus.Rejected,
-      ].includes(status as RequestStatus)
+      ![ConsultationStatus.Ended, ConsultationStatus.OnGoing].includes(
+        status as ConsultationStatus
+      )
     ) {
       validationErrors.push({
         field: "Invalid status",
@@ -209,7 +163,7 @@ class RequestHandler {
     }
   };
 
-  updateRequestStatus = (
+  updateConsultationStatus = (
     req: Request,
     res: Response,
     next: NextFunction
@@ -223,8 +177,8 @@ class RequestHandler {
       validateMongooseObjectId(id);
     } catch {
       validationErrors.push({
-        field: "Invalid request ID",
-        error: "Invalid request ID in query",
+        field: "Invalid consultation ID",
+        error: "Invalid consultation ID in query",
       });
     }
 
@@ -237,12 +191,7 @@ class RequestHandler {
 
     if (
       status &&
-      ![
-        RequestStatus.Accepted,
-        RequestStatus.Canceled,
-        RequestStatus.Pending,
-        RequestStatus.Rejected,
-      ].includes(status as RequestStatus)
+      ![ConsultationStatus.Ended].includes(status as ConsultationStatus)
     ) {
       validationErrors.push({
         field: "Invalid status",
@@ -260,7 +209,11 @@ class RequestHandler {
     }
   };
 
-  deleteRequest = (req: Request, res: Response, next: NextFunction): void => {
+  deleteConsultation = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
     const validationErrors: { field: string; error: string }[] = [];
 
     const { id } = req.params;
@@ -269,8 +222,8 @@ class RequestHandler {
       validateMongooseObjectId(id);
     } catch {
       validationErrors.push({
-        field: "Invalid request ID",
-        error: "Invalid request ID in query",
+        field: "Invalid consultation ID",
+        error: "Invalid consultation ID in params",
       });
     }
 
@@ -285,4 +238,4 @@ class RequestHandler {
   };
 }
 
-export default RequestHandler;
+export default ConsultationHandler;

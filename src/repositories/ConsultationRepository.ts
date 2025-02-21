@@ -34,16 +34,27 @@ class ConsultationRepository {
         query.isDeleted = false;
       }
 
-      const consultation = await ConsultationModel.findOne(query);
+      const consultation = await ConsultationModel.aggregate([
+        { $match: query },
+        {
+          $lookup: {
+            from: "requests",
+            localField: "requestId",
+            foreignField: "_id",
+            as: "requestDetails",
+          },
+        },
+        { $unwind: "$requestDetails" },
+      ]);
 
-      if (!consultation) {
+      if (consultation.length === 0) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Consultation not found"
         );
       }
 
-      return consultation;
+      return consultation[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -55,9 +66,14 @@ class ConsultationRepository {
     }
   }
 
-  async getConsultations(query: IQuery, ignoreDeleted: boolean) {
+  async getConsultations(
+    query: IQuery,
+    ignoreDeleted: boolean,
+    status: string
+  ) {
     type searchQuery = {
       isDeleted?: boolean;
+      status?: string;
     };
 
     try {
@@ -67,6 +83,10 @@ class ConsultationRepository {
 
       if (ignoreDeleted) {
         searchQuery.isDeleted = false;
+      }
+
+      if (status) {
+        searchQuery.status = status;
       }
 
       let sortField = "createdAt";
@@ -80,6 +100,15 @@ class ConsultationRepository {
         {
           $match: searchQuery,
         },
+        {
+          $lookup: {
+            from: "requests",
+            localField: "requestId",
+            foreignField: "_id",
+            as: "requestDetails",
+          },
+        },
+        { $unwind: "$requestDetails" },
         { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: size },
@@ -117,8 +146,104 @@ class ConsultationRepository {
     query: IQuery,
     ignoreDeleted: boolean,
     userId: string,
-    as: "MEMBER" | "DOCTOR"
-  ) {}
+    status?: string,
+    as?: "MEMBER" | "DOCTOR"
+  ) {
+    type searchQuery = {
+      "requestDetails.title"?: { $eq: string };
+      "requestDetails.memberId"?: mongoose.Types.ObjectId;
+      "requestDetails.doctorId"?: mongoose.Types.ObjectId;
+      isDeleted?: boolean;
+      status?: string;
+    };
+
+    try {
+      const { page, size, search, order, sortBy } = query;
+
+      // Define Match Query (Pre-Lookup)
+      const searchQuery: searchQuery = {};
+      if (!ignoreDeleted) searchQuery.isDeleted = false;
+      if (status) searchQuery.status = status;
+
+      // Define User Role Query (Post-Lookup)
+      const userQuery: searchQuery = {};
+      if (as === "DOCTOR") {
+        userQuery["requestDetails.doctorId"] = new mongoose.Types.ObjectId(
+          userId
+        );
+      } else {
+        userQuery["requestDetails.memberId"] = new mongoose.Types.ObjectId(
+          userId
+        );
+      }
+
+      // Apply Search Filter
+      if (search) {
+        userQuery["requestDetails.title"] = { $eq: search };
+      }
+
+      // Sorting Setup
+      let sortField = "createdAt";
+      if (sortBy === "date") sortField = "createdAt";
+      const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
+
+      const skip = (page - 1) * size;
+
+      // Aggregation Pipeline (Shared)
+      const basePipeline = [
+        { $match: searchQuery }, // Match Consultation Conditions
+        {
+          $lookup: {
+            from: "requests",
+            localField: "requestId",
+            foreignField: "_id",
+            as: "requestDetails",
+          },
+        },
+        { $unwind: "$requestDetails" }, // Flatten Lookup Result
+        { $match: userQuery }, // Filter by user (Doctor/Member)
+      ];
+
+      // Fetch Paginated Results
+      const consultations = await ConsultationModel.aggregate([
+        ...basePipeline,
+        { $sort: { [sortField]: sortOrder } },
+        { $skip: skip },
+        { $limit: size },
+      ]);
+
+      if (consultations.length === 0) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "No consultation found for this user"
+        );
+      }
+
+      // Get Total Count After Filtering
+      const totalCountResult = await ConsultationModel.aggregate([
+        ...basePipeline,
+        { $count: "total" },
+      ]);
+
+      const totalConsultation =
+        totalCountResult.length > 0 ? totalCountResult[0].total : 0;
+
+      return {
+        consultations,
+        page,
+        totalConsultation,
+        totalPages: Math.ceil(totalConsultation / size),
+      };
+    } catch (error) {
+      if (error instanceof Error || error instanceof CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
 
   async updateConsultation(
     id: string,
