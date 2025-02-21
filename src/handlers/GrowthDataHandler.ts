@@ -20,17 +20,18 @@ class GrowthDataHandler {
     // Validate required fields (height, weight)
     const requiredFields = { height, weight };
     for (const [field, value] of Object.entries(requiredFields)) {
+      const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
       if (value === undefined || value === null || value === "") {
-        validationErrors.push({ field, error: `${field} is required` });
+        validationErrors.push({ field, error: `${capitalizedField} is required` });
       } else if (typeof value !== "number" || isNaN(value)) {
         validationErrors.push({
           field,
-          error: `${field} must be a valid number`,
+          error: `${capitalizedField} must be a valid number`,
         });
       } else if (value <= 0) {
         validationErrors.push({
           field,
-          error: `${field} must be greater than zero`,
+          error: `${capitalizedField} must be greater than zero`,
         });
       }
     }
@@ -38,16 +39,17 @@ class GrowthDataHandler {
     // Validate optional fields if provided (headCircumference, armCircumference)
     const optionalFields = { headCircumference, armCircumference };
     for (const [field, value] of Object.entries(optionalFields)) {
+      const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
       if (value !== undefined && value !== null && value !== "") {
         if (typeof value !== "number" || isNaN(value)) {
           validationErrors.push({
             field,
-            error: `${field} must be a valid number`,
+            error: `${capitalizedField} must be a valid number`,
           });
         } else if (value <= 0) {
           validationErrors.push({
             field,
-            error: `${field} must be greater than zero`,
+            error: `${capitalizedField} must be greater than zero`,
           });
         }
       }
@@ -107,15 +109,16 @@ class GrowthDataHandler {
     };
     for (const [field, value] of Object.entries(optionalFields)) {
       if (value !== undefined && value !== null && value !== "") {
+        const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
         if (typeof value !== "number" || isNaN(value)) {
           validationErrors.push({
             field,
-            error: `${field} must be a valid number`,
+            error: `${capitalizedField} must be a valid number`,
           });
         } else if (value <= 0) {
           validationErrors.push({
             field,
-            error: `${field} must be greater than zero`,
+            error: `${capitalizedField} must be greater than zero`,
           });
         }
       }
@@ -170,7 +173,7 @@ class GrowthDataHandler {
   /**
    * Validate input for getting a single growthData.
    */
-  getGrowthData = (req: Request, res: Response, next: NextFunction): void => {
+  getGrowthDataById = (req: Request, res: Response, next: NextFunction): void => {
     const { growthDataId } = req.params;
 
     const validationErrors: { field: string; error: string }[] = [];

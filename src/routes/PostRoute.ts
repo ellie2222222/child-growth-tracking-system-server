@@ -59,7 +59,7 @@ router.get(
 );
 
 router.get(
-  "/by-userId",
+  "/users",
   RoleMiddleware([
     UserEnum.ADMIN,
     UserEnum.SUPER_ADMIN,

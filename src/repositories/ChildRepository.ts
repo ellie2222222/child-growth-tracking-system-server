@@ -162,6 +162,7 @@ class ChildRepository {
     session?: mongoose.ClientSession
   ): Promise<IChild | null> {
     try {
+      console.log(updateData)
       const updatedChild = await ChildModel.findByIdAndUpdate(
         childId,
         { $set: updateData },

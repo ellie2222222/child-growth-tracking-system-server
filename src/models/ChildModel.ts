@@ -21,7 +21,7 @@ const childModelSchema = new Schema<IChild>(
     },
     gender: { 
       type: Number,
-      enum: Object.keys(GenderEnum),
+      enum: Object.values(GenderEnum),
       required: true,
     },
     relationships: [
