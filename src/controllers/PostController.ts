@@ -126,11 +126,12 @@ class PostController {
   ) => {
     try {
       const requesterId = req.userInfo.userId;
-      const { page, size, search, order, sortBy, userId } = req.query;
+      const { id } = req.params;
+      const { page, size, search, order, sortBy } = req.query;
 
       const posts = await this.postService.getPostsByUserId(
         requesterId,
-        userId as string,
+        id as string,
         {
           page: parseInt(page as string) || 1,
           size: parseInt(size as string) || 10,

@@ -130,7 +130,7 @@
 
 /**
  * @swagger
- * /api/posts/users:
+ * /api/posts/users/{id}:
  *   get:
  *     summary: Get posts by a specific user
  *     description: Retrieve a paginated list of posts created by a specific user.
@@ -167,7 +167,7 @@
  *           type: string
  *           enum: [ascending, descending]
  *         description: Sorting order
- *       - in: query
+ *       - in: path
  *         name: userId
  *         required: true
  *         schema:
@@ -313,10 +313,13 @@
 
 /**
  * @swagger
- * /api/posts/post-status/{id}:
+ * /api/posts/status/{id}:
  *   put:
  *     summary: Update post status
- *     description: Allows authenticated users (ADMIN, MEMBER) to update the status of a post.
+ *     description:
+ *       Allows authenticated users (ADMIN, MEMBER) to update the status of a post. <br> <br>
+ *       - Members can only update status to `PENDING` or `DELETED`.<br> <br>
+ *       - Admins can update to `PENDING`, `PUBLISHED`, `REJECTED`, or `DELETED`.
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []

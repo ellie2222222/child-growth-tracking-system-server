@@ -43,7 +43,7 @@
 
 /**
  * @swagger
- * /api/receipts/by-userId/{userId}:
+ * /api/receipts/users/{userId}:
  *   get:
  *     tags: [Receipts]
  *     summary: Get receipts by user ID
