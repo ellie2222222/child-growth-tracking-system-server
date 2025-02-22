@@ -47,7 +47,8 @@ class ReceiptHandler {
   ): void => {
     const validationErrors: { field: string; error: string }[] = [];
 
-    const { page, size, order, sortBy, userId } = req.query;
+    const { page, size, order, sortBy } = req.query;
+    const { userId } = req.params;
 
     if (page && isNaN(parseInt(page as string))) {
       validationErrors.push({

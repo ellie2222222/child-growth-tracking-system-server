@@ -46,7 +46,7 @@ class RequestController {
 
   getAllRequests = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, size, search, order, sortBy, status } = req.params;
+      const { page, size, search, order, sortBy, status } = req.query;
 
       const request = await this.requestService.getAllRequests(
         {
@@ -56,7 +56,7 @@ class RequestController {
           order: (order as "ascending" | "descending") || "ascending",
           sortBy: (sortBy as "date") || "date",
         },
-        status
+        status as string
       );
 
       res

@@ -257,6 +257,18 @@ class PostService {
           "User not found"
         );
       }
+
+      const checkPost = await this.postRepository.getPost(id, false);
+      if (
+        checkPost.userId.toString() !== requesterId &&
+        ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(user.role)
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "You do not have access to perform this action"
+        );
+      }
+
       const data =
         status === PostStatus.DELETED
           ? { status, isDeleted: true }

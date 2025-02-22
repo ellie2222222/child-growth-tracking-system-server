@@ -305,6 +305,13 @@ class RequestService {
 
       const request = await this.requestRepository.getRequest(id, false);
 
+      if (request.status === status) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Request is already in the specified status"
+        );
+      }
+
       if (notAdmin) {
         switch (status) {
           //Not requested doctor => cant accept or reject
@@ -315,12 +322,6 @@ class RequestService {
                 "You do not have access to perform this action"
               );
             }
-            await this.consultationRepository.createConsultation(
-              {
-                requestId: request._id,
-              },
-              session
-            );
             break;
 
           case RequestStatus.Rejected:
@@ -349,10 +350,12 @@ class RequestService {
         }
       }
 
-      if (request.status === status) {
-        throw new CustomException(
-          StatusCodeEnum.BadRequest_400,
-          "Request is already in the specified status"
+      if (status === RequestStatus.Accepted) {
+        await this.consultationRepository.createConsultation(
+          {
+            requestId: request._id,
+          },
+          session
         );
       }
 

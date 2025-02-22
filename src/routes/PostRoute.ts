@@ -35,7 +35,7 @@ router.put(
 );
 
 router.put(
-  "/post-status/:id",
+  "/status/:id",
   RoleMiddleware([
     UserEnum.ADMIN,
     UserEnum.SUPER_ADMIN,
@@ -59,7 +59,7 @@ router.get(
 );
 
 router.get(
-  "/users",
+  "/users/:id",
   RoleMiddleware([
     UserEnum.ADMIN,
     UserEnum.SUPER_ADMIN,

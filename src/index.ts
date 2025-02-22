@@ -27,6 +27,7 @@ import requestRouter from "./routes/RequestRoute";
 import cronJob from "./utils/cron";
 import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 import tierRoutes from "./routes/TierRoute";
+import consultationRouter from "./routes/ConsultationRoute";
 import { swaggerDoc } from "./config/swaggerConfig";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
@@ -113,10 +114,11 @@ app.use("/api/children", childRoutes);
 app.use("/api/posts", postRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/growth-metrics", growthMetricsRoute);
-app.use("/api/receipt", receiptRoutes);
+app.use("/api/receipts", receiptRoutes);
 app.use("/api/tiers", tierRoutes);
 app.use("/api/membership-packages", membershipPackageRoute);
 app.use("/api/requests", requestRouter);
+app.use("/api/consultations", consultationRouter);
 
 // Google Login
 app.get("/", (req, res) => {

@@ -4,7 +4,6 @@ import { IReceipt } from "../interfaces/IReceipt";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 
-import { validateMongooseObjectId } from "../utils/validator";
 import { IQuery } from "../interfaces/IQuery";
 class ReceiptRepository {
   async createReceipt(
@@ -29,27 +28,39 @@ class ReceiptRepository {
   getAllReceipt = async (
     query: IQuery,
     ignoreDeleted: boolean
-  ): Promise<IReceipt[]> => {
+  ): Promise<object> => {
     try {
       const { page, size, order, sortBy } = query;
       type searchQuery = {
         isDeleted?: boolean;
       };
+
       let sortField = "createdAt";
       if (sortBy === "date") sortField = "createdAt";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
       const skip = (page - 1) * size;
+
       const searchQuery = ignoreDeleted ? {} : { isDeleted: true };
+
       const receipts = await ReceiptModel.aggregate([
         { $match: searchQuery },
         { $skip: skip },
         { $limit: size },
         { $sort: { [sortField]: sortOrder } },
       ]);
+
       if (receipts.length === 0) {
         throw new CustomException(404, "No receipts found");
       }
-      return receipts;
+
+      const countReceipts = await ReceiptModel.countDocuments(searchQuery);
+
+      return {
+        Receipts: receipts,
+        page,
+        totalReceipts: countReceipts,
+        totalPages: Math.ceil(countReceipts / size),
+      };
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw error;
@@ -60,13 +71,14 @@ class ReceiptRepository {
       );
     }
   };
+
   //admin/super-admin => get all
   //else get isDeleted: false
   async getReceiptsByUserId(
     query: IQuery,
     userId: mongoose.Types.ObjectId | string,
     ignoreDeleted: boolean
-  ): Promise<IReceipt[]> {
+  ): Promise<object> {
     try {
       const { page, size, order, sortBy } = query;
       type searchQuery = {
@@ -96,7 +108,15 @@ class ReceiptRepository {
       if (receipts.length === 0) {
         throw new CustomException(404, "No receipts found");
       }
-      return receipts;
+
+      const countReceipts = await ReceiptModel.countDocuments(searchQuery);
+
+      return {
+        Receipts: receipts,
+        page,
+        totalReceipts: countReceipts,
+        totalPages: Math.ceil(countReceipts / size),
+      };
     } catch (error: unknown) {
       if ((error as Error) || (error as CustomException)) {
         throw error;
@@ -117,12 +137,15 @@ class ReceiptRepository {
   ): Promise<IReceipt | null> {
     try {
       const query = ignoreDeleted
-        ? { _id: validateMongooseObjectId(id as string) }
-        : { _id: validateMongooseObjectId(id as string), isDeleted: false };
+        ? { _id: new mongoose.Types.ObjectId(id) }
+        : { _id: new mongoose.Types.ObjectId(id), isDeleted: false };
+
       const receipt = await ReceiptModel.findOne(query, null, { session });
+
       if (!receipt) {
         throw new CustomException(404, "Receipt not found");
       }
+
       return receipt;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
@@ -142,7 +165,7 @@ class ReceiptRepository {
   ): Promise<IReceipt | null> {
     try {
       const checkReceipt = await ReceiptModel.findOne(
-        { _id: validateMongooseObjectId(id as string), isDeleted: false },
+        { _id: new mongoose.Types.ObjectId(id as string), isDeleted: false },
         null,
         { session }
       );
@@ -156,7 +179,7 @@ class ReceiptRepository {
         );
       }
       const receipt = await ReceiptModel.findOneAndUpdate(
-        { _id: validateMongooseObjectId(id as string), isDeleted: false },
+        { _id: new mongoose.Types.ObjectId(id as string), isDeleted: false },
         { $set: { isDeleted: true } },
         { new: true }
       );
