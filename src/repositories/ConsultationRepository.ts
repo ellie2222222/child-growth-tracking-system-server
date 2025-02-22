@@ -69,7 +69,7 @@ class ConsultationRepository {
   async getConsultations(
     query: IQuery,
     ignoreDeleted: boolean,
-    status: { $eq: string }
+    status: string
   ) {
     type searchQuery = {
       isDeleted?: boolean;
