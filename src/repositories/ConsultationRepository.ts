@@ -154,7 +154,7 @@ class ConsultationRepository {
       "requestDetails.memberId"?: mongoose.Types.ObjectId;
       "requestDetails.doctorId"?: mongoose.Types.ObjectId;
       isDeleted?: boolean;
-      status?: string;
+      status?: { $eq: string };
     };
 
     try {
@@ -163,7 +163,7 @@ class ConsultationRepository {
       // Define Match Query (Pre-Lookup)
       const searchQuery: searchQuery = {};
       if (!ignoreDeleted) searchQuery.isDeleted = false;
-      if (status) searchQuery.status = status;
+      if (status) searchQuery.status = { $eq: status };
 
       // Define User Role Query (Post-Lookup)
       const userQuery: searchQuery = {};
