@@ -1,4 +1,5 @@
-import { Document, Schema, Types } from "mongoose";
+import { Document, Types } from "mongoose";
+import { IGrowthResult } from "./IGrowthResult";
 
 export interface IGrowthData extends Document {
   childId: Types.ObjectId;
@@ -7,7 +8,8 @@ export interface IGrowthData extends Document {
   height: number;
   headCircumference: number;
   armCircumference: number;
-  growthResult: Schema,
+  growthResult: IGrowthResult | Partial<IGrowthResult>,
+  bmi?: number,
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

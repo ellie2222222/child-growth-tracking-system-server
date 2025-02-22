@@ -36,6 +36,37 @@ class GrowthMetricsRepository {
     }
   }
 
+  async getGrowthMetricsForAgeData(gender: number, age: number, unit: string): Promise<IGrowthMetricForAge[]> {
+    try {
+      let data: IGrowthMetricForAge[] = [];
+      switch (unit) {
+        case "month":
+          data = await GrowthMetricForAgeModel.find(
+            { 
+              gender: gender,
+              'age.inMonths': age,
+            },
+          );
+          break;
+
+        case "day":
+          data = await GrowthMetricForAgeModel.find(
+            { 
+              gender: gender,
+              'age.inDays': age,
+            },
+          );
+          break;
+      }
+      return data;
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Failed to get data: ${(error as Error).message}`
+      );
+    }
+  }
+
   async upsertGrowthVelocityData(
     data: Partial<IGrowthVelocity>,
     session?: mongoose.ClientSession

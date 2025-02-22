@@ -1,22 +1,27 @@
 import { Document } from "mongoose";
+import { BmiLevelEnumType, LevelEnumType } from "../enums/LevelEnum";
 
 export interface IGrowthResult extends Document {
-  weight?: {
+  weight: {
     description: string;
-    level: string;
+    level: LevelEnumType;
   };
-  height?: {
+  height: {
     description: string;
-    level: string;
+    level: LevelEnumType;
   };
-  headCircumference?: {
+  bmi: {
     description: string;
-    level: string;
+    level: BmiLevelEnumType;
   };
-  armCircumference?: {
+  headCircumference: {
     description: string;
-    level: string;
+    level: LevelEnumType;
   };
-  description?: string;
-  level?: string;
+  armCircumference: {
+    description: string;
+    level: LevelEnumType;
+  };
+  description: string;
+  level: LevelEnumType;
 }
