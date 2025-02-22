@@ -7,7 +7,7 @@ import { IQuery } from "../interfaces/IQuery";
 class ConsultationRepository {
   async createConsultation(data: object, session?: mongoose.ClientSession) {
     try {
-      const consultation = await ConsultationModel.create(data, { session });
+      const consultation = await ConsultationModel.create([data], { session });
       return consultation;
     } catch (error) {
       if (error as Error | CustomException) {

@@ -3,7 +3,8 @@ import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import dotenv from "dotenv";
 import getLogger from "../utils/logger";
-const packageJson = require("../../package.json");
+import packageJson from "../../package.json";
+
 const version = packageJson.version;
 
 dotenv.config();
@@ -14,8 +15,7 @@ const options: swaggerJsdoc.Options = {
     info: {
       title: "Child Growth Tracking System API Docs",
       version,
-      description:
-        "Swagger",
+      description: "Swagger",
       contact: {
         name: "Github",
         url: "https://github.com/ellie2222222/child-growth-tracking-system-server",
@@ -30,8 +30,14 @@ const options: swaggerJsdoc.Options = {
     tags: [
       { name: "Auth", description: "Operations about Authorization" },
       { name: "Users", description: "Operations about users" },
-      { name: "Membership Packages", description: "Operations about membership packages" },
+      {
+        name: "Membership Packages",
+        description: "Operations about membership packages",
+      },
       { name: "Posts", description: "Operations about posts" },
+      { name: "Comments", description: "Operations about comments in posts" },
+      { name: "Payments", description: "Operations about handling payment" },
+      { name: "Receipts", description: "Operations about receipts" },
     ],
     components: {
       securitySchemes: {
@@ -48,7 +54,13 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: ["./routes/*.ts", "./interfaces/*.ts", "./enums/*.ts", "./swagger/*.ts", "./**/*.ts"],
+  apis: [
+    "./routes/*.ts",
+    "./interfaces/*.ts",
+    "./enums/*.ts",
+    "./swagger/*.ts",
+    "./**/*.ts",
+  ],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

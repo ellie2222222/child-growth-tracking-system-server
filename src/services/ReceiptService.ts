@@ -74,7 +74,7 @@ class ReceiptService {
   getAllReceipts = async (
     query: IQuery,
     requesterId: string
-  ): Promise<IReceipt[]> => {
+  ): Promise<object> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -112,7 +112,7 @@ class ReceiptService {
     query: IQuery,
     userId: string | mongoose.Types.ObjectId,
     requesterId: string | mongoose.Types.ObjectId
-  ): Promise<IReceipt[]> => {
+  ): Promise<object> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(

@@ -322,12 +322,6 @@ class RequestService {
                 "You do not have access to perform this action"
               );
             }
-            await this.consultationRepository.createConsultation(
-              {
-                requestId: request._id,
-              },
-              session
-            );
             break;
 
           case RequestStatus.Rejected:
@@ -354,15 +348,15 @@ class RequestService {
               "Invalid status type"
             );
         }
-      } else {
-        if (status === RequestStatus.Accepted) {
-          await this.consultationRepository.createConsultation(
-            {
-              requestId: request._id,
-            },
-            session
-          );
-        }
+      }
+
+      if (status === RequestStatus.Accepted) {
+        await this.consultationRepository.createConsultation(
+          {
+            requestId: request._id,
+          },
+          session
+        );
       }
 
       const UpdatedRequest = await this.requestRepository.updateRequest(

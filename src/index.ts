@@ -114,7 +114,7 @@ app.use("/api/children", childRoutes);
 app.use("/api/posts", postRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/growth-metrics", growthMetricsRoute);
-app.use("/api/receipt", receiptRoutes);
+app.use("/api/receipts", receiptRoutes);
 app.use("/api/tiers", tierRoutes);
 app.use("/api/membership-packages", membershipPackageRoute);
 app.use("/api/requests", requestRouter);
