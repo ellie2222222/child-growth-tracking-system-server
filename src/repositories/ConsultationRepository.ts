@@ -69,11 +69,11 @@ class ConsultationRepository {
   async getConsultations(
     query: IQuery,
     ignoreDeleted: boolean,
-    status: string
+    status: { $eq: string }
   ) {
     type searchQuery = {
       isDeleted?: boolean;
-      status?: string;
+      status?: { $eq: string };
     };
 
     try {
@@ -86,7 +86,7 @@ class ConsultationRepository {
       }
 
       if (status) {
-        searchQuery.status = status;
+        searchQuery.status = { $eq: status };
       }
 
       let sortField = "createdAt";
