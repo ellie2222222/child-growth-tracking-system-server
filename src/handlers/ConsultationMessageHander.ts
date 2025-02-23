@@ -31,13 +31,15 @@ class ConsultationMessageHandler {
     }
 
     if (files && files.length > 0) {
+      const fileCount = files ? files.length : 0;
+
       const dom = new JSDOM(message);
       const document = dom.window.document;
       const images = document.querySelectorAll("img") || [];
       if (files.length !== images.length) {
         validationErrors.push({
           field: "Images",
-          error: `The number of images in message (${images.length}) does not match the uploaded images (${files.length}).`,
+          error: `The number of images in message (${images.length}) does not match the uploaded images (${fileCount}).`,
         });
       }
     }
@@ -74,13 +76,15 @@ class ConsultationMessageHandler {
     }
     if (message) {
       if (files && files.length > 0) {
+        const fileCount = files ? files.length : 0;
+
         const dom = new JSDOM(message);
         const document = dom.window.document;
         const images = document.querySelectorAll("img");
         if (files.length !== images.length) {
           validationErrors.push({
             field: "Images",
-            error: `The number of images in message (${images.length}) does not match the uploaded images (${files.length}).`,
+            error: `The number of images in message (${images.length}) does not match the uploaded images (${fileCount}).`,
           });
         }
       }
