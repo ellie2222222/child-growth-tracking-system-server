@@ -15,7 +15,7 @@ class ConsultationMessageController {
     res: Response,
     next: NextFunction
   ) => {
-    const files = req.files as Express.Multer.File[];
+    const files = (req.files as Express.Multer.File[]) || [];
     try {
       const requesterId = req.userInfo.userId;
       const { consultationId, message } = req.body;
@@ -104,7 +104,7 @@ class ConsultationMessageController {
     res: Response,
     next: NextFunction
   ) => {
-    const files = req.files as Express.Multer.File[];
+    const files = (req.files as Express.Multer.File[]) || [];
     try {
       const requesterId = req.userInfo.userId;
 
@@ -127,7 +127,6 @@ class ConsultationMessageController {
         message: "Consultation message updated successfully",
       });
     } catch (error) {
-      console.log(files, files.length > 0);
       if (files && files.length > 0) {
         const attachments = formatPathArray(files);
         cleanUpFileArray(attachments, "create");

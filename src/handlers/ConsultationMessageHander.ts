@@ -11,7 +11,7 @@ class ConsultationMessageHandler {
   ) => {
     const validationErrors: { field: string; error: string }[] = [];
 
-    const files = req.files as Express.Multer.File[];
+    const files = (req.files as Express.Multer.File[]) || [];
     const { consultationId, message } = req.body;
 
     try {
@@ -33,7 +33,7 @@ class ConsultationMessageHandler {
     if (files && files.length > 0) {
       const dom = new JSDOM(message);
       const document = dom.window.document;
-      const images = document.querySelectorAll("img");
+      const images = document.querySelectorAll("img") || [];
       if (files.length !== images.length) {
         validationErrors.push({
           field: "Images",
@@ -62,7 +62,7 @@ class ConsultationMessageHandler {
     const { id } = req.params;
     const { message } = req.body;
 
-    const files = req.files as Express.Multer.File[];
+    const files = (req.files as Express.Multer.File[]) || [];
 
     try {
       validateMongooseObjectId(id);

@@ -276,7 +276,7 @@ class PostService {
 
       switch (status as PostStatus) {
         case PostStatus.REJECTED:
-          console.log("REJECTED");
+          // console.log("REJECTED");
           if (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(user.role)) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,
@@ -286,7 +286,7 @@ class PostService {
           break;
 
         case PostStatus.PUBLISHED:
-          console.log("PUBLISHED");
+          // console.log("PUBLISHED");
           if (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(user.role)) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,

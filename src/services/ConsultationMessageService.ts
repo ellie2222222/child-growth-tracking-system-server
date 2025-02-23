@@ -82,8 +82,6 @@ class ConsultationMessageService {
 
       const formatedMessage = extractAndReplaceImages(message, attachments);
 
-      console.log(attachments);
-
       const consultationMessage =
         await this.consultationMessageRepository.createConsultationMessage(
           {
