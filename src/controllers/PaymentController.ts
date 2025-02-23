@@ -183,7 +183,7 @@ class PaymentController {
       try {
         const amount = parseFloat(vnp_Params.vnp_Amount as string) / 100; // Convert back from VND cents
 
-        console.log(vnp_Params.vnp_OrderInfo);
+        // console.log(vnp_Params.vnp_OrderInfo);
         const data = {
           userId: (vnp_Params.vnp_OrderInfo as string).split("%")[0],
           membershipPackageId: (vnp_Params.vnp_OrderInfo as string).split(

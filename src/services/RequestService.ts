@@ -353,7 +353,7 @@ class RequestService {
       if (status === RequestStatus.Accepted) {
         await this.consultationRepository.createConsultation(
           {
-            requestId: request._id,
+            requestId: id,
           },
           session
         );

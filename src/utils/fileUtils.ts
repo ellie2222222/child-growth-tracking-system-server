@@ -107,21 +107,25 @@ const cleanUpFileArray = async (
     if (Array.isArray(files) && files.length > 0) {
       switch (usage) {
         case "create":
-          (files as Express.Multer.File[]).forEach(async (file) => {
-            if (await fileExists(file.path)) {
-              await deleteFile(file.path);
-            }
-          });
+          await Promise.all(
+            (files as Express.Multer.File[]).map(async (file) => {
+              if (await fileExists(file.path)) {
+                await deleteFile(file.path);
+              }
+            })
+          );
           break;
         case "update":
-          (files as Array<string>).forEach(async (file) => {
-            const filePath = file
-              .split(`${process.env.SERVER_URL}/`)
-              .pop() as string;
-            if (await fileExists(filePath)) {
-              await deleteFile(filePath);
-            }
-          });
+          await Promise.all(
+            (files as Array<string>).map(async (file) => {
+              const filePath = file
+                .split(`${process.env.SERVER_URL}/`)
+                .pop() as string;
+              if (await fileExists(filePath)) {
+                await deleteFile(filePath);
+              }
+            })
+          );
           break;
         default:
           throw new CustomException(

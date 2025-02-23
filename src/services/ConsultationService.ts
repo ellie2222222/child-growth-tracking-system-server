@@ -302,6 +302,7 @@ class ConsultationService {
         );
 
       await this.database.commitTransaction(session);
+
       return deletedConsultation;
     } catch (error) {
       await this.database.abortTransaction(session);
