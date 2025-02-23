@@ -332,6 +332,9 @@ class PostService {
 
       const post = await this.postRepository.deletePost(id, session);
 
+      await cleanUpFile(oldPost.thumbnailUrl as string, "update");
+      await cleanUpFileArray(oldPost.attachments, "update");
+
       await this.database.commitTransaction(session);
 
       return post;

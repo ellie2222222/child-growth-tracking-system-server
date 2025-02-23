@@ -26,6 +26,10 @@ const options: swaggerJsdoc.Options = {
         url: `http://localhost:${process.env.DEVELOPMENT_PORT || 4000}`,
         description: "Development server",
       },
+      {
+        url: `https://child-growth-tracking-system-server-u452.onrender.com`,
+        description: "Production server",
+      },
     ],
     tags: [
       { name: "Auth", description: "Operations about Authorization" },

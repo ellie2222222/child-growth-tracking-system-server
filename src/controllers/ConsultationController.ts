@@ -84,7 +84,7 @@ class ConsultationController {
         );
 
       res.status(StatusCodeEnum.OK_200).json({
-        Consultations: consultations,
+        ...consultations,
         message: "Retrieved consultations by userId successfully",
       });
     } catch (error) {
@@ -114,7 +114,7 @@ class ConsultationController {
       );
 
       res.status(StatusCodeEnum.OK_200).json({
-        Consultations: consultations,
+        ...consultations,
         message: "Retrieved consultations successfully",
       });
     } catch (error) {

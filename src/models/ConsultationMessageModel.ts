@@ -16,7 +16,7 @@ const ConsultationMessageSchema = new Schema<IConsultationMessage>(
       type: String,
       required: true,
     },
-    attachements: {
+    attachments: {
       type: [String],
       required: true,
     },

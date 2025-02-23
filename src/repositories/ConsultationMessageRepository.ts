@@ -1,4 +1,4 @@
-import mongoose, { ObjectId } from "mongoose";
+import mongoose, { ClientSession, ObjectId } from "mongoose";
 import ConsultationMessageModel from "../models/ConsultationMessageModel";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
@@ -10,11 +10,14 @@ class ConsultationMessageRepository {
     session?: mongoose.ClientSession
   ) {
     try {
-      const consultationMessage = await ConsultationMessageModel.create(data, {
-        session,
-      });
+      const consultationMessage = await ConsultationMessageModel.create(
+        [data],
+        {
+          session,
+        }
+      );
 
-      return consultationMessage;
+      return consultationMessage[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -33,7 +36,7 @@ class ConsultationMessageRepository {
     ignoreDeleted: boolean
   ) {
     type searchQuery = {
-      consultationId: string | ObjectId;
+      consultationId: mongoose.Types.ObjectId;
       isDeleted?: boolean;
       message?: { $regex: string; $options: string };
     };
@@ -41,8 +44,17 @@ class ConsultationMessageRepository {
     try {
       const { page, size, search, order, sortBy } = query;
       const searchQuery: searchQuery = ignoreDeleted
-        ? { consultationId }
-        : { consultationId, isDeleted: false };
+        ? {
+            consultationId: new mongoose.Types.ObjectId(
+              consultationId as string
+            ),
+          }
+        : {
+            consultationId: new mongoose.Types.ObjectId(
+              consultationId as string
+            ),
+            isDeleted: false,
+          };
 
       if (search) {
         searchQuery.message = { $regex: search, $options: "i" };
@@ -66,7 +78,15 @@ class ConsultationMessageRepository {
         );
       }
 
-      return consultationMessages;
+      const messageCount = await ConsultationMessageModel.countDocuments(
+        searchQuery
+      );
+      return {
+        ConsultationMessages: consultationMessages,
+        Page: page,
+        TotalMessages: messageCount,
+        TotalPage: Math.ceil(messageCount / size),
+      };
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -98,6 +118,42 @@ class ConsultationMessageRepository {
       }
 
       return message;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async updateConsultationMessage(
+    id: string,
+    data: object,
+    session?: ClientSession
+  ) {
+    try {
+      const consultationMesssage =
+        await ConsultationMessageModel.findOneAndUpdate(
+          {
+            _id: new mongoose.Types.ObjectId(id),
+            isDeleted: false,
+          },
+          data,
+          { session, new: true }
+        );
+
+      if (!consultationMesssage) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Message not found"
+        );
+      }
+
+      return consultationMesssage;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

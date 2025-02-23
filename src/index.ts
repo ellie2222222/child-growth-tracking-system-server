@@ -28,6 +28,8 @@ import cronJob from "./utils/cron";
 import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 import tierRoutes from "./routes/TierRoute";
 import consultationRouter from "./routes/ConsultationRoute";
+import consultationMessageRouter from "./routes/ConsultationMessageRoute";
+
 import { swaggerDoc } from "./config/swaggerConfig";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
@@ -119,6 +121,7 @@ app.use("/api/tiers", tierRoutes);
 app.use("/api/membership-packages", membershipPackageRoute);
 app.use("/api/requests", requestRouter);
 app.use("/api/consultations", consultationRouter);
+app.use("/api/consultation-messages", consultationMessageRouter);
 
 // Google Login
 app.get("/", (req, res) => {

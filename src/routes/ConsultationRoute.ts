@@ -13,7 +13,7 @@ const consultationController = new ConsultationController();
 consultationRouter.use(AuthMiddleware);
 
 consultationRouter.put(
-  "/update-status/:id",
+  "/status/:id",
   RoleMiddleware([UserEnum.MEMBER, UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
   consultationHandler.updateConsultationStatus,
   consultationController.updateConsultationStatus
@@ -27,7 +27,7 @@ consultationRouter.get(
 );
 
 consultationRouter.get(
-  "/by-userId/:id",
+  "/users/:id",
   RoleMiddleware([
     UserEnum.ADMIN,
     UserEnum.SUPER_ADMIN,
