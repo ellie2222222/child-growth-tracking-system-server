@@ -31,14 +31,8 @@ authRoutes.post("/logout", authController.logout);
 authRoutes.post("/renew-access-token", authController.renewAccessToken);
 
 authRoutes.post(
-  "/verify-email",
-  authHandler.verifyEmail,
-  authController.verifyEmail
-);
-
-authRoutes.post(
-  "/confirm-email-verification-pin",
-  authController.confirmEmailVerificationPin
+  "/confirm-email-verification-token",
+  authController.confirmEmailVerificationToken
 );
 
 authRoutes.put(

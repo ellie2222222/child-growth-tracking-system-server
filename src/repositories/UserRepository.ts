@@ -346,8 +346,6 @@ class UserRepository {
         [
           {
             ...data,
-            isActive: true,
-            isVerified: true,
           },
         ],
         { session }
@@ -376,8 +374,6 @@ class UserRepository {
         [
           {
             ...data,
-            isActive: true,
-            isVerified: true,
           },
         ],
         { session }

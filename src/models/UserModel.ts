@@ -32,24 +32,9 @@ const userModelSchema = new Schema<IUser>(
     password: {
       type: String,
     },
-
-    isActive: {
-      type: Boolean,
-      required: true,
-      default: true,
-    },
-    isVerified: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    verificationPin: {
-      value: { type: String },
-      expiresAt: { type: Date },
-    },
     resetPasswordPin: {
-      value: { type: String },
-      expiresAt: { type: Date },
+      value: { type: String, default: null },
+      expiresAt: { type: Date, default: null },
       isVerified: { type: Boolean, default: false },
     },
     subscription: {
@@ -75,10 +60,6 @@ const userModelSchema = new Schema<IUser>(
         ref: "MembershipPackage",
         default: null,
       },
-    },
-    childrenIds: {
-      type: [{ type: Schema.Types.ObjectId, ref: "Child" }],
-      default: [] as unknown as [Types.ObjectId],
     },
     ...baseModelSchema.obj,
   },

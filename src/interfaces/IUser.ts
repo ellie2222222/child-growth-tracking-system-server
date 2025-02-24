@@ -8,12 +8,6 @@ export interface IUser extends Document {
   email: string;
   phoneNumber: string;
   password: string;
-  isActive: boolean;
-  isVerified: boolean;
-  verificationPin: {
-    value: string | null;
-    expiresAt: Date | null;
-  };
   resetPasswordPin: {
     value: string | null;
     expiresAt: Date | null;
