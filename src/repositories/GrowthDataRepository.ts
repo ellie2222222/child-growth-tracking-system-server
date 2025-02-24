@@ -142,6 +142,24 @@ class GrowthDataRepository {
     }
   }
 
+  async getAllGrowthDataByChildId (
+    childId: string,
+  ): Promise<IGrowthData[]> {
+    try {
+      const growthData = await GrowthDataModel.find({
+        childId: new mongoose.Types.ObjectId(childId),
+        isDeleted: false,
+      });
+    
+      return growthData;
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
   /**
    * Update a growthData by ID.
    * @param growthDataId - The ID of the growthData to update.

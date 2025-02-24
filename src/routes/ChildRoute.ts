@@ -51,6 +51,13 @@ childRoutes.get(
 );
 
 childRoutes.get(
+  "/:childId/growth-velocity",
+  growthDataHandler.getGrowthDataByChildId,
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
+  growthDataController.generateGrowthVelocityByChildId
+);
+
+childRoutes.get(
   "/:childId/growth-data",
   growthDataHandler.getGrowthDataByChildId,
   RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),

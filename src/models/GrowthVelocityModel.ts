@@ -2,6 +2,7 @@ import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
 import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
 import baseModelSchema from "./BaseModel";
+import { GrowthVelocityEnum } from "../enums/GrowthMetricsEnum";
 
 const growthVelocityModelSchema = new Schema<IGrowthVelocity>(
   {
@@ -19,6 +20,10 @@ const growthVelocityModelSchema = new Schema<IGrowthVelocity>(
       type: Number,
       enum: [GenderEnum.BOY, GenderEnum.GIRL],
       required: true,
+    },
+    type: {
+      type: String,
+      enum: Object.values(GrowthVelocityEnum),
     },
     percentiles: {
       L: { type: Number, required: true },

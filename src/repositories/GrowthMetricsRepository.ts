@@ -69,11 +69,17 @@ class GrowthMetricsRepository {
 
   async upsertGrowthVelocityData(
     data: Partial<IGrowthVelocity>,
+    type: string,
     session?: mongoose.ClientSession
   ): Promise<UpdateWriteOpResult> {
     try {
       return await GrowthVelocityModel.updateMany(
-        { gender: data.gender }, 
+        { 
+          gender: data.gender, 
+          type,
+          'firstInterval.inMonths': data.firstInterval?.inMonths,
+          'lastInterval.inMonths': data.firstInterval?.inMonths,
+        }, 
         { $set: data },
         { upsert: true, session }
       );
@@ -81,6 +87,18 @@ class GrowthMetricsRepository {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         `Failed to update WFLH data: ${(error as Error).message}`
+      );
+    }
+  }
+  
+  async getGrowthVelocityData(gender: number): Promise<IGrowthVelocity[]> {
+    try {
+      const data: IGrowthVelocity[] = await GrowthVelocityModel.find({ gender });
+      return data;
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Failed to get data: ${(error as Error).message}`
       );
     }
   }
@@ -99,6 +117,19 @@ class GrowthMetricsRepository {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         `Failed to update WFLH data: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async getWflhData(gender: number, height: number): Promise<IWflh[]> {
+    try {
+      const data: IWflh[] = await GrowthMetricForAgeModel.find({ gender, height });
+
+      return data;
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Failed to get data: ${(error as Error).message}`
       );
     }
   }

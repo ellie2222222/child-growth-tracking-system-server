@@ -25,7 +25,6 @@ class ChildRepository {
     session?: mongoose.ClientSession
   ): Promise<IChild> {
     try {
-      console.log(childData);
       const result = await ChildModel.create([childData], { session });
       return result[0];
     } catch (error) {
@@ -163,12 +162,12 @@ class ChildRepository {
     session?: mongoose.ClientSession
   ): Promise<IChild | null> {
     try {
-      console.log(updateData)
       const updatedChild = await ChildModel.findByIdAndUpdate(
         childId,
         { $set: updateData },
         { new: true, session, runValidators: true }
       ).exec();
+      
       return updatedChild;
     } catch (error) {
       if (error as Error) {
