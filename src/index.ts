@@ -11,7 +11,6 @@ import receiptRoutes from "./routes/ReceiptRoute";
 import ErrorLogMiddleware from "./middlewares/ErrorLogMiddleware";
 import AuthMiddleware from "./middlewares/AuthMiddleware";
 import SessionMiddleware from "./middlewares/SessionMiddleware";
-// import CSRFMiddleware from "./middlewares/CSRFMiddleware";
 import securityHeaders from "./middlewares/SecurityHeaders";
 import helmet from "helmet";
 import RouteMiddleware from "./middlewares/RouteMiddleware";
@@ -78,9 +77,6 @@ app.use(
     crossOriginResourcePolicy: false,
   })
 );
-
-// CSRF middleware to ensure CSRF protection
-// app.use(CSRFMiddleware);
 
 app.use(cookieParser());
 

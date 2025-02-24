@@ -171,6 +171,7 @@ class GrowthMetricsService {
           // Process each batch in its own transaction session
           for (const batch of batches) {
             const session = await this.database.startTransaction();
+            let committed: boolean = false;
             try {
               for (const data of batch) {
                 result.push(data);
@@ -180,8 +181,11 @@ class GrowthMetricsService {
                 progressBar.update();
               }
               await this.database.commitTransaction(session);
+              committed = true;
             } catch (error) {
-              await this.database.abortTransaction(session);
+              if (!committed) {
+                await this.database.abortTransaction(session);
+              }
               throw error;
             }
           }
@@ -278,11 +282,13 @@ class GrowthMetricsService {
           // Process each batch in its own transaction session
           for (const batch of batches) {
             const session = await this.database.startTransaction();
+            let committed: boolean = false;
             try {
               for (const data of batch) {
                 result.push(data);
                 const resultData: UpdateWriteOpResult = await this.growthMetricsRepository.upsertGrowthVelocityData(
                   data,
+                  metric,
                   session
                 );
 
@@ -291,8 +297,11 @@ class GrowthMetricsService {
                 progressBar.update();
               }
               await this.database.commitTransaction(session);
+              committed = true;
             } catch (error) {
-              await this.database.abortTransaction(session);
+              if (!committed) {
+                await this.database.abortTransaction(session);
+              }
               throw error;
             }
           }
@@ -306,7 +315,7 @@ class GrowthMetricsService {
             "Unsupported metric"
           );
       }
-
+      
       return {
         result,
         insertedCount,

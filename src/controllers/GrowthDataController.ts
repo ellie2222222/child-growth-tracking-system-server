@@ -107,6 +107,30 @@ class GrowthDataController {
     }
   };
 
+  
+  /**
+   * Handles retrieving a growth velocity by child ID.
+   */
+  generateGrowthVelocityByChildId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { childId } = req.params;
+      const requesterInfo = req.userInfo;
+      
+      const growthVelocity = await this.growthDataService.generateGrowthVelocityByChildId(childId, requesterInfo);
+      
+      res.status(StatusCodeEnum.OK_200).json({
+        message: "Success",
+        growthVelocity
+      });
+    } catch (error) {
+      next(error); 
+    }
+  }
+
   /**
    * Handles retrieving a list of growthData by child ID.
    */

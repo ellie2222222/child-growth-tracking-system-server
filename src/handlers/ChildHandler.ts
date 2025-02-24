@@ -3,6 +3,8 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import validator from "validator";
 import { validateMongooseObjectId } from "../utils/validator";
 import GenderEnum from "../enums/GenderEnum";
+import { FeedingTypeEnum } from "../enums/FeedingTypeEnum";
+import { AllergyEnum } from "../enums/AllergyEnum";
 
 class ChildHandler {
   private validRelationships = ["Parent", "Guardian", "Sibling", "Other"];
@@ -11,7 +13,7 @@ class ChildHandler {
    * Validate input for creating a child.
    */
   createChild = (req: Request, res: Response, next: NextFunction): void => {
-    const { name, gender, birthDate, note, relationship } = req.body;
+    const { name, gender, birthDate, note, relationship, feedingType, allergies } = req.body;
 
     const validationErrors: { field: string; error: string }[] = [];
 
@@ -50,6 +52,51 @@ class ChildHandler {
         field: "note",
         error: "Note must not exceed 500 characters",
       });
+    }
+
+    // Validate feeding type
+    if (!feedingType || !Object.values(FeedingTypeEnum).includes(feedingType)) {
+      validationErrors.push({
+        field: "feedingType",
+        error: `Feeding type must be one of: ${Object.values(FeedingTypeEnum).join(
+          ", "
+        )}`,
+      });
+    }
+
+    // Validate allergies
+    if (allergies && allergies.length > 0) {
+      // Check if "None" or "N/A" is present
+      const hasNoneOrNA =
+        allergies.includes(AllergyEnum.NONE) || allergies.includes(AllergyEnum.N_A);
+
+      // Check if there are other allergies besides "None" or "N/A"
+      const hasOtherAllergies = allergies.some(
+        (allergy: string) =>
+          allergy !== AllergyEnum.NONE && allergy !== AllergyEnum.N_A
+      );
+
+      // Rule: "None" or "N/A" cannot coexist with other allergies
+      if (hasNoneOrNA && hasOtherAllergies) {
+        validationErrors.push({
+          field: "allergies",
+          error: `Invalid allergies list, "None" or "N/A" cannot coexist with other allergies.`,
+        });
+      }
+
+      // Check for invalid allergies
+      const invalidAllergies = allergies.filter(
+        (allergy: string) => !Object.values(AllergyEnum).includes(allergy)
+      );
+
+      if (invalidAllergies.length > 0) {
+        validationErrors.push({
+          field: "allergies",
+          error: `Invalid allergies found: ${invalidAllergies.join(
+            ", "
+          )}. Allergies must be one of: ${Object.values(AllergyEnum).join(", ")}`,
+        });
+      }
     }
 
     // Validate relationship
