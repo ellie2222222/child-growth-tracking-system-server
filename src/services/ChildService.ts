@@ -8,7 +8,7 @@ import UserRepository from "../repositories/UserRepository";
 import { Request } from "express";
 import UserEnum from "../enums/UserEnum";
 import TierRepository from "../repositories/TierRepository";
-import mongoose, { isValidObjectId, ObjectId, Types } from "mongoose";
+import mongoose, { isValidObjectId, ObjectId } from "mongoose";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 
 class ChildService {
@@ -434,6 +434,7 @@ class ChildService {
         //else {
         //   console.log("currentPlan found");
         // }
+
         if (!user.subscription.endDate) {
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,
@@ -461,7 +462,6 @@ class ChildService {
         //   console.log("valid end date");
         // }
 
-        //cron job late?(run each mins so late seconds?)
         if (user.subscription.endDate?.getTime() < Date.now()) {
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,

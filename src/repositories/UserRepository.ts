@@ -1,4 +1,4 @@
-import mongoose, { ObjectId, Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import UserModel from "../models/UserModel";
 import { IUser } from "../interfaces/IUser";
 import { IQuery } from "../interfaces/IQuery";
@@ -6,7 +6,6 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import getLogger from "../utils/logger";
 import MembershipModel from "../models/MembershipPackage";
-import { IMembershipPackage } from "../interfaces/IMembershipPackage";
 import ChildModel from "../models/ChildModel";
 import TierModel from "../models/TierModel";
 export type returnData = {
@@ -445,14 +444,14 @@ class UserRepository {
             );
           }
 
-          let children = await this.getUserChildrenIds(user._id as string);
-          if (tier.childrenLimit === 0) {
-            children = [] as unknown as [Types.ObjectId];
-          } else {
-            children = children.slice(0, tier.childrenLimit - 1) as [
-              Types.ObjectId
-            ];
-          }
+          // let children = await this.getUserChildrenIds(user._id as string);
+          // if (tier.childrenLimit === 0) {
+          //   children = [] as unknown as [Types.ObjectId];
+          // } else {
+          //   children = children.slice(0, tier.childrenLimit - 1) as [
+          //     Types.ObjectId
+          //   ];
+          // }
 
           // No future memberships, clear subscription
           await UserModel.updateOne(
@@ -463,7 +462,7 @@ class UserRepository {
                 "subscription.startDate": null,
                 "subscription.currentPlan": null,
                 "subscription.tier": 0,
-                childrenIds: children,
+                // childrenIds: children,
               },
             }
           );
@@ -485,7 +484,8 @@ class UserRepository {
           Date.now() +
             3600 * 24 * (membershipPackage.duration.value as number) * 1000
         );
-        const children = await this.getUserChildrenIds(userId.toString());
+
+        // const children = await this.getUserChildrenIds(userId.toString());
         // Update user's subscription and remove the used membership from futurePlan
         await UserModel.findByIdAndUpdate(userId, {
           $set: {
@@ -494,7 +494,7 @@ class UserRepository {
             "subscription.startDate": new Date(),
             "subscription.endDate": newEndDate,
             "subscription.futurePlan": null,
-            childrenIds: children,
+            // childrenIds: children,
           },
         });
       }
