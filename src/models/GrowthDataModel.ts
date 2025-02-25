@@ -7,22 +7,27 @@ import { BmiLevelEnum, LevelEnum } from "../enums/LevelEnum";
 const growthResultSchema = new Schema<IGrowthResult>(
   {
     weight: {
+      percentile: { type: Number },
       description: { type: String },
       level: { type: String, enum: LevelEnum },
     },
     height: {
+      percentile: { type: Number },
       description: { type: String },
       level: { type: String, enum: LevelEnum },
     },
     bmi: {
+      percentile: { type: Number },
       description: { type: String },
       level: { type: String, enum: BmiLevelEnum },
     },
     headCircumference: {
+      percentile: { type: Number },
       description: { type: String },
       level: { type: String, enum: LevelEnum },
     },
     armCircumference: {
+      percentile: { type: Number },
       description: { type: String },
       level: { type: String, enum: LevelEnum },
     },

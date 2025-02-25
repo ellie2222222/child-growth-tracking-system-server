@@ -33,14 +33,7 @@ const RoleMiddleware = (roles: Array<number>) => {
       if (user.role === UserEnum.ADMIN || user.role === UserEnum.SUPER_ADMIN) {
         return next();
       }
-
-      if (!user?.isVerified) {
-        res
-          .status(StatusCodeEnum.Forbidden_403)
-          .json({ message: "User is not verified" });
-        return;
-      }
-
+      
       if (!roles.includes(user?.role)) {
         res
           .status(StatusCodeEnum.Forbidden_403)

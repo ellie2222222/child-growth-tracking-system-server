@@ -190,36 +190,6 @@ class AuthHandler {
       next();
     }
   };
-
-  /**
-   * Validates input for verify email requests.
-   */
-  verifyEmail = (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): void => {
-    const { email } = req.body;
-
-    const validationErrors: { field: string; error: string }[] = [];
-
-    // Validate email
-    if (!email || !validator.isEmail(email)) {
-      validationErrors.push({
-        field: "email",
-        error: "Invalid email format",
-      });
-    }
-
-    if (validationErrors.length > 0) {
-      res.status(StatusCodeEnum.BadRequest_400).json({
-        message: "Validation failed",
-        validationErrors,
-      });
-    } else {
-      next();
-    }
-  };
 }
 
 export default AuthHandler;

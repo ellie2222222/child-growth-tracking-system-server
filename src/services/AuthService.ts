@@ -11,8 +11,14 @@ import { IUser } from "../interfaces/IUser";
 import { Schema } from "mongoose";
 import sendMail from "../utils/mailer";
 import Mail from "nodemailer/lib/mailer";
+import { IVerificationTokenPayload } from "../interfaces/IJwtPayload";
+import path from "path";
+import ejs from "ejs";
 
 dotenv.config();
+
+const emailTemplatePath = path.resolve(__dirname, "../templates/EmailVerification.ejs");
+const resetPasswordTemplatePath = path.resolve(__dirname, "../templates/ResetPassword.ejs");
 
 class AuthService {
   private userRepository: UserRepository;
@@ -333,7 +339,6 @@ class AuthService {
     email: string,
     password: string
   ): Promise<void> => {
-    const session = await this.database.startTransaction();
     try {
       const existingUser = await this.userRepository.getUserByEmail(email);
 
@@ -344,22 +349,10 @@ class AuthService {
         );
       }
 
-      const saltRounds = 10;
-      const salt = await bcrypt.genSalt(saltRounds);
-      const hashedPassword = await bcrypt.hash(password, salt);
+      this.sendVerificationEmail(email, password, name);
 
-      await this.userRepository.createUser(
-        {
-          name,
-          email,
-          password: hashedPassword,
-        },
-        session
-      );
-
-      await this.database.commitTransaction(session);
+      return;
     } catch (error) {
-      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -402,11 +395,16 @@ class AuthService {
       };
       await this.userRepository.updateUserById(userId, updateData, session);
 
+      const resetPasswordHtml = await ejs.renderFile(resetPasswordTemplatePath, { 
+        name: user.name,
+        pin: pin,
+      });
+
       const mailOptions: Mail.Options = {
         from: process.env.EMAIL_USER,
         to: user.email,
         subject: `Reset Password PIN: ${pin}`,
-        html: `<p>Reset Password PIN: ${pin}</p>`,
+        html: resetPasswordHtml,
       };
 
       await sendMail(mailOptions);
@@ -617,51 +615,35 @@ class AuthService {
   /**
    * Sends a verification email to the user.
    * @param email - The user's email address.
+   * @param password - The user's password.
+   * @param name - The user's name.
    * @returns A void promise.
    */
-  verifyEmail = async (email: string): Promise<void> => {
-    const session = await this.database.startTransaction();
+  private sendVerificationEmail = async (email: string, password: string, name: string): Promise<void> => {
     try {
-      const user = await this.userRepository.getUserByEmail(email);
-
-      if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Email not found"
-        );
-      }
-
-      // Generate and hash PIN
-      const pin = Math.floor(100000 + Math.random() * 900000).toString();
-      const saltRounds = 10;
-      const salt = await bcrypt.genSalt(saltRounds);
-      const hashedPin = await bcrypt.hash(pin, salt);
-
-      // Store hashed PIN
-      const updateData: Partial<IUser> = {
-        verificationPin: {
-          value: hashedPin,
-          expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
-        },
-      };
-      await this.userRepository.updateUserById(
-        user._id as string,
-        updateData,
-        session
+      // Generate token
+      const token = jwt.sign(
+        { email, password, name },
+        process.env.EMAIL_TOKEN_SECRET as string,
+        { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
       );
+
+      const emailHtml = await ejs.renderFile(emailTemplatePath, { 
+        name: name,
+        verificationLink: `${process.env.FRONTEND_URL}/verify-email?verificationToken=${token}`
+      });
 
       const mailOptions: Mail.Options = {
         from: process.env.EMAIL_USER,
-        to: user.email,
-        subject: `Email Verification PIN: ${pin}`,
-        html: `<p>Email Verification PIN: ${pin}</p>`,
+        to: email,
+        subject: `Email Verification`,
+        html: emailHtml,
       };
 
       await sendMail(mailOptions);
 
-      await this.database.commitTransaction(session);
+      return;
     } catch (error) {
-      await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
         throw error;
       }
@@ -677,67 +659,31 @@ class AuthService {
    * @param token - The JWT token from the verification email.
    * @returns A void promise.
    */
-  confirmEmailVerificationPin = async (token: string): Promise<void> => {
+  confirmEmailVerificationToken = async (token: string): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
-      const payload: any = jwt.verify(token, process.env.EMAIL_TOKEN_SECRET!);
-      //idk type of payload from this
+      const payload = jwt.verify(token, process.env.EMAIL_TOKEN_SECRET!) as IVerificationTokenPayload;
+      const { name, email, password } = payload;
 
-      const user = await this.userRepository.getUserById(payload.userId, false);
-
-      if (!user) {
+      // Check if user already exists
+      const existingUser = await this.userRepository.getUserByEmail(email);
+      if (existingUser) {
         throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
+          StatusCodeEnum.Conflict_409,
+          "Email is already verified"
         );
       }
 
-      if (user.isVerified) {
-        throw new CustomException(
-          StatusCodeEnum.BadRequest_400,
-          "Email already verified"
-        );
-      }
-
-      if (!user.verificationPin || !user.verificationPin.value) {
-        throw new CustomException(
-          StatusCodeEnum.BadRequest_400,
-          "Invalid email verification token"
-        );
-      }
-
-      const isTokenValid = await bcrypt.compare(
-        token,
-        user.verificationPin.value
-      );
-      if (!isTokenValid) {
-        throw new CustomException(
-          StatusCodeEnum.Unauthorized_401,
-          "Invalid email verification token"
-        );
-      }
-
-      if (
-        !user.verificationPin.expiresAt ||
-        user.verificationPin.expiresAt < new Date()
-      ) {
-        throw new CustomException(
-          StatusCodeEnum.BadRequest_400,
-          "Email verification token expired"
-        );
-      }
-
-      // Clear verification token after verification
-      const updateData: Partial<IUser> = {
-        isVerified: true,
-        verificationPin: {
-          value: null,
-          expiresAt: null,
+      const saltRounds = 10;
+      const salt = await bcrypt.genSalt(saltRounds);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      
+      await this.userRepository.createUser(
+        {
+          name,
+          email,
+          password: hashedPassword,
         },
-      };
-      await this.userRepository.updateUserById(
-        user._id as string,
-        updateData,
         session
       );
 

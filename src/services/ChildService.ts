@@ -73,16 +73,6 @@ class ChildService {
         session
       );
 
-      //handle user accessible child array
-      const data = {
-        childrenIds: [
-          ...(user.childrenIds || []),
-          createdChild._id,
-        ] as unknown as [Types.ObjectId],
-      };
-
-      await this.userRepository.updateUserById(requesterId, data, session);
-
       await this.database.commitTransaction(session);
 
       return createdChild;

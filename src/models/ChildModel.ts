@@ -2,6 +2,30 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 import baseModelSchema from "./BaseModel";
 import { IChild, Relationship } from "../interfaces/IChild";
 import GenderEnum from "../enums/GenderEnum";
+import { FeedingTypeEnum } from "../enums/FeedingTypeEnum";
+import { AllergyEnum } from "../enums/AllergyEnum";
+import { IGrowthVelocityResult } from "../interfaces/IGrowthVelocityResult";
+
+const growthVelocityResultSchema = new Schema<IGrowthVelocityResult>(
+  {
+    period: { type: String }, 
+    startDate: { type: Date }, 
+    endDate: { type: Date }, 
+    weight: {
+      weightVelocity: { type: Number, default: null },
+      description: { type: String },
+    },
+    height: {
+      heightVelocity: { type: Number, default: null },
+      description: { type: String },
+    },
+    headCircumference: {
+      headCircumferenceVelocity: { type: Number, default: null },
+      description: { type: String },
+    },
+  },
+  { _id: false }
+);
 
 const childModelSchema = new Schema<IChild>(
   {
@@ -16,13 +40,23 @@ const childModelSchema = new Schema<IChild>(
     },
     note: {
       type: String,
-      default: "",
+      default: "N/A",
       trim: true,
     },
     gender: {
       type: Number,
       enum: Object.values(GenderEnum),
       required: true,
+    },
+    feedingType: {
+      type: String,
+      enum: Object.values(FeedingTypeEnum),
+      default: "N/A",
+    },
+    allergies: {
+      type: String,
+      enum: Object.values(AllergyEnum),
+      default: "N/A"
     },
     relationships: [
       {
@@ -39,6 +73,7 @@ const childModelSchema = new Schema<IChild>(
         },
       },
     ],
+    growthVelocityResult: { type: [growthVelocityResultSchema], default: [] },
     ...baseModelSchema.obj,
   },
   { timestamps: true, strict: true }

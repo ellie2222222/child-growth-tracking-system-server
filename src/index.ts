@@ -9,16 +9,13 @@ import authRoutes from "./routes/AuthRoute";
 import paymentRoutes from "./routes/PaymentRoute";
 import receiptRoutes from "./routes/ReceiptRoute";
 import ErrorLogMiddleware from "./middlewares/ErrorLogMiddleware";
-import AuthMiddleware from "./middlewares/AuthMiddleware";
 import SessionMiddleware from "./middlewares/SessionMiddleware";
-// import CSRFMiddleware from "./middlewares/CSRFMiddleware";
 import securityHeaders from "./middlewares/SecurityHeaders";
 import helmet from "helmet";
 import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
 import userRoutes from "./routes/UserRoute";
-import limiter from "./middlewares/rateLimiter";
 import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
@@ -29,8 +26,8 @@ import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 import tierRoutes from "./routes/TierRoute";
 import consultationRouter from "./routes/ConsultationRoute";
 import consultationMessageRouter from "./routes/ConsultationMessageRoute";
-
 import { swaggerDoc } from "./config/swaggerConfig";
+import limiter from "./middlewares/RateLimiter";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -78,9 +75,6 @@ app.use(
     crossOriginResourcePolicy: false,
   })
 );
-
-// CSRF middleware to ensure CSRF protection
-// app.use(CSRFMiddleware);
 
 app.use(cookieParser());
 

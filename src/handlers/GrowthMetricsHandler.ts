@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import GrowthMetricsEnum from "../enums/GrowthMetricsEnum";
+import { GrowthMetricsEnum } from "../enums/GrowthMetricsEnum";
 import path from "path";
 import fs from "fs";
 import * as xlsx from "xlsx";
