@@ -11,7 +11,7 @@ import { IUser } from "../interfaces/IUser";
 import { Schema } from "mongoose";
 import sendMail from "../utils/mailer";
 import Mail from "nodemailer/lib/mailer";
-import { IVerificationTokenPayload } from "../interfaces/IJwtPayload";
+import IJwtPayload, { IVerificationTokenPayload } from "../interfaces/IJwtPayload";
 import path from "path";
 import ejs from "ejs";
 
@@ -354,6 +354,51 @@ class AuthService {
       return;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  /**
+   * Get user by JWT token.
+   *
+   * @param userId - The user ID.
+   * @returns A void promise.
+   */
+  getUserByToken = async (
+    accessToken: string
+  ): Promise<IUser | null> => {
+    try {
+      const decoded = jwt.verify(
+      accessToken,
+      process.env.ACCESS_TOKEN_SECRET as string
+    ) as IJwtPayload;
+
+      const { userId } = decoded;
+      const user = await this.userRepository.getUserById(userId, false);
+      if (!user) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "User not found")
+      }
+
+      return user;
+    } catch (error) {
+      if (error as Error) {
+        if ((error as Error).name === "TokenExpiredError") {
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Token expired"
+          );
+        } else if ((error as Error).name === "JsonWebTokenError") {
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Invalid refresh token"
+          );
+        }
+      } else if (error as CustomException) {
         throw error;
       }
       throw new CustomException(

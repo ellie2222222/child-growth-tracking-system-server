@@ -109,6 +109,58 @@
 
 /**
  * @swagger
+ * /api/auth/me:
+ *   get:
+ *     tags: [Auth]
+ *     summary: Get User Info
+ *     description: Retrieve user information based on the access token stored in cookies.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Success"
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "60f7d5d84f1a2c001c8b4567"
+ *                     email:
+ *                       type: string
+ *                       example: "user@example.com"
+ *                     role:
+ *                       type: string
+ *                       example: "user"
+ *       401:
+ *         description: Unauthorized - Token is missing or invalid.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Authorization token required"
+ *       500:
+ *         description: Internal Server Error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Internal Server Error"
+ */
+
+/**
+ * @swagger
  * /api/auth/logout:
  *   post:
  *     tags: [Auth]
