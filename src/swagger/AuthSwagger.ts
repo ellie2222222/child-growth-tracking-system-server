@@ -180,8 +180,6 @@
  *     tags: [Auth]
  *     summary: Send Reset Password PIN
  *     description: Sends a reset password PIN to the user's email.
- *     security:
- *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: PIN sent successfully
@@ -196,8 +194,6 @@
  *     tags: [Auth]
  *     summary: Confirm Reset Password PIN
  *     description: Confirms the reset password PIN.
- *     security:
- *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -222,8 +218,6 @@
  *     tags: [Auth]
  *     summary: Reset Password
  *     description: Resets a user's password.
- *     security:
- *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -248,8 +242,6 @@
  *     tags: [Auth]
  *     summary: Change Password
  *     description: Allows a user to change their password.
- *     security:
- *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -272,11 +264,11 @@
 
 /**
  * @swagger
- * /api/auth/confirm-email-verification-pin:
+ * /api/auth/confirm-email-verification-token:
  *   post:
  *     tags: [Auth]
- *     summary: Confirm Email Verification PIN
- *     description: Confirms the email verification PIN.
+ *     summary: Confirm Email Verification Token
+ *     description: Confirms the email verification token.
  *     requestBody:
  *       required: true
  *       content:
@@ -292,28 +284,4 @@
  *         description: Email verified successfully
  *       400:
  *         description: Invalid or expired verification token
- */
-
-/**
- * @swagger
- * /api/auth/verify-email:
- *   post:
- *     tags: [Auth]
- *     summary: Send Email Verification
- *     description: Sends a verification email.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email:
- *                 type: string
- *                 example: "john@example.com"
- *     responses:
- *       200:
- *         description: Verification email sent
- *       400:
- *         description: Invalid email
  */
