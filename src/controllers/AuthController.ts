@@ -195,9 +195,17 @@ class AuthController {
         refreshToken
       );
 
+      const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
+      const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+      res.cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
       res.status(StatusCodeEnum.OK_200).json({
-        message: "Success",
-        accessToken: newAccessToken,
+        message: "Success"
       });
     } catch (error) {
       next(error);
