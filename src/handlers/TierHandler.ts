@@ -4,7 +4,16 @@ import { validateMongooseObjectId } from "../utils/validator";
 class TierHandler {
   createTier = (req: Request, res: Response, next: NextFunction): void => {
     const validationErrors: { field: string; error: string }[] = [];
-    const { tier, childrenLimit, postsLimit } = req.body;
+    const {
+      tier,
+      childrenLimit,
+      postsLimitValue,
+      postLimitTime,
+      updateRecordsLimitValue,
+      updateRecordsLimitTime,
+      viewRecordsLimitValue,
+      viewRecordsLimitTime,
+    } = req.body;
 
     if (![0, 1, 2].includes(tier)) {
       validationErrors.push({
@@ -23,21 +32,103 @@ class TierHandler {
     if (!Number.isInteger(childrenLimit) || childrenLimit < 0) {
       validationErrors.push({
         field: "childrenLimit",
-        error: "childrenLimit should be a positive integer",
+        error: "childrenLimit should be a non-negative integer",
       });
     }
 
-    if (postsLimit === null || postsLimit === undefined) {
+    if (postsLimitValue === null || postsLimitValue === undefined) {
       validationErrors.push({
-        field: "childrenLimit",
-        error: "childrenLimit is required",
+        field: "PostLimitValue",
+        error: "PostLimitValue is required",
       });
     }
 
-    if (!Number.isInteger(postsLimit) || postsLimit < 0) {
+    if (!Number.isInteger(postsLimitValue) || postsLimitValue < 0) {
       validationErrors.push({
-        field: "childrenLimit",
-        error: "childrenLimit should be a positive integer",
+        field: "PostLimitValue",
+        error: "PostLimitValue should be a non-negative integer",
+      });
+    }
+
+    if (postLimitTime === null || postLimitTime === undefined) {
+      validationErrors.push({
+        field: "PostLimitTime",
+        error: "PostLimitTime is required",
+      });
+    }
+
+    if (!Number.isInteger(postLimitTime) || postLimitTime < 0) {
+      validationErrors.push({
+        field: "postLimitTime",
+        error: "postLimitTime should be a non-negative integer",
+      });
+    }
+
+    if (
+      updateRecordsLimitValue === null ||
+      updateRecordsLimitValue === undefined
+    ) {
+      validationErrors.push({
+        field: "updateRecordsLimitValue",
+        error: "updateRecordsLimitValue is required",
+      });
+    }
+
+    if (
+      !Number.isInteger(updateRecordsLimitValue) ||
+      updateRecordsLimitValue < 0
+    ) {
+      validationErrors.push({
+        field: "updateRecordsLimitValue",
+        error: "updateRecordsLimitValue should be a non-negative integer",
+      });
+    }
+
+    if (
+      updateRecordsLimitTime === null ||
+      updateRecordsLimitTime === undefined
+    ) {
+      validationErrors.push({
+        field: "updateRecordsLimitTime",
+        error: "updateRecordsLimitTime is required",
+      });
+    }
+
+    if (
+      !Number.isInteger(updateRecordsLimitTime) ||
+      updateRecordsLimitTime < 0
+    ) {
+      validationErrors.push({
+        field: "updateRecordsLimitTime",
+        error: "updateRecordsLimitTime should be a non-negative integer",
+      });
+    }
+
+    if (viewRecordsLimitValue === null || viewRecordsLimitValue === undefined) {
+      validationErrors.push({
+        field: "viewRecordsLimitValue",
+        error: "viewRecordsLimitValue is required",
+      });
+    }
+
+    if (!Number.isInteger(viewRecordsLimitValue) || viewRecordsLimitValue < 0) {
+      validationErrors.push({
+        field: "viewRecordsLimitValue",
+        error: "viewRecordsLimitValue should be a non-negative integer",
+      });
+    }
+
+    if (viewRecordsLimitTime === null || viewRecordsLimitTime === undefined) {
+      validationErrors.push({
+        field: "viewRecordsLimitTime",
+        error: "viewRecordsLimitTime is required",
+      });
+    }
+
+    if (!Number.isInteger(viewRecordsLimitTime) || viewRecordsLimitTime < 0) {
+      validationErrors.push({
+        field: "viewRecordsLimitTime",
+        error: "viewRecordsLimitTime should be a non-negative integer",
       });
     }
 
@@ -53,7 +144,16 @@ class TierHandler {
 
   updateTier = (req: Request, res: Response, next: NextFunction): void => {
     const validationErrors: { field: string; error: string }[] = [];
-    const { tier, childrenLimit, postsLimit } = req.body;
+    const {
+      tier,
+      childrenLimit,
+      postsLimitValue,
+      postLimitTime,
+      updateRecordsLimitValue,
+      updateRecordsLimitTime,
+      viewRecordsLimitValue,
+      viewRecordsLimitTime,
+    } = req.body;
 
     if (tier && ![0, 1, 2].includes(tier)) {
       validationErrors.push({
@@ -63,19 +163,73 @@ class TierHandler {
     }
 
     if (
-      (childrenLimit && !Number.isInteger(childrenLimit)) ||
+      (childrenLimit !== undefined && !Number.isInteger(childrenLimit)) ||
       childrenLimit < 0
     ) {
       validationErrors.push({
         field: "childrenLimit",
-        error: "childrenLimit is must be an integer ",
+        error: "childrenLimit must be a non-negative integer ",
       });
     }
 
-    if ((postsLimit && !Number.isInteger(postsLimit)) || postsLimit < 0) {
+    if (
+      postsLimitValue !== undefined &&
+      (!Number.isInteger(postsLimitValue) || postsLimitValue < 0)
+    ) {
       validationErrors.push({
-        field: "postsLimit",
-        error: "postsLimit must be an integer ",
+        field: "postsLimitValue",
+        error: "postsLimitValue should be a non-negative integer",
+      });
+    }
+
+    if (
+      postLimitTime !== undefined &&
+      (!Number.isInteger(postLimitTime) || postLimitTime < 0)
+    ) {
+      validationErrors.push({
+        field: "postLimitTime",
+        error: "postLimitTime should be a non-negative integer",
+      });
+    }
+
+    if (
+      updateRecordsLimitValue !== undefined &&
+      (!Number.isInteger(updateRecordsLimitValue) ||
+        updateRecordsLimitValue < 0)
+    ) {
+      validationErrors.push({
+        field: "updateRecordsLimitValue",
+        error: "updateRecordsLimitValue should be a non-negative integer",
+      });
+    }
+
+    if (
+      updateRecordsLimitTime !== undefined &&
+      (!Number.isInteger(updateRecordsLimitTime) || updateRecordsLimitTime < 0)
+    ) {
+      validationErrors.push({
+        field: "updateRecordsLimitTime",
+        error: "updateRecordsLimitTime should be a non-negative integer",
+      });
+    }
+
+    if (
+      viewRecordsLimitValue !== undefined &&
+      (!Number.isInteger(viewRecordsLimitValue) || viewRecordsLimitValue < 0)
+    ) {
+      validationErrors.push({
+        field: "viewRecordsLimitValue",
+        error: "viewRecordsLimitValue should be a non-negative integer",
+      });
+    }
+
+    if (
+      viewRecordsLimitTime !== undefined &&
+      (!Number.isInteger(viewRecordsLimitTime) || viewRecordsLimitTime < 0)
+    ) {
+      validationErrors.push({
+        field: "viewRecordsLimitTime",
+        error: "viewRecordsLimitTime should be a non-negative integer",
       });
     }
 

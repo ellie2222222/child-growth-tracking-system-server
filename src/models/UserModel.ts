@@ -1,4 +1,4 @@
-import mongoose, { Schema, Model, Types } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 import baseModelSchema from "./BaseModel";
 import { IUser } from "../interfaces/IUser";
 
@@ -59,6 +59,16 @@ const userModelSchema = new Schema<IUser>(
         type: Schema.Types.ObjectId,
         ref: "MembershipPackage",
         default: null,
+      },
+      viewChart: {
+        counter: {
+          type: Number,
+          default: 0,
+        },
+        lastCalled: {
+          type: Date,
+          default: null,
+        },
       },
     },
     ...baseModelSchema.obj,
