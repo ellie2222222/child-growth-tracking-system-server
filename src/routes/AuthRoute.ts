@@ -28,7 +28,7 @@ authRoutes.post("/signup", authHandler.signup, authController.signup);
 
 authRoutes.post("/logout", authController.logout);
 
-authRoutes.post("/me", authController.getUserByToken);
+authRoutes.get("/me", authController.getUserByToken);
 
 authRoutes.post("/renew-access-token", authController.renewAccessToken);
 
