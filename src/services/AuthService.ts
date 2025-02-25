@@ -47,7 +47,7 @@ class AuthService {
         expiresIn: accessTokenExpiration,
       });
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -73,7 +73,7 @@ class AuthService {
         expiresIn: refreshTokenExpiration,
       });
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -89,55 +89,72 @@ class AuthService {
    * @param refreshToken - The refresh token string.
    * @returns A promise that resolves to the new JWT Access Token.
    */
-  renewAccessToken = async (refreshToken: string): Promise<string> => {
+  renewAccessToken = async (accessToken: string, refreshToken: string): Promise<string> => {
     try {
-      const refreshTokenSecret: string = process.env.REFRESH_TOKEN_SECRET!;
-
-      // Verify the refresh token
-      const payload = jwt.verify(refreshToken, refreshTokenSecret);
-
-      if (typeof payload === "object" && payload.userId) {
-        const user = await this.userRepository.getUserById(
-          payload.userId,
-          false
+      const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET!;
+  
+      let isAccessTokenExpired = false;
+  
+      // Verify the access token
+      try {
+        jwt.verify(accessToken, accessTokenSecret);
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Access token is still valid. No need to refresh."
         );
-
+      } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+          isAccessTokenExpired = true;
+        } else {
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Invalid access token"
+          );
+        }
+      }
+  
+      if (isAccessTokenExpired) {
+        const payload = jwt.decode(refreshToken) as jwt.JwtPayload | null;
+  
+        if (!payload || !payload.userId) {
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Invalid refresh token payload"
+          );
+        }
+  
+        const user = await this.userRepository.getUserById(payload.userId, false);
         if (!user) {
           throw new CustomException(
             StatusCodeEnum.Unauthorized_401,
             "User not found"
           );
         }
-
-        const timestamp = new Date().toISOString();
+  
+        // Generate a new access token
         const newPayload = {
           userId: user._id,
           name: user.name,
           email: user.email,
           role: user.role,
-          timestamp,
+          timestamp: new Date().toISOString(),
         };
+  
         return this.generateAccessToken(newPayload);
       }
-
+  
       throw new CustomException(
-        StatusCodeEnum.Unauthorized_401,
-        "Invalid refresh token payload"
+        StatusCodeEnum.BadRequest_400,
+        "Unexpected error occurred while refreshing token"
       );
     } catch (error) {
-      if (error as Error) {
-        if ((error as Error).name === "TokenExpiredError") {
-          throw new CustomException(
-            StatusCodeEnum.Unauthorized_401,
-            "Token expired"
-          );
-        } else if ((error as Error).name === "JsonWebTokenError") {
-          throw new CustomException(
-            StatusCodeEnum.Unauthorized_401,
-            "Invalid refresh token"
-          );
-        }
-      } else if (error as CustomException) {
+      if (error instanceof jwt.JsonWebTokenError) {
+        throw new CustomException(
+          StatusCodeEnum.Unauthorized_401,
+          "Invalid refresh token"
+        );
+      }
+      if (error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -145,7 +162,7 @@ class AuthService {
         "Internal Server Error"
       );
     }
-  };
+  };  
 
   /**
    * Logs in a user and generates an access token.
@@ -217,7 +234,7 @@ class AuthService {
         sessionId,
       };
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -227,28 +244,42 @@ class AuthService {
     }
   };
 
-  logout = async (userId: string): Promise<void> => {
+  logout = async (refreshToken: string): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
+      const payload = jwt.decode(refreshToken) as IJwtPayload | null;
+  
+      if (!payload || !payload.userId) {
+        throw new CustomException(
+          StatusCodeEnum.Unauthorized_401,
+          "Invalid refresh token payload"
+        );
+      }
+  
+      const { userId } = payload;
+  
+      // Check if user exists
       const user = await this.userRepository.getUserById(userId, false);
       if (!user) {
         throw new CustomException(StatusCodeEnum.NotFound_404, "User not found");
       }
-
+  
       await this.sessionService.deleteSessionsByUserId(userId);
-
+  
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error as Error) || (error as CustomException)) {
+      
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
+  
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
     }
-  }
+  };  
 
   loginGoogle = async (
     googleUser: any,
@@ -316,7 +347,7 @@ class AuthService {
         sessionId,
       };
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -353,7 +384,7 @@ class AuthService {
 
       return;
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -386,7 +417,7 @@ class AuthService {
 
       return user;
     } catch (error) {
-      if (error as Error) {
+      if (error instanceof Error) {
         if ((error as Error).name === "TokenExpiredError") {
           throw new CustomException(
             StatusCodeEnum.Unauthorized_401,
@@ -398,7 +429,8 @@ class AuthService {
             "Invalid refresh token"
           );
         }
-      } else if (error as CustomException) {
+      }
+      if (error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -457,7 +489,7 @@ class AuthService {
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -527,7 +559,7 @@ class AuthService {
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -589,7 +621,7 @@ class AuthService {
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -647,7 +679,7 @@ class AuthService {
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -689,7 +721,7 @@ class AuthService {
 
       return;
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if ((error instanceof Error) || (error instanceof CustomException)) {
         throw error;
       }
       throw new CustomException(
@@ -736,7 +768,7 @@ class AuthService {
     } catch (error) {
       await this.database.abortTransaction(session);
 
-      if (error as Error) {
+      if (error instanceof Error) {
         if ((error as Error).name === "TokenExpiredError") {
           throw new CustomException(
             StatusCodeEnum.Unauthorized_401,
@@ -749,7 +781,8 @@ class AuthService {
             "Invalid email verification token"
           );
         }
-      } else if (error as CustomException) {
+      } 
+      if (error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(

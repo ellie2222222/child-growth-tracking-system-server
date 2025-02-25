@@ -4,14 +4,11 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import ms from "ms";
 import { ISession } from "../interfaces/ISession";
 import UserService from "../services/UserService";
-
 class AuthController {
   private authService: AuthService;
-  private userService: UserService
 
   constructor() {
     this.authService = new AuthService();
-    this.userService = new UserService();
   }
 
   /**
@@ -70,9 +67,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { userId } = req.userInfo;
+      const refreshToken = req.cookies?.refreshToken;
 
-      await this.authService.logout(userId);
+      await this.authService.logout(refreshToken);
       
       res.clearCookie("sessionId", {
         httpOnly: true,
@@ -190,9 +187,11 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { refreshToken } = req.body;
+      const accessToken = req.cookies?.accessToken;
+      const refreshToken = req.cookies?.refreshToken;
 
       const newAccessToken = await this.authService.renewAccessToken(
+        accessToken,
         refreshToken
       );
 

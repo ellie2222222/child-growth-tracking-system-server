@@ -66,7 +66,7 @@ const AuthMiddleware = async (
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       res
         .status(StatusCodeEnum.Unauthorized_401)
-        .json({ message: "Invalid token. Request is not authorized." });
+        .json({ message: "Invalid access token. Request is not authorized." });
       return;
     }
 
@@ -79,12 +79,12 @@ const AuthMiddleware = async (
       if (error.name === "TokenExpiredError") {
         res
           .status(StatusCodeEnum.Unauthorized_401)
-          .json({ message: "Token expired. Please log in again." });
+          .json({ message: "Access token expired. Please log in again." });
         return;
       } else if (error.name === "JsonWebTokenError") {
         res
           .status(StatusCodeEnum.Unauthorized_401)
-          .json({ message: "Invalid token. Request is not authorized." });
+          .json({ message: "Invalid access token. Request is not authorized." });
         return;
       }
     }
