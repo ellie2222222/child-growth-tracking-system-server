@@ -5,7 +5,7 @@ export interface IConsultationMessage extends IBaseEntity {
   sender: ObjectId;
   consultationId: ObjectId;
   message: string;
-  attachments: Array<string>;
+  attachments: string[];
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;

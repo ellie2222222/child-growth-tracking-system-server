@@ -39,25 +39,19 @@ class TierService {
         postsLimit: {
           value: postsLimitValue,
           time: postLimitTime,
-          description: `this tier's user can post 
-          ${postsLimitValue} in an interval 
-          of ${postLimitTime} day(s)`,
+          description: `this tier's user can post ${postsLimitValue} in an interval of ${postLimitTime} day(s)`,
         } as ILimitObject,
 
         updateRecordsLimit: {
           value: updateRecordsLimitValue,
           time: updateRecordsLimitTime,
-          description: `this tier's user can add
-           child record ${updateRecordsLimitValue} in an interval
-           of ${updateRecordsLimitTime} day(s)`,
+          description: `this tier's user can add child record ${updateRecordsLimitValue} in an interval of ${updateRecordsLimitTime} day(s)`,
         } as ILimitObject,
 
         viewRecordsLimit: {
           value: viewRecordsLimitValue,
           time: viewRecordsLimitTime,
-          description: `this tier's user can view
-           child record ${viewRecordsLimitValue} in an interval
-          of ${viewRecordsLimitTime} day(s)`,
+          description: `this tier's user can view child record ${viewRecordsLimitValue} in an interval of ${viewRecordsLimitTime} day(s)`,
         } as ILimitObject,
       };
 
@@ -109,9 +103,7 @@ class TierService {
       }
 
       if (isModify) {
-        formatedPostLimit.description = `this tier's user can post
-            ${formatedPostLimit.value} in an interval
-          of ${formatedPostLimit.time} day(s)`;
+        formatedPostLimit.description = `this tier's user can post ${formatedPostLimit.value} in an interval of ${formatedPostLimit.time} day(s)`;
       }
 
       if (
@@ -131,9 +123,7 @@ class TierService {
       }
 
       if (isModify) {
-        formatedUpdateRecordsLimit.description = `this tier's user can update records
-        ${formatedUpdateRecordsLimit.value} in an interval
-        of ${formatedUpdateRecordsLimit.time} day(s)`;
+        formatedUpdateRecordsLimit.description = `this tier's user can update records ${formatedUpdateRecordsLimit.value} in an interval of ${formatedUpdateRecordsLimit.time} day(s)`;
       }
 
       if (
@@ -153,9 +143,7 @@ class TierService {
       }
 
       if (isModify) {
-        formatedViewRecordLimit.description = `this tier's user can view records
-        ${formatedViewRecordLimit.value} in an interval
-        of ${formatedViewRecordLimit.time} day(s)`;
+        formatedViewRecordLimit.description = `this tier's user can view records ${formatedViewRecordLimit.value} in an interval of ${formatedViewRecordLimit.time} day(s)`;
       }
 
       const data: Partial<ITier> = {
