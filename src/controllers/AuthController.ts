@@ -3,7 +3,7 @@ import AuthService from "../services/AuthService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import ms from "ms";
 import { ISession } from "../interfaces/ISession";
-
+import UserService from "../services/UserService";
 class AuthController {
   private authService: AuthService;
 
@@ -29,6 +29,14 @@ class AuthController {
       // Set Refresh Token and session ID in cookies
       const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "PRODUCTION",
@@ -46,7 +54,7 @@ class AuthController {
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        accessToken,
+        accessToken
       });
     } catch (error) {
       next(error);
@@ -59,9 +67,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { userId } = req.userInfo;
+      const refreshToken = req.cookies?.refreshToken;
 
-      await this.authService.logout(userId);
+      await this.authService.logout(refreshToken);
       
       res.clearCookie("sessionId", {
         httpOnly: true,
@@ -70,6 +78,12 @@ class AuthController {
       });
 
       res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+      });
+
+      res.clearCookie("accessToken", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
@@ -96,6 +110,13 @@ class AuthController {
       // Set Refresh Token and session ID in cookies
       const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "PRODUCTION",
@@ -111,7 +132,7 @@ class AuthController {
         maxAge: refreshTokenMaxAge, // 30 days
       });
 
-      res.redirect(`${process.env.FRONTEND_URL}/accessToken=${accessToken}`)
+      res.redirect(`${process.env.FRONTEND_URL}`)
     } catch (error) {
       next(error);
     }
@@ -138,6 +159,25 @@ class AuthController {
     }
   };
 
+  getUserByToken = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const accessToken = req.cookies?.accessToken;
+
+      const user = await this.authService.getUserByToken(accessToken);
+
+      res.status(StatusCodeEnum.OK_200).json({
+        message: "Success",
+        user
+      })
+    } catch (error) {
+      next(error);
+    }
+  }
+
   /**
    * Handles refreshing of an access token.
    */
@@ -147,15 +187,25 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { refreshToken } = req.body;
+      const accessToken = req.cookies?.accessToken;
+      const refreshToken = req.cookies?.refreshToken;
 
       const newAccessToken = await this.authService.renewAccessToken(
+        accessToken,
         refreshToken
       );
 
+      const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
+      const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+      res.cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
       res.status(StatusCodeEnum.OK_200).json({
-        message: "Success",
-        accessToken: newAccessToken,
+        message: "Success"
       });
     } catch (error) {
       next(error);
