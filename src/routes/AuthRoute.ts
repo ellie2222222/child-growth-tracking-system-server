@@ -49,7 +49,10 @@ authRoutes.put(
   authController.changePassword
 );
 
-authRoutes.post("/send-reset-password-pin", authController.sendResetPasswordPin);
+authRoutes.post(
+  "/send-reset-password-pin",
+  authHandler.sendResetPasswordPin,
+  authController.sendResetPasswordPin);
 
 authRoutes.post(
   "/confirm-reset-password-pin",

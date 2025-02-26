@@ -92,6 +92,7 @@ class AuthService {
   renewAccessToken = async (accessToken: string, refreshToken: string): Promise<string> => {
     try {
       const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET!;
+      const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET!;
   
       let isAccessTokenExpired = false;
   
@@ -114,16 +115,20 @@ class AuthService {
       }
   
       if (isAccessTokenExpired) {
-        const payload = jwt.decode(refreshToken) as jwt.JwtPayload | null;
-  
-        if (!payload || !payload.userId) {
-          throw new CustomException(
-            StatusCodeEnum.Unauthorized_401,
-            "Invalid refresh token payload"
-          );
+        let payload: IJwtPayload | null = null;
+        try {
+          payload = jwt.verify(refreshToken, refreshTokenSecret) as IJwtPayload | null;
+          if (!payload) {
+            throw new CustomException(StatusCodeEnum.Unauthorized_401, "Invalid refresh token");
+          }
+        } catch (error) {
+          if (error instanceof jwt.TokenExpiredError) {
+            throw new CustomException(StatusCodeEnum.Unauthorized_401, "Refresh token expired. Please log in again.");
+          }
+          throw new CustomException(StatusCodeEnum.Unauthorized_401, "Invalid refresh token");
         }
   
-        const user = await this.userRepository.getUserById(payload.userId, false);
+        const user = await this.userRepository.getUserById(payload!.userId, false);
         if (!user) {
           throw new CustomException(
             StatusCodeEnum.Unauthorized_401,
@@ -148,13 +153,7 @@ class AuthService {
         "Unexpected error occurred while refreshing token"
       );
     } catch (error) {
-      if (error instanceof jwt.JsonWebTokenError) {
-        throw new CustomException(
-          StatusCodeEnum.Unauthorized_401,
-          "Invalid refresh token"
-        );
-      }
-      if (error instanceof CustomException) {
+      if ((error instanceof CustomException) || (error instanceof Error)) {
         throw error;
       }
       throw new CustomException(
@@ -446,10 +445,10 @@ class AuthService {
    * @param userId - The user ID.
    * @returns A void promise.
    */
-  sendResetPasswordPin = async (userId: string): Promise<void> => {
+  sendResetPasswordPin = async (email: string): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
-      const user = await this.userRepository.getUserById(userId, false);
+      const user = await this.userRepository.getUserByEmail(email);
 
       if (!user) {
         throw new CustomException(
@@ -470,7 +469,7 @@ class AuthService {
           expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
         },
       };
-      await this.userRepository.updateUserById(userId, updateData, session);
+      await this.userRepository.updateUserById(user._id as string, updateData, session);
 
       const resetPasswordHtml = await ejs.renderFile(resetPasswordTemplatePath, { 
         name: user.name,
@@ -707,6 +706,7 @@ class AuthService {
 
       const emailHtml = await ejs.renderFile(emailTemplatePath, { 
         name: name,
+        expiration: process.env.EMAIL_TOKEN_EXPIRATION,
         verificationLink: `${process.env.FRONTEND_URL}/verify-email?verificationToken=${token}`
       });
 
