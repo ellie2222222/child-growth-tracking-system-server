@@ -6,15 +6,59 @@ const TierSchema = new Schema<ITier>(
     tier: {
       type: Number,
       required: true,
-      enums: [0, 1, 2],
+      enum: [0, 1, 2],
     },
     childrenLimit: {
       type: Number,
       required: true,
     },
     postsLimit: {
-      type: Number,
-      required: true,
+      value: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      time: {
+        type: Number,
+        required: true,
+        default: 30,
+      },
+      description: {
+        type: String,
+        default: "N/A",
+      },
+    },
+    updateRecordsLimit: {
+      value: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      time: {
+        type: Number,
+        required: true,
+        default: 30,
+      },
+      description: {
+        type: String,
+        default: "N/A",
+      },
+    },
+    viewRecordsLimit: {
+      value: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      time: {
+        type: Number,
+        required: true,
+        default: 30,
+      },
+      description: {
+        type: String,
+        default: "N/A",
+      },
     },
     isDeleted: {
       type: Boolean,

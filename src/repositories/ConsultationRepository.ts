@@ -1,8 +1,10 @@
-import mongoose, { ObjectId } from "mongoose";
+import mongoose, { ObjectId, Types } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import ConsultationModel from "../models/ConsultationModel";
 import { IQuery } from "../interfaces/IQuery";
+import { ConsultationStatus } from "../interfaces/IConsultation";
+import ConsultationMessageModel from "../models/ConsultationMessageModel";
 
 class ConsultationRepository {
   async createConsultation(data: object, session?: mongoose.ClientSession) {
@@ -304,6 +306,77 @@ class ConsultationRepository {
       return consultation;
     } catch (error) {
       if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getOldConsultation() {
+    try {
+      const INACTIVITY_LIMIT =
+        (parseInt(process.env.INACTIVE_CONSULTATION_LIMIT as string) || 14) *
+        24 *
+        60 *
+        60 *
+        1000;
+      const inactivityThreshold = new Date(Date.now() - INACTIVITY_LIMIT);
+
+      // Step 1: Get the latest message for each consultation
+      const latestMessages = await ConsultationMessageModel.aggregate([
+        { $match: { isDeleted: false } },
+        { $sort: { createdAt: -1 } },
+        {
+          $group: {
+            _id: "$consultationId",
+            latestMessageTime: { $first: "$createdAt" },
+          },
+        },
+      ]);
+
+      // Step 2: Get all ongoing consultations
+      const consultations = await ConsultationModel.find({
+        status: ConsultationStatus.OnGoing,
+      }).select("_id createdAt");
+
+      // Step 3: Determine inactive consultations
+      const inactiveConsultationIds = consultations
+        .filter((consultation) => {
+          const latestMessage = latestMessages.find((msg) =>
+            msg._id.equals(consultation._id)
+          );
+          const lastActivityTime = latestMessage
+            ? latestMessage.latestMessageTime
+            : consultation.createdAt; // Use consultation.createdAt if no messages exist
+          return lastActivityTime < inactivityThreshold; // Compare with inactivity limit
+        })
+        .map((consultation) => consultation._id);
+
+      return inactiveConsultationIds;
+    } catch (error) {
+      if (error instanceof Error || error instanceof CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async handleOldConsultations(ids: Types.ObjectId[]) {
+    try {
+      await ConsultationModel.updateMany(
+        {
+          _id: { $in: ids },
+        },
+        { $set: { status: ConsultationStatus.Ended } }
+      );
+    } catch (error) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(

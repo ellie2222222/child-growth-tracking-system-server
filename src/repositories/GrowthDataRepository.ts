@@ -4,6 +4,7 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IGrowthData } from "../interfaces/IGrowthData";
+import ChildModel from "../models/ChildModel";
 
 export type GrowthData = {
   growthData: IGrowthData[];
@@ -52,7 +53,10 @@ class GrowthDataRepository {
     isDeleted: boolean
   ): Promise<IGrowthData | null> {
     try {
-      const growthData = await GrowthDataModel.findOne({ _id: growthDataId, isDeleted });
+      const growthData = await GrowthDataModel.findOne({
+        _id: growthDataId,
+        isDeleted,
+      });
       return growthData;
     } catch (error) {
       if (error as Error) {
@@ -132,7 +136,9 @@ class GrowthDataRepository {
       if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
-          `Failed to retrieve growth data by user ID: ${(error as Error).message}`
+          `Failed to retrieve growth data by user ID: ${
+            (error as Error).message
+          }`
         );
       }
       throw new CustomException(
@@ -142,15 +148,13 @@ class GrowthDataRepository {
     }
   }
 
-  async getAllGrowthDataByChildId (
-    childId: string,
-  ): Promise<IGrowthData[]> {
+  async getAllGrowthDataByChildId(childId: string): Promise<IGrowthData[]> {
     try {
       const growthData = await GrowthDataModel.find({
         childId: new mongoose.Types.ObjectId(childId),
         isDeleted: false,
       });
-    
+
       return growthData;
     } catch (error) {
       throw new CustomException(
@@ -158,7 +162,7 @@ class GrowthDataRepository {
         "Internal Server Error"
       );
     }
-  };
+  }
 
   /**
    * Update a growthData by ID.
@@ -206,13 +210,48 @@ class GrowthDataRepository {
     session?: mongoose.ClientSession
   ): Promise<IGrowthData | null> {
     try {
-      const deletedGrowthData = await GrowthDataModel.findOneAndDelete({ _id: growthDataId }, { session }).exec();
+      const deletedGrowthData = await GrowthDataModel.findOneAndDelete(
+        { _id: growthDataId },
+        { session }
+      ).exec();
       return deletedGrowthData;
     } catch (error) {
       if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
           `Failed to delete growth data: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async countUserUpdateGrowthData(userId: string, start: Date, end: Date) {
+    try {
+      const children = await ChildModel.find({
+        "relationships.memberId": new mongoose.Types.ObjectId(userId),
+      }).select("_id");
+
+      if (!children.length) return 0;
+
+      const childIds = children.map((child) => child._id);
+
+      const count = await GrowthDataModel.countDocuments({
+        childId: { $in: childIds },
+        inputDate: { $gte: start, $lte: end },
+      });
+
+      return count;
+    } catch (error) {
+      if (error as Error) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to count user's times of updating growth data: ${
+            (error as Error).message
+          }`
         );
       }
       throw new CustomException(

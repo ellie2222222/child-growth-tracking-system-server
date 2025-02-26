@@ -11,12 +11,26 @@ class TierController {
 
   createTier = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { tier, childrenLimit, postsLimit } = req.body;
+      const {
+        tier,
+        childrenLimit,
+        postsLimitValue,
+        postLimitTime,
+        updateRecordsLimitValue,
+        updateRecordsLimitTime,
+        viewRecordsLimitValue,
+        viewRecordsLimitTime,
+      } = req.body;
 
       const tierData = await this.tierService.createTier(
         tier,
         childrenLimit,
-        postsLimit
+        postsLimitValue,
+        postLimitTime,
+        updateRecordsLimitValue,
+        updateRecordsLimitTime,
+        viewRecordsLimitValue,
+        viewRecordsLimitTime
       );
 
       res
@@ -30,13 +44,27 @@ class TierController {
   updateTier = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const { tier, childrenLimit, postsLimit } = req.body;
+      const {
+        tier,
+        childrenLimit,
+        postsLimitValue,
+        postLimitTime,
+        updateRecordsLimitValue,
+        updateRecordsLimitTime,
+        viewRecordsLimitValue,
+        viewRecordsLimitTime,
+      } = req.body;
 
       const tierData = await this.tierService.updateTier(
         id,
         tier,
         childrenLimit,
-        postsLimit
+        postsLimitValue,
+        postLimitTime,
+        updateRecordsLimitValue,
+        updateRecordsLimitTime,
+        viewRecordsLimitValue,
+        viewRecordsLimitTime
       );
 
       res

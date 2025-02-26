@@ -4,6 +4,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import RequestModel from "../models/RequestModel";
 import { IQuery } from "../interfaces/IQuery";
 import dotenv from "dotenv";
+import { RequestStatus } from "../interfaces/IRequest";
 dotenv.config();
 
 class RequestRepository {
@@ -272,6 +273,50 @@ class RequestRepository {
       }
     } catch (error) {
       if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getOldRequest() {
+    try {
+      const daysPending = parseInt(process.env.REQ_PEND as string) || 14;
+
+      const requests = await RequestModel.find(
+        {
+          createdAt: {
+            $lt: new Date(Date.now() - daysPending * 24 * 60 * 60 * 1000),
+          },
+          isDeleted: false,
+          status: RequestStatus.Pending,
+        },
+        { _id: 1 }
+      );
+
+      return requests.map((req) => req._id); // Return array of ObjectIds
+    } catch (error) {
+      if (error instanceof Error || error instanceof CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async handleOldRequest(requestIds: mongoose.Types.ObjectId[]) {
+    try {
+      await RequestModel.updateMany(
+        { _id: { $in: requestIds } },
+        { $set: { status: RequestStatus.Canceled } }
+      );
+    } catch (error) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(

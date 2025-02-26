@@ -19,6 +19,12 @@ import { IGrowthResult } from "../interfaces/IGrowthResult";
 import { BmiLevelEnum, LevelEnum } from "../enums/LevelEnum";
 import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
 import { IGrowthVelocityResult } from "../interfaces/IGrowthVelocityResult";
+import {
+  checkUpdateChildrenGrowthLimit,
+  getCheckIntervalBounds,
+  validateUserMembership,
+} from "../utils/tierUtils";
+import TierRepository from "../repositories/TierRepository";
 class GrowthDataService {
   private growthDataRepository: GrowthDataRepository;
   private userRepository: UserRepository;
@@ -26,6 +32,7 @@ class GrowthDataService {
   private configRepository: ConfigRepository;
   private growthMetricsRepository: GrowthMetricsRepository;
   private database: Database;
+  private tierRepository: TierRepository;
 
   constructor() {
     this.growthDataRepository = new GrowthDataRepository();
@@ -34,6 +41,7 @@ class GrowthDataService {
     this.growthMetricsRepository = new GrowthMetricsRepository();
     this.configRepository = new ConfigRepository();
     this.database = Database.getInstance();
+    this.tierRepository = new TierRepository();
   }
 
   private getPercentile(
@@ -76,9 +84,13 @@ class GrowthDataService {
     growthData: Partial<IGrowthData>
   ): Promise<IGrowthData | null> => {
     const session = await this.database.startTransaction();
+
     try {
+      await this.checkTierUpdateGrowthDataLimit(requesterInfo.userId);
+
       const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
+
       const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
         throw new CustomException(
@@ -127,15 +139,17 @@ class GrowthDataService {
       }
 
       // Handle input date collision
-      const childGrowthData = await this.growthDataRepository.getAllGrowthDataByChildId(
-        child._id as string,
-      );
+      const childGrowthData =
+        await this.growthDataRepository.getAllGrowthDataByChildId(
+          child._id as string
+        );
 
       childGrowthData.forEach((data) => {
         if (
           growthData.inputDate &&
           data.inputDate &&
-          new Date(growthData.inputDate).getTime() === new Date(data.inputDate).getTime()
+          new Date(growthData.inputDate).getTime() ===
+            new Date(data.inputDate).getTime()
         ) {
           throw new CustomException(
             StatusCodeEnum.Conflict_409,
@@ -167,7 +181,10 @@ class GrowthDataService {
     }
   };
 
-  private generateGrowthResult = async (growthData: Partial<IGrowthData>, child: IChild): Promise<Partial<IGrowthResult>> => {
+  private generateGrowthResult = async (
+    growthData: Partial<IGrowthData>,
+    child: IChild
+  ): Promise<Partial<IGrowthResult>> => {
     // Get conversion rate
     const conversionRate = await this.configRepository.getConfig(
       "WHO_MONTH_TO_DAY_CONVERSION_RATE"
@@ -244,7 +261,7 @@ class GrowthDataService {
         percentile: -1,
         description: "N/A",
         level: "N/A",
-      }
+      },
     };
 
     const formatPercentile = (percentile: number) =>
@@ -257,7 +274,9 @@ class GrowthDataService {
           growthResult!.bmi!.percentile = percentile;
           growthResult!.bmi!.description = `Your child is in the ${percentile} percentile for BMI. That means ${percentile} percent of ${
             child.gender === 0 ? "boys" : "girls"
-          } at that age have a lower BMI, while ${formatPercentile(100 - percentile)} percent have a higher BMI.`;
+          } at that age have a lower BMI, while ${formatPercentile(
+            100 - percentile
+          )} percent have a higher BMI.`;
 
           if (percentile < 5) {
             growthResult!.bmi!.level = BmiLevelEnum[0];
@@ -279,7 +298,9 @@ class GrowthDataService {
           growthResult!.height!.percentile = percentile;
           growthResult!.height!.description = `Your child is in the ${percentile} percentile for height. That means ${percentile} percent of ${
             child.gender === 0 ? "boys" : "girls"
-          } at that age are shorter, while ${formatPercentile(100 - percentile)} percent are taller.`;
+          } at that age are shorter, while ${formatPercentile(
+            100 - percentile
+          )} percent are taller.`;
 
           if (percentile < 5) {
             growthResult!.height!.level = LevelEnum[0];
@@ -303,7 +324,9 @@ class GrowthDataService {
           growthResult!.weight!.percentile = percentile;
           growthResult!.weight!.description = `Your child is in the ${percentile} percentile for weight. That means ${percentile} percent of ${
             child.gender === 0 ? "boys" : "girls"
-          } at that age weigh less, while ${formatPercentile(100 - percentile)} percent weigh more.`;
+          } at that age weigh less, while ${formatPercentile(
+            100 - percentile
+          )} percent weigh more.`;
 
           if (percentile < 5) {
             growthResult!.weight!.level = LevelEnum[0];
@@ -327,7 +350,9 @@ class GrowthDataService {
           growthResult!.headCircumference!.percentile = percentile;
           growthResult!.headCircumference!.description = `Your child is in the ${percentile} percentile for head circumference. That means ${percentile} percent of ${
             child.gender === 0 ? "boys" : "girls"
-          } at that age have a smaller head circumference, while ${formatPercentile(100 - percentile)} percent have a larger head circumference.`;
+          } at that age have a smaller head circumference, while ${formatPercentile(
+            100 - percentile
+          )} percent have a larger head circumference.`;
 
           if (percentile < 5) {
             growthResult!.headCircumference!.level = LevelEnum[0];
@@ -351,7 +376,9 @@ class GrowthDataService {
           growthResult!.armCircumference!.percentile = percentile;
           growthResult!.armCircumference!.description = `Your child is in the ${percentile} percentile for arm circumference. That means ${percentile} percent of ${
             child.gender === 0 ? "boys" : "girls"
-          } at that age have a smaller arm circumference, while ${formatPercentile(100 - percentile)} percent have a larger arm circumference.`;
+          } at that age have a smaller arm circumference, while ${formatPercentile(
+            100 - percentile
+          )} percent have a larger arm circumference.`;
 
           if (percentile < 5) {
             growthResult!.armCircumference!.level = LevelEnum[0];
@@ -369,16 +396,18 @@ class GrowthDataService {
       }
     });
 
-    const wflhData = await this.growthMetricsRepository.getWflhData(child.gender, height!);
+    const wflhData = await this.growthMetricsRepository.getWflhData(
+      child.gender,
+      height!
+    );
     wflhData.forEach((data) => {
-      const percentile = this.getPercentile(
-        height!,
-        data.percentiles.values
-      );
+      const percentile = this.getPercentile(height!, data.percentiles.values);
       growthResult!.weightForLength!.percentile = percentile;
       growthResult!.weightForLength!.description = `Your child is in the ${percentile} percentile for arm circumference. That means ${percentile} percent of ${
         child.gender === 0 ? "boys" : "girls"
-      } at that age have a smaller arm circumference, while ${formatPercentile(100 - percentile)} percent have a larger arm circumference.`;
+      } at that age have a smaller arm circumference, while ${formatPercentile(
+        100 - percentile
+      )} percent have a larger arm circumference.`;
 
       if (percentile < 5) {
         growthResult!.weightForLength!.level = LevelEnum[0];
@@ -391,7 +420,7 @@ class GrowthDataService {
       } else if (percentile >= 95) {
         growthResult!.weightForLength!.level = LevelEnum[4];
       }
-    })
+    });
 
     return growthResult;
   };
@@ -586,19 +615,19 @@ class GrowthDataService {
       const results = await this.calculateGrowthVelocity(
         child,
         oneMonthIncrementData,
-        cvValue,
+        cvValue
       );
 
       // Update child
       const updateData: Partial<IChild> = {
-        growthVelocityResult: results as IGrowthVelocityResult[]
-      }
+        growthVelocityResult: results as IGrowthVelocityResult[],
+      };
       await this.childRepository.updateChild(childId, updateData, session);
 
-      await this.database.commitTransaction(session)
+      await this.database.commitTransaction(session);
       return results;
     } catch (error) {
-      await this.database.abortTransaction(session)
+      await this.database.abortTransaction(session);
       throw error;
     }
   };
@@ -608,72 +637,132 @@ class GrowthDataService {
     oneMonthIncrementData: IGrowthVelocity[],
     conversionRate: number
   ): Promise<Partial<IGrowthVelocityResult>[]> => {
-    const growthData = await this.growthDataRepository.getAllGrowthDataByChildId(child._id as string);
+    const growthData =
+      await this.growthDataRepository.getAllGrowthDataByChildId(
+        child._id as string
+      );
     const results: Partial<IGrowthVelocityResult>[] = [];
-  
+
     for (const interval of oneMonthIncrementData) {
       // Convert interval to days relative to birth date
       const startDays = interval.firstInterval.inDays;
       const endDays = interval.lastInterval.inDays;
-  
+
       // Find closest growth data points
-      const startData = this.findClosestGrowthData(growthData, startDays, child.birthDate);
-      const endData = this.findClosestGrowthData(growthData, endDays, child.birthDate);
-  
+      const startData = this.findClosestGrowthData(
+        growthData,
+        startDays,
+        child.birthDate
+      );
+      const endData = this.findClosestGrowthData(
+        growthData,
+        endDays,
+        child.birthDate
+      );
+
       if (!startData || !endData) {
         results.push({
           period: this.getIntervalDescription(interval),
           startDate: new Date(child.birthDate.getTime() + startDays * 86400000),
           endDate: new Date(child.birthDate.getTime() + endDays * 86400000),
-          height: { percentile: -1, heightVelocity: -1, description: "Insufficient data" },
-          weight: { percentile: -1,  weightVelocity: -1, description: "Insufficient data" },
-          headCircumference: { percentile: -1,  headCircumferenceVelocity: -1, description: "Insufficient data" },
+          height: {
+            percentile: -1,
+            heightVelocity: -1,
+            description: "Insufficient data",
+          },
+          weight: {
+            percentile: -1,
+            weightVelocity: -1,
+            description: "Insufficient data",
+          },
+          headCircumference: {
+            percentile: -1,
+            headCircumferenceVelocity: -1,
+            description: "Insufficient data",
+          },
         });
         continue;
       }
-  
+
       // Calculate time difference in months
       const timeDiffMonths =
-        (endData.inputDate.getTime() - startData.inputDate.getTime()) / (conversionRate * 86400000);
+        (endData.inputDate.getTime() - startData.inputDate.getTime()) /
+        (conversionRate * 86400000);
 
       // Calculate velocities
-      const heightVelocity = this.calculateMetricVelocity(startData.height, endData.height, timeDiffMonths);
-      const weightVelocity = this.calculateMetricVelocity(startData.weight, endData.weight, timeDiffMonths);
-      const headCircumferenceVelocity = this.calculateMetricVelocity(startData.headCircumference, endData.headCircumference, timeDiffMonths);
+      const heightVelocity = this.calculateMetricVelocity(
+        startData.height,
+        endData.height,
+        timeDiffMonths
+      );
+      const weightVelocity = this.calculateMetricVelocity(
+        startData.weight,
+        endData.weight,
+        timeDiffMonths
+      );
+      const headCircumferenceVelocity = this.calculateMetricVelocity(
+        startData.headCircumference,
+        endData.headCircumference,
+        timeDiffMonths
+      );
 
       // Determine percentiles
-      const heightPercentile = heightVelocity !== null 
-        ? this.getPercentile(heightVelocity, interval.percentiles.values) 
-        : null;
-      const weightPercentile = weightVelocity !== null 
-        ? this.getPercentile(weightVelocity, interval.percentiles.values) 
-        : null;
-      const headCircumferencePercentile = headCircumferenceVelocity !== null 
-        ? this.getPercentile(headCircumferenceVelocity, interval.percentiles.values) 
-        : null;
+      const heightPercentile =
+        heightVelocity !== null
+          ? this.getPercentile(heightVelocity, interval.percentiles.values)
+          : null;
+      const weightPercentile =
+        weightVelocity !== null
+          ? this.getPercentile(weightVelocity, interval.percentiles.values)
+          : null;
+      const headCircumferencePercentile =
+        headCircumferenceVelocity !== null
+          ? this.getPercentile(
+              headCircumferenceVelocity,
+              interval.percentiles.values
+            )
+          : null;
 
       // Construct descriptions
       const formatPercentile = (percentile: number) =>
         percentile % 1 === 0 ? `${percentile}` : percentile.toFixed(2);
-      
+
       const heightDescription = heightPercentile
-        ? `Your child is in the ${formatPercentile(heightPercentile)} percentile for height growth velocity. That means ${formatPercentile(heightPercentile)} percent of ${
+        ? `Your child is in the ${formatPercentile(
+            heightPercentile
+          )} percentile for height growth velocity. That means ${formatPercentile(
+            heightPercentile
+          )} percent of ${
             child.gender === 0 ? "boys" : "girls"
-          } at that age have a slower height growth velocity, while ${formatPercentile(100 - heightPercentile)} percent have a faster height growth velocity.`
+          } at that age have a slower height growth velocity, while ${formatPercentile(
+            100 - heightPercentile
+          )} percent have a faster height growth velocity.`
         : "Insufficient data to determine height percentile.";
-      
+
       const weightDescription = weightPercentile
-        ? `Your child is in the ${formatPercentile(weightPercentile)} percentile for weight growth velocity. That means ${formatPercentile(weightPercentile)} percent of ${
+        ? `Your child is in the ${formatPercentile(
+            weightPercentile
+          )} percentile for weight growth velocity. That means ${formatPercentile(
+            weightPercentile
+          )} percent of ${
             child.gender === 0 ? "boys" : "girls"
-          } at that age have a slower weight growth velocity, while ${formatPercentile(100 - weightPercentile)} percent have a faster weight growth velocity.`
+          } at that age have a slower weight growth velocity, while ${formatPercentile(
+            100 - weightPercentile
+          )} percent have a faster weight growth velocity.`
         : "Insufficient data to determine weight percentile.";
-      
+
       const headCircumferenceDescription = headCircumferencePercentile
-        ? `Your child is in the ${formatPercentile(headCircumferencePercentile)} percentile for head circumference growth velocity. That means ${formatPercentile(headCircumferencePercentile)} percent of ${
+        ? `Your child is in the ${formatPercentile(
+            headCircumferencePercentile
+          )} percentile for head circumference growth velocity. That means ${formatPercentile(
+            headCircumferencePercentile
+          )} percent of ${
             child.gender === 0 ? "boys" : "girls"
-          } at that age have a slower head circumference growth velocity, while ${formatPercentile(100 - headCircumferencePercentile)} percent have a faster head circumference growth velocity.`
-        : "Insufficient data to determine head circumference percentile.";      
-  
+          } at that age have a slower head circumference growth velocity, while ${formatPercentile(
+            100 - headCircumferencePercentile
+          )} percent have a faster head circumference growth velocity.`
+        : "Insufficient data to determine head circumference percentile.";
+
       results.push({
         period: this.getIntervalDescription(interval),
         startDate: startData.inputDate,
@@ -689,13 +778,15 @@ class GrowthDataService {
           description: weightDescription,
         },
         headCircumference: {
-          percentile: headCircumferencePercentile ? headCircumferencePercentile : -1,
+          percentile: headCircumferencePercentile
+            ? headCircumferencePercentile
+            : -1,
           headCircumferenceVelocity,
           description: headCircumferenceDescription,
         },
       });
     }
-  
+
     return results;
   };
 
@@ -707,39 +798,42 @@ class GrowthDataService {
     const targetDate = new Date(birthDate.getTime() + targetDays * 86400000);
     let closestData: IGrowthData | null = null;
     let minDiff = Infinity;
-  
+
     for (const data of growthData) {
       if (!(data.inputDate instanceof Date)) {
         data.inputDate = new Date(data.inputDate); // Ensure it's a Date object
       }
-  
+
       const dataDays = Math.floor(
         (data.inputDate.getTime() - birthDate.getTime()) / 86400000
       );
 
       const diff = Math.abs(dataDays - targetDays);
-  
-      if (diff < minDiff) { // Removed diff <= 1 to avoid missing better matches
+
+      if (diff < minDiff) {
+        // Removed diff <= 1 to avoid missing better matches
         closestData = data;
         minDiff = diff;
       }
     }
-  
+
     return closestData;
   };
-  
 
   private calculateMetricVelocity = (
     startValue: number,
     endValue: number,
-    timeDiffMonths: number,
+    timeDiffMonths: number
   ): number | null => {
     if (timeDiffMonths <= 0) return null; // Invalid interval
     return (endValue - startValue) / timeDiffMonths;
   };
 
   private getIntervalDescription = (interval: IGrowthVelocity): string => {
-    if (interval.firstInterval.inWeeks === 0 && interval.lastInterval.inWeeks === 4) {
+    if (
+      interval.firstInterval.inWeeks === 0 &&
+      interval.lastInterval.inWeeks === 4
+    ) {
       return "0 – 4 weeks";
     } else if (
       interval.firstInterval.inWeeks === 4 &&
@@ -1012,15 +1106,17 @@ class GrowthDataService {
       }
 
       // Handle input date collision
-      const childGrowthData = await this.growthDataRepository.getAllGrowthDataByChildId(
-        child._id as string,
-      );
+      const childGrowthData =
+        await this.growthDataRepository.getAllGrowthDataByChildId(
+          child._id as string
+        );
 
       childGrowthData.forEach((data) => {
         if (
           growthData.inputDate &&
           data.inputDate &&
-          new Date(growthData.inputDate).getTime() === new Date(data.inputDate).getTime()
+          new Date(growthData.inputDate).getTime() ===
+            new Date(data.inputDate).getTime()
         ) {
           throw new CustomException(
             StatusCodeEnum.Conflict_409,
@@ -1053,6 +1149,50 @@ class GrowthDataService {
     } catch (error) {
       await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  checkTierUpdateGrowthDataLimit = async (userId: string) => {
+    try {
+      const user = await this.userRepository.getUserById(
+        userId as string,
+        false
+      );
+
+      if (!user) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      } //check user
+
+      if ([UserEnum.MEMBER].includes(user.role)) {
+        const tierData = await this.tierRepository.getCurrentTierData(
+          user.subscription.tier as number
+        ); //get tier
+
+        const { startDate, interval } = await validateUserMembership(
+          user,
+          tierData,
+          "UPDATE"
+        ); //get interval
+
+        const { start, end } = getCheckIntervalBounds(
+          new Date(),
+          startDate as Date,
+          interval
+        ); //start and end time for current interval
+
+        await checkUpdateChildrenGrowthLimit(userId, start, end, tierData);
+      }
+    } catch (error) {
+      if (error as Error | CustomException) {
         throw error;
       }
       throw new CustomException(
