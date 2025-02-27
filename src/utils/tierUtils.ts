@@ -127,9 +127,14 @@ const validateUserMembership = async (
     const month = new Date().getMonth();
 
     const firstDay = new Date(year, month, 1);
+    const nextMonthFirstDay = new Date(year, month + 1, 1);
 
     startDate = firstDay;
-    interval = 30;
+    interval =
+      Math.floor(
+        (nextMonthFirstDay.getTime() - firstDay.getTime()) /
+          (24 * 60 * 60 * 1000)
+      ) || 30;
   }
   return { startDate, interval };
 };

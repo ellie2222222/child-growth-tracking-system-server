@@ -42,6 +42,11 @@ const options: swaggerJsdoc.Options = {
       { name: "Comments", description: "Operations about comments in posts" },
       { name: "Payments", description: "Operations about handling payment" },
       { name: "Receipts", description: "Operations about receipts" },
+      { name: "Tiers", description: "Operations about membership tiers" },
+      {
+        name: "Requests",
+        description: "Operation about requests for consultations",
+      },
     ],
     components: {
       securitySchemes: {

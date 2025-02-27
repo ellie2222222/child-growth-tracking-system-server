@@ -12,7 +12,7 @@ const requestController = new RequestController();
 requestRouter.use(AuthMiddleware);
 
 requestRouter.put(
-  "/update-status/:id",
+  "/status/:id",
   RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
   requestHandler.updateRequestStatus,
   requestController.updateRequestStatus
@@ -40,7 +40,7 @@ requestRouter.get(
 );
 
 requestRouter.get(
-  "/by-userId/:id",
+  "/users/:id",
   RoleMiddleware([
     UserEnum.ADMIN,
     UserEnum.SUPER_ADMIN,

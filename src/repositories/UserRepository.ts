@@ -5,7 +5,7 @@ import { IQuery } from "../interfaces/IQuery";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import getLogger from "../utils/logger";
-import MembershipModel from "../models/MembershipPackage";
+import MembershipModel from "../models/MembershipPackageModel";
 import ChildModel from "../models/ChildModel";
 import TierModel from "../models/TierModel";
 export type returnData = {

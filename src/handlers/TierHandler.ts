@@ -145,7 +145,6 @@ class TierHandler {
   updateTier = (req: Request, res: Response, next: NextFunction): void => {
     const validationErrors: { field: string; error: string }[] = [];
     const {
-      tier,
       childrenLimit,
       postsLimitValue,
       postLimitTime,
@@ -154,13 +153,6 @@ class TierHandler {
       viewRecordsLimitValue,
       viewRecordsLimitTime,
     } = req.body;
-
-    if (tier && ![0, 1, 2].includes(tier)) {
-      validationErrors.push({
-        field: "tier",
-        error: "Invalid tier. It should be 0, 1 or 2",
-      });
-    }
 
     if (
       (childrenLimit !== undefined && !Number.isInteger(childrenLimit)) ||
