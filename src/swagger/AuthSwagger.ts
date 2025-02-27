@@ -208,16 +208,6 @@
  *     tags: [Auth]
  *     summary: Renew Access Token
  *     description: Refreshes the access token using the refresh token.
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               refreshToken:
- *                 type: string
- *                 example: "your-refresh-token"
  *     responses:
  *       200:
  *         description: New access token generated
@@ -232,6 +222,16 @@
  *     tags: [Auth]
  *     summary: Send Reset Password PIN
  *     description: Sends a reset password PIN to the user's email.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: "exmaple@gmail.com"
  *     responses:
  *       200:
  *         description: PIN sent successfully
