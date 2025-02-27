@@ -20,7 +20,6 @@ export interface IUser extends Document {
     tier: number | null;
     futurePlan: Types.ObjectId | null;
   };
-  childrenIds: [Types.ObjectId];
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
