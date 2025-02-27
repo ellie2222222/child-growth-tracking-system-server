@@ -72,7 +72,6 @@ class TierService {
 
   updateTier = async (
     id: string | ObjectId,
-    tier: number,
     childrenLimit: number,
     postsLimitValue: number,
     postLimitTime: number,
@@ -147,7 +146,6 @@ class TierService {
       }
 
       const data: Partial<ITier> = {
-        tier: tier,
         childrenLimit: childrenLimit ? childrenLimit : oldTier.childrenLimit,
         postsLimit: formatedPostLimit,
         updateRecordsLimit: formatedUpdateRecordsLimit,

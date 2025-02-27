@@ -45,7 +45,6 @@ class TierController {
     try {
       const { id } = req.params;
       const {
-        tier,
         childrenLimit,
         postsLimitValue,
         postLimitTime,
@@ -57,7 +56,6 @@ class TierController {
 
       const tierData = await this.tierService.updateTier(
         id,
-        tier,
         childrenLimit,
         postsLimitValue,
         postLimitTime,

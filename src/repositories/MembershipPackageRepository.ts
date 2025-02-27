@@ -1,7 +1,7 @@
 import mongoose, { ClientSession, ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import MembershipModel from "../models/MembershipPackage";
+import MembershipModel from "../models/MembershipPackageModel";
 import { IQuery } from "../interfaces/IQuery";
 import UserModel from "../models/UserModel";
 
