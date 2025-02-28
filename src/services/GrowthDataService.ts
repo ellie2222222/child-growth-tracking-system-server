@@ -23,6 +23,7 @@ import {
   checkUpdateChildrenGrowthLimit,
   getCheckIntervalBounds,
   validateUserMembership,
+  checkViewGrowthDataLimit,
 } from "../utils/tierUtils";
 import TierRepository from "../repositories/TierRepository";
 class GrowthDataService {
@@ -1190,6 +1191,50 @@ class GrowthDataService {
         ); //start and end time for current interval
 
         await checkUpdateChildrenGrowthLimit(userId, start, end, tierData);
+      }
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  };
+
+  checkTierViewGrowthDataLimit = async (userId: string) => {
+    try {
+      const user = await this.userRepository.getUserById(
+        userId as string,
+        false
+      );
+
+      if (!user) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      } //check user
+
+      if ([UserEnum.MEMBER].includes(user.role)) {
+        const tierData = await this.tierRepository.getCurrentTierData(
+          user.subscription.tier as number
+        ); //get tier
+
+        const { startDate, interval } = await validateUserMembership(
+          user,
+          tierData,
+          "VIEW"
+        );
+
+        const { start, end } = getCheckIntervalBounds(
+          new Date(),
+          startDate as Date,
+          interval
+        );
+
+        await checkViewGrowthDataLimit(userId as string, start, end, tierData);
       }
     } catch (error) {
       if (error as Error | CustomException) {

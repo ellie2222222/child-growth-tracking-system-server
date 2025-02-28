@@ -6,11 +6,12 @@ import { IUser } from "../interfaces/IUser";
 import PostRepository from "../repositories/PostRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import GrowthDataRepository from "../repositories/GrowthDataRepository";
+import UserRepository from "../repositories/UserRepository";
 
 const postRepo = new PostRepository();
 const MempackRepo = new MembershipPackageRepository();
 const GrowthDataRepo = new GrowthDataRepository();
-
+const userRepo = new UserRepository();
 const getCheckIntervalBounds = (
   current: Date,
   startDate: Date,
@@ -174,9 +175,47 @@ const checkUpdateChildrenGrowthLimit = async (
     );
   }
 };
+
+const checkViewGrowthDataLimit = async (
+  userId: string,
+  start: Date,
+  end: Date,
+  tierData: ITier
+) => {
+  const user = await userRepo.getUserById(userId, false);
+  if (!user) {
+    throw new CustomException(StatusCodeEnum.NotFound_404, "User not found");
+  }
+
+  if (end < new Date()) {
+    if (user.subscription.viewChart.counter > tierData.viewRecordsLimit.value) {
+      throw new CustomException(
+        StatusCodeEnum.BadRequest_400,
+        "You have exceeded the limit of this function in this time interval"
+      );
+    }
+  } else {
+    if (1 > tierData.viewRecordsLimit.value) {
+      throw new CustomException(
+        StatusCodeEnum.BadRequest_400,
+        "You have exceeded the limit of this function in this time interval"
+      );
+    }
+  }
+  await userRepo.updateUserById(userId, {
+    subscription: {
+      ...user.subscription,
+      viewChart: {
+        counter: user.subscription.viewChart.counter + 1,
+        lastCalled: new Date(),
+      },
+    },
+  });
+};
 export {
   getCheckIntervalBounds,
   validateUserMembership,
   checkPostLimit,
   checkUpdateChildrenGrowthLimit,
+  checkViewGrowthDataLimit,
 };

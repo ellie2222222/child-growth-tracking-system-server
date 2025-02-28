@@ -6,7 +6,6 @@ class TierHandler {
     const validationErrors: { field: string; error: string }[] = [];
     const {
       tier,
-      childrenLimit,
       postsLimitValue,
       postLimitTime,
       updateRecordsLimitValue,
@@ -19,20 +18,6 @@ class TierHandler {
       validationErrors.push({
         field: "tier",
         error: "Invalid tier. It should be 0, 1 or 2",
-      });
-    }
-
-    if (childrenLimit === null || childrenLimit === undefined) {
-      validationErrors.push({
-        field: "childrenLimit",
-        error: "childrenLimit is required",
-      });
-    }
-
-    if (!Number.isInteger(childrenLimit) || childrenLimit < 0) {
-      validationErrors.push({
-        field: "childrenLimit",
-        error: "childrenLimit should be a non-negative integer",
       });
     }
 
@@ -145,7 +130,6 @@ class TierHandler {
   updateTier = (req: Request, res: Response, next: NextFunction): void => {
     const validationErrors: { field: string; error: string }[] = [];
     const {
-      childrenLimit,
       postsLimitValue,
       postLimitTime,
       updateRecordsLimitValue,
@@ -153,16 +137,6 @@ class TierHandler {
       viewRecordsLimitValue,
       viewRecordsLimitTime,
     } = req.body;
-
-    if (
-      (childrenLimit !== undefined && !Number.isInteger(childrenLimit)) ||
-      childrenLimit < 0
-    ) {
-      validationErrors.push({
-        field: "childrenLimit",
-        error: "childrenLimit must be a non-negative integer ",
-      });
-    }
 
     if (
       postsLimitValue !== undefined &&

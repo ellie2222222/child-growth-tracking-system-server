@@ -21,7 +21,6 @@ class TierService {
 
   createTier = async (
     tier: number,
-    childrenLimit: number,
     postsLimitValue: number,
     postLimitTime: number,
     updateRecordsLimitValue: number,
@@ -34,8 +33,6 @@ class TierService {
     try {
       const data: Partial<ITier> = {
         tier: tier,
-        childrenLimit: childrenLimit,
-
         postsLimit: {
           value: postsLimitValue,
           time: postLimitTime,
@@ -72,7 +69,6 @@ class TierService {
 
   updateTier = async (
     id: string | ObjectId,
-    childrenLimit: number,
     postsLimitValue: number,
     postLimitTime: number,
     updateRecordsLimitValue: number,
@@ -146,7 +142,6 @@ class TierService {
       }
 
       const data: Partial<ITier> = {
-        childrenLimit: childrenLimit ? childrenLimit : oldTier.childrenLimit,
         postsLimit: formatedPostLimit,
         updateRecordsLimit: formatedUpdateRecordsLimit,
         viewRecordsLimit: formatedViewRecordLimit,

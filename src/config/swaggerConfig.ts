@@ -47,6 +47,14 @@ const options: swaggerJsdoc.Options = {
         name: "Requests",
         description: "Operation about requests for consultations",
       },
+      {
+        name: "Consultations",
+        description: "Operations about consultations",
+      },
+      {
+        name: "Consultation Messages",
+        description: "Operations about messages in consultations",
+      },
     ],
     components: {
       securitySchemes: {

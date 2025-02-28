@@ -18,8 +18,6 @@
  *             properties:
  *               tier:
  *                 type: number
- *               childrenLimit:
- *                 type: integer
  *               postsLimitValue:
  *                 type: integer
  *               postLimitTime:
@@ -62,8 +60,6 @@
  *           schema:
  *             type: object
  *             properties:
- *               childrenLimit:
- *                 type: integer
  *               postsLimitValue:
  *                 type: integer
  *               postLimitTime:

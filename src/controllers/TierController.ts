@@ -13,7 +13,6 @@ class TierController {
     try {
       const {
         tier,
-        childrenLimit,
         postsLimitValue,
         postLimitTime,
         updateRecordsLimitValue,
@@ -24,7 +23,6 @@ class TierController {
 
       const tierData = await this.tierService.createTier(
         tier,
-        childrenLimit,
         postsLimitValue,
         postLimitTime,
         updateRecordsLimitValue,
@@ -45,7 +43,6 @@ class TierController {
     try {
       const { id } = req.params;
       const {
-        childrenLimit,
         postsLimitValue,
         postLimitTime,
         updateRecordsLimitValue,
@@ -56,7 +53,6 @@ class TierController {
 
       const tierData = await this.tierService.updateTier(
         id,
-        childrenLimit,
         postsLimitValue,
         postLimitTime,
         updateRecordsLimitValue,

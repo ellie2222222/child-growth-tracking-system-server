@@ -8,10 +8,6 @@ const TierSchema = new Schema<ITier>(
       required: true,
       enum: [0, 1, 2],
     },
-    childrenLimit: {
-      type: Number,
-      required: true,
-    },
     postsLimit: {
       value: {
         type: Number,
