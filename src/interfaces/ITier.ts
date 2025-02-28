@@ -8,7 +8,6 @@ export interface ILimitObject {
 
 export interface ITier extends IBaseEntity {
   tier: number;
-  childrenLimit: number;
   postsLimit: ILimitObject;
   updateRecordsLimit: ILimitObject;
   viewRecordsLimit: ILimitObject;

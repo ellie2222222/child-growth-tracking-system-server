@@ -19,7 +19,12 @@ export interface IUser extends Document {
     currentPlan: Types.ObjectId | null;
     tier: number | null;
     futurePlan: Types.ObjectId | null;
+    viewChart: {
+      counter: number;
+      lastCalled: Date;
+    };
   };
+
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

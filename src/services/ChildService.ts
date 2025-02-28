@@ -37,7 +37,6 @@ class ChildService {
     try {
       const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
-      await this.checkTierChildrenLimit(requesterId);
 
       const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
@@ -377,122 +376,6 @@ class ChildService {
     } catch (error) {
       await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
-        throw error;
-      }
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
-      );
-    }
-  };
-
-  checkTierChildrenLimit = async (userId: string | ObjectId) => {
-    try {
-      const user = await this.userRepository.getUserById(
-        userId as string,
-        false
-      );
-
-      if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
-      }
-
-      const tierData = await this.tierRepository.getCurrentTierData(
-        user.subscription.tier as number
-      );
-
-      if (user.subscription.tier !== 0) {
-        const currentPlanId = user?.subscription?.currentPlan;
-
-        if (!currentPlanId || !isValidObjectId(currentPlanId)) {
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Invalid user's current membership plan"
-          );
-        }
-
-        //else {
-        //console.log("currentPlan not null");
-        //}
-
-        const CheckPack =
-          await this.membershipPackageRepository.getMembershipPackage(
-            currentPlanId.toString(),
-            false
-          );
-
-        if (!CheckPack) {
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "User's current membership package not found"
-          );
-        }
-
-        //else {
-        //   console.log("currentPlan found");
-        // }
-
-        if (!user.subscription.endDate) {
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Your membership expiration date not found"
-          );
-        }
-
-        const endDate = new Date(
-          (user.subscription.startDate as Date).getTime() +
-            3600 * 24 * CheckPack.duration.value * 1000
-        );
-
-        const timeMargin = 5 * 60 * 1000;
-        if (
-          Math.abs(endDate.getTime() - user.subscription.endDate?.getTime()) >
-          timeMargin
-        ) {
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Invalid user's membership expiration date "
-          );
-        }
-
-        //  else {
-        //   console.log("valid end date");
-        // }
-
-        if (user.subscription.endDate?.getTime() < Date.now()) {
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Current pack has expires, please wait for the system to handle"
-          );
-        }
-      } else {
-        if (
-          user.subscription.currentPlan ||
-          user.subscription.startDate ||
-          user.subscription.endDate
-        ) {
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Tier 0 cannot have subscription details"
-          );
-        }
-      }
-
-      const ChildCount = await this.childRepository.countUserChildren(
-        userId as string
-      );
-
-      if (Number(ChildCount) >= Number(tierData.childrenLimit)) {
-        throw new CustomException(
-          StatusCodeEnum.Forbidden_403,
-          "You have exceeded your current tier children limit"
-        );
-      }
-    } catch (error) {
-      if (error as Error | CustomException) {
         throw error;
       }
       throw new CustomException(

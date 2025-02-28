@@ -444,15 +444,6 @@ class UserRepository {
             );
           }
 
-          // let children = await this.getUserChildrenIds(user._id as string);
-          // if (tier.childrenLimit === 0) {
-          //   children = [] as unknown as [Types.ObjectId];
-          // } else {
-          //   children = children.slice(0, tier.childrenLimit - 1) as [
-          //     Types.ObjectId
-          //   ];
-          // }
-
           // No future memberships, clear subscription
           await UserModel.updateOne(
             { _id: userId },
@@ -462,7 +453,6 @@ class UserRepository {
                 "subscription.startDate": null,
                 "subscription.currentPlan": null,
                 "subscription.tier": 0,
-                // childrenIds: children,
               },
             }
           );

@@ -537,34 +537,8 @@ class UserService {
         );
       }
 
-      // //tier handling for accessible children based on tier limit
-      // const tier = await this.tierRepository.getCurrentTierData(
-      //   subscription.tier as number
-      // );
-      // if (!tier) {
-      //   throw new CustomException(
-      //     StatusCodeEnum.NotFound_404,
-      //     "Tier info not found"
-      //   );
-      // }
-
-      // let children = [] as unknown as [Types.ObjectId];
-
-      // if (tier.childrenLimit !== 0) {
-      //   children = (
-      //     await this.userRepository.getUserChildrenIds(id as string)
-      //   ).map((child) => child._id) as unknown as [Types.ObjectId];
-
-      //   if (tier.childrenLimit < children.length) {
-      //     children = children.slice(0, tier.childrenLimit - 1) as [
-      //       Types.ObjectId
-      //     ];
-      //   }
-      // }
-
       const data = {
         subscription: subscription,
-        // childrenIds: children,
       };
 
       const user = await this.userRepository.updateUserById(
@@ -646,35 +620,8 @@ class UserService {
         subscription.currentPlan = null;
       }
 
-      // //tier handling for accessible children based on tier limit
-      // const tier = await this.tierRepository.getCurrentTierData(
-      //   subscription.tier as number
-      // );
-
-      // if (!tier) {
-      //   throw new CustomException(
-      //     StatusCodeEnum.NotFound_404,
-      //     "Tier info not found"
-      //   );
-      // }
-
-      // let children = [] as unknown as [Types.ObjectId];
-
-      // if (tier.childrenLimit !== 0) {
-      //   children = (
-      //     await this.userRepository.getUserChildrenIds(userId as string)
-      //   ).map((child) => child._id) as unknown as [Types.ObjectId];
-
-      //   if (tier.childrenLimit < children.length) {
-      //     children = children.slice(0, tier.childrenLimit - 1) as [
-      //       Types.ObjectId
-      //     ];
-      //   }
-      // }
-
       const data = {
         subscription: subscription,
-        // childrenIds: children,
       };
 
       const user = await this.userRepository.updateUserById(
