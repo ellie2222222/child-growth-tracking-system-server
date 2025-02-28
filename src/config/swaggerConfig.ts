@@ -90,5 +90,11 @@ export function swaggerDoc(app: Application): void {
     res.send(swaggerSpec);
   });
 
-  logger.info(`Swagger is running at: ${process.env.SERVER_URL}/api-docs`);
+  logger.info(
+    `Swagger is running at: ${
+      process.env.NODE_ENV === "PRODUCTION"
+        ? process.env.PRODUCTION_URL
+        : process.env.SERVER_URL
+    }/api-docs`
+  );
 }
