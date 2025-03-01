@@ -17,7 +17,7 @@ const AuthMiddleware = async (
   // const token = req.cookies?.accessToken || "";
 
   const { authorization } = req.headers;
-  const token = authorization?.split(" ")[1] || ""; //for swagger test
+  const token = authorization?.split(" ")[1] || req.cookies?.accessToken || ""; //for swagger test and cookie
 
   if (!isProtectedRoute) {
     try {
