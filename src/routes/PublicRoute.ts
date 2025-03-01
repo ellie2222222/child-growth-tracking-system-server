@@ -25,8 +25,11 @@ const publicRoutes: PublicRoutes[] = [
   { path: "/api/payments/paypal/failed", method: "GET" },
   { path: "/api/payments/vnpay/callback", method: "GET" },
 
-  //Assets
+  // Assets
   { path: "/assets/:something", method: "GET" },
+
+  // SWagger
+  { path: "/api-docs(.*)", method: "GET" }
 ];
 
 export default publicRoutes;
