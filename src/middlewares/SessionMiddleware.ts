@@ -60,22 +60,24 @@ const SessionMiddleware = async (
       ll: llData,
     };
 
-    // Verify request's session ID
-    if (process.env.NODE_ENV === "PRODUCTION") {
-      const sessionId = req.cookies["sessionId"];
-      if (!sessionId) {
-        res.status(StatusCodeEnum.Unauthorized_401).json({
-          message: "Session ID is required",
-        });
-        return;
-      }
-      const sessionRepository = new SessionRepository();
-      const isExist = await sessionRepository.findSessionById(sessionId);
-      if (!isExist) {
-        res.status(StatusCodeEnum.Unauthorized_401).json({
-          message: "Invalid session ID",
-        });
-        return;
+    if (req.isProtectedRoute) {
+      // Verify request's session ID
+      if (process.env.NODE_ENV === "PRODUCTION") {
+        const sessionId = req.cookies["sessionId"];
+        if (!sessionId) {
+          res.status(StatusCodeEnum.Unauthorized_401).json({
+            message: "Session ID is required",
+          });
+          return;
+        }
+        const sessionRepository = new SessionRepository();
+        const isExist = await sessionRepository.findSessionById(sessionId);
+        if (!isExist) {
+          res.status(StatusCodeEnum.Unauthorized_401).json({
+            message: "Invalid session ID",
+          });
+          return;
+        }
       }
     }
 
