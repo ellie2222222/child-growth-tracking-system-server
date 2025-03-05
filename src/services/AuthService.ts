@@ -424,8 +424,8 @@ class AuthService {
           );
         } else if ((error as Error).name === "JsonWebTokenError") {
           throw new CustomException(
-            StatusCodeEnum.Unauthorized_401,
-            "Invalid refresh token"
+            StatusCodeEnum.Forbidden_403,
+            "Invalid access token"
           );
         }
       }

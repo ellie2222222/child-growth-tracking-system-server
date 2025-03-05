@@ -13,6 +13,7 @@ const publicRoutes: PublicRoutes[] = [
   { path: "/api/auth/signup", method: "POST" },
   { path: "/api/auth/logout", method: "POST" },
   { path: "/api/auth/renew-access-token", method: "POST" },
+  { path: "/api/auth/me", method: "POST" },
   { path: "/", method: "GET" },
   { path: "/api/auth/google", method: "GET" },
   { path: "/api/auth/google/redirect", method: "GET" },
@@ -27,9 +28,6 @@ const publicRoutes: PublicRoutes[] = [
 
   // Assets
   { path: "/assets/:something", method: "GET" },
-
-  // SWagger
-  { path: "/api-docs(.*)", method: "GET" }
 ];
 
 export default publicRoutes;
