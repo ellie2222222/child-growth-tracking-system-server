@@ -3,14 +3,15 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import PostModel from "../models/PostModel";
 import { IQuery } from "../interfaces/IQuery";
-import { PostStatus } from "../interfaces/IPost";
+import { IPost, PostStatus } from "../interfaces/IPost";
+import { IPostRepository } from "../interfaces/repositories/IPostRepository";
 
-class PostRepository {
+class PostRepository implements IPostRepository {
   constructor() {}
-  async createPost(data: object, session?: mongoose.ClientSession) {
+  async createPost(data: object, session?: mongoose.ClientSession): Promise<IPost> {
     try {
       const post = await PostModel.create([data], { session });
-      return post;
+      return post[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -22,7 +23,7 @@ class PostRepository {
     }
   }
 
-  async getPost(id: ObjectId | string, ignoreDeleted: boolean) {
+  async getPost(id: ObjectId | string, ignoreDeleted: boolean): Promise<IPost> {
     try {
       type searchQuery = {
         _id: mongoose.Types.ObjectId;
@@ -55,7 +56,7 @@ class PostRepository {
     }
   }
 
-  async getPosts(query: IQuery, ignoreDeleted: boolean, status: string) {
+  async getPosts(query: IQuery, ignoreDeleted: boolean, status: string): Promise<object> {
     const { page, size, search, order, sortBy } = query;
     type searchQuery = {
       isDeleted?: boolean;
@@ -116,7 +117,7 @@ class PostRepository {
     id: string | ObjectId,
     data: object,
     session?: mongoose.ClientSession
-  ) {
+  ): Promise<IPost> {
     try {
       console.log(id);
       const post = await PostModel.findOneAndUpdate(
@@ -151,7 +152,7 @@ class PostRepository {
     }
   }
 
-  async deletePost(id: string | ObjectId, session?: mongoose.ClientSession) {
+  async deletePost(id: string | ObjectId, session?: mongoose.ClientSession): Promise<IPost> {
     try {
       const post = await PostModel.findByIdAndUpdate(
         id,
@@ -179,7 +180,7 @@ class PostRepository {
     }
   }
 
-  async countPosts(userId: string | ObjectId, start: Date, end: Date) {
+  async countPosts(userId: string | ObjectId, start: Date, end: Date): Promise<number> {
     try {
       const count = await PostModel.countDocuments({
         userId: new mongoose.Types.ObjectId(userId as string),
@@ -199,7 +200,7 @@ class PostRepository {
     }
   }
 
-  async getPostByTitle(title: string) {
+  async getPostByTitle(title: string): Promise<IPost | null> {
     try {
       const post = await PostModel.findOne({
         title: { $eq: title },
@@ -218,7 +219,7 @@ class PostRepository {
     }
   }
 
-  async getPostsByUserId(id: string, query: IQuery, status: string) {
+  async getPostsByUserId(id: string, query: IQuery, status: string): Promise<object> {
     type searchQuery = {
       userId: mongoose.Types.ObjectId;
       status?: string;

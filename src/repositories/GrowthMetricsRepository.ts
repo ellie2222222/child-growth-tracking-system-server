@@ -9,6 +9,7 @@ import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
 import GrowthMetricForAgeModel from "../models/GrowthMetricsForAgeModel";
 import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
 import GrowthVelocityModel from "../models/GrowthVelocityModel";
+import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAge";
 
 export type GrowthMetricsQuery = {
   age: number;
@@ -16,7 +17,7 @@ export type GrowthMetricsQuery = {
   percentiles: Array<{ percentile: number; value: number }>;
 };
 
-class GrowthMetricsRepository {
+class GrowthMetricsRepository implements IGrowthMetricsRepository {
   async upsertGrowthMetricsForAgeData(
     data: Partial<IGrowthMetricForAge>,
     type: GrowthMetricsEnumType,
@@ -123,7 +124,7 @@ class GrowthMetricsRepository {
 
   async getWflhData(gender: number, height: number): Promise<IWflh[]> {
     try {
-      const data: IWflh[] = await GrowthMetricForAgeModel.find({ gender, height });
+      const data: IWflh[] = await WflhModel.find({ gender, height });
 
       return data;
     } catch (error) {

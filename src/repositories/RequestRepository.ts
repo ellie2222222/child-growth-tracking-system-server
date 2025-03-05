@@ -4,14 +4,15 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import RequestModel from "../models/RequestModel";
 import { IQuery } from "../interfaces/IQuery";
 import dotenv from "dotenv";
-import { RequestStatus } from "../interfaces/IRequest";
+import { IRequest, RequestStatus } from "../interfaces/IRequest";
+import { IRequestRepository } from "../interfaces/repositories/IRequestRepository";
 dotenv.config();
 
-class RequestRepository {
-  async createRequest(data: object, session?: mongoose.ClientSession) {
+class RequestRepository implements IRequestRepository {
+  async createRequest(data: object, session?: mongoose.ClientSession): Promise<IRequest> {
     try {
       const request = await RequestModel.create([data], { session });
-      return request;
+      return request[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -23,7 +24,7 @@ class RequestRepository {
     }
   }
 
-  async getRequest(id: string | ObjectId, ignoreDeleted: boolean) {
+  async getRequest(id: string | ObjectId, ignoreDeleted: boolean): Promise<IRequest | null> {
     try {
       const searchQuery = ignoreDeleted
         ? { _id: new mongoose.Types.ObjectId(id as string) }
@@ -53,7 +54,7 @@ class RequestRepository {
     }
   }
 
-  async getAllRequests(query: IQuery, ignoreDeleted: boolean, status?: string) {
+  async getAllRequests(query: IQuery, ignoreDeleted: boolean, status?: string): Promise<object> {
     type SearchQuery = {
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
@@ -116,7 +117,7 @@ class RequestRepository {
     ignoreDeleted: boolean,
     status?: string,
     as?: "MEMBER" | "DOCTOR"
-  ) {
+  ): Promise<object> {
     type SearchQuery = {
       memberId?: mongoose.Types.ObjectId;
       doctorId?: mongoose.Types.ObjectId;
@@ -186,7 +187,7 @@ class RequestRepository {
     id: string,
     data: object,
     session?: mongoose.ClientSession
-  ) {
+  ): Promise<IRequest> {
     try {
       const request = await RequestModel.findOneAndUpdate(
         {
@@ -216,7 +217,7 @@ class RequestRepository {
     }
   }
 
-  async deleteRequest(id: string, session?: mongoose.ClientSession) {
+  async deleteRequest(id: string, session?: mongoose.ClientSession): Promise<IRequest> {
     try {
       const request = await RequestModel.findOneAndUpdate(
         {
@@ -250,7 +251,7 @@ class RequestRepository {
     }
   }
 
-  async validateRequestDailyLimit(userId: string) {
+  async validateRequestDailyLimit(userId: string): Promise<void> {
     try {
       const now = new Date();
       const today = now.setHours(0, 0, 0, 0); //0h today
@@ -282,11 +283,11 @@ class RequestRepository {
     }
   }
 
-  async getOldRequest() {
+  async getOldRequest(): Promise<mongoose.Types.ObjectId[]> {
     try {
       const daysPending = parseInt(process.env.REQ_PEND as string) || 14;
 
-      const requests = await RequestModel.find(
+      const requests: mongoose.Types.ObjectId[] = await RequestModel.find(
         {
           createdAt: {
             $lt: new Date(Date.now() - daysPending * 24 * 60 * 60 * 1000),
@@ -309,7 +310,7 @@ class RequestRepository {
     }
   }
 
-  async handleOldRequest(requestIds: mongoose.Types.ObjectId[]) {
+  async handleOldRequest(requestIds: mongoose.Types.ObjectId[]): Promise<void> {
     try {
       await RequestModel.updateMany(
         { _id: { $in: requestIds } },

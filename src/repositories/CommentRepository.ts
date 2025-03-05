@@ -3,12 +3,14 @@ import CommentModel from "../models/CommentModel";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { ICommentRepository } from "../interfaces/repositories/ICommentRepository";
+import { IComment } from "../interfaces/IComment";
 
-class CommentRepository {
-  async createComment(data: object, session?: mongoose.ClientSession) {
+class CommentRepository implements ICommentRepository {
+  async createComment(data: object, session?: mongoose.ClientSession): Promise<IComment> {
     try {
       const comment = await CommentModel.create([data], { session });
-      return comment;
+      return comment[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -20,7 +22,7 @@ class CommentRepository {
     }
   }
 
-  async getComment(id: string | ObjectId, ignoreDeleted: boolean) {
+  async getComment(id: string | ObjectId, ignoreDeleted: boolean): Promise<IComment> {
     try {
       type searchQuery = {
         _id: mongoose.Types.ObjectId;
@@ -33,7 +35,6 @@ class CommentRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      // console.log(searchQuery);
 
       const comment = await CommentModel.findOne(searchQuery);
 
@@ -59,7 +60,12 @@ class CommentRepository {
     postId: string | ObjectId,
     query: IQuery,
     ignoreDeleted: boolean
-  ) {
+  ): Promise<{
+    comments: IComment[];
+    page: number;
+    total: number;
+    totalPages: number;
+  }> {
     try {
       type searchQuery = {
         postId: mongoose.Types.ObjectId;
@@ -108,7 +114,7 @@ class CommentRepository {
     id: string | ObjectId,
     data: object,
     session?: mongoose.ClientSession
-  ) {
+  ): Promise<IComment> {
     try {
       const comment = await CommentModel.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(id as string) },
@@ -132,7 +138,7 @@ class CommentRepository {
       );
     }
   }
-  async deleteComment(id: string | ObjectId, session?: ClientSession) {
+  async deleteComment(id: string | ObjectId, session?: ClientSession): Promise<IComment | null> {
     try {
       const comment = await CommentModel.findOneAndUpdate(
         {

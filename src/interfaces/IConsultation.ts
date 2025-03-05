@@ -12,4 +12,5 @@ export interface IConsultation extends IBaseEntity {
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
+  requestDetails: Record<string, any>;
 }

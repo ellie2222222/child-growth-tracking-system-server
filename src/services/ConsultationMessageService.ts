@@ -59,6 +59,11 @@ class ConsultationMessageService {
           consultationId,
           false
         );
+      
+      if (!checkConsultation) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found");
+      }
+
 
       if (checkConsultation.status !== ConsultationStatus.OnGoing) {
         throw new CustomException(
@@ -80,7 +85,7 @@ class ConsultationMessageService {
         );
       }
 
-      const formatedMessage = extractAndReplaceImages(message, attachments);
+      const formattedMessage = extractAndReplaceImages(message, attachments);
 
       // console.log(attachments);
 
@@ -89,7 +94,7 @@ class ConsultationMessageService {
           {
             consultationId: consultationId,
             sender: requesterId,
-            message: formatedMessage,
+            message: formattedMessage,
             attachments,
           },
           session
@@ -139,6 +144,9 @@ class ConsultationMessageService {
           id,
           ignoreDeleted
         );
+      if (!consultationMessage) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation message not found")
+      }
 
       if (notAdmin) {
         const checkConsultation =
@@ -146,6 +154,10 @@ class ConsultationMessageService {
             consultationMessage.consultationId,
             ignoreDeleted
           );
+      
+      if (!checkConsultation) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found");
+      }
 
         const notDoctor =
           requesterId !== checkConsultation.requestDetails.doctorId.toString();
@@ -204,6 +216,10 @@ class ConsultationMessageService {
             consultationId,
             ignoreDeleted
           );
+      
+      if (!checkConsultation) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found");
+      }
 
         const notDoctor =
           requesterId !== checkConsultation.requestDetails.doctorId.toString();
@@ -265,6 +281,10 @@ class ConsultationMessageService {
           id,
           false
         );
+      
+      if (!consultationMessage) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation message not found")
+      }
 
       if (requesterId !== consultationMessage.sender.toString() && notAdmin) {
         throw new CustomException(
@@ -273,12 +293,12 @@ class ConsultationMessageService {
         );
       }
 
-      const formatedMessage = extractAndReplaceImages(message, attachments);
+      const formattedMessage = extractAndReplaceImages(message, attachments);
       const updatedMessage =
         await this.consultationMessageRepository.updateConsultationMessage(
           id,
           {
-            message: formatedMessage,
+            message: formattedMessage,
             attachments,
           },
           session
@@ -331,6 +351,10 @@ class ConsultationMessageService {
           id,
           false
         );
+      
+      if (!consultationMessage) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation message not found")
+      }
 
       if (notAdmin && consultationMessage.sender.toString() !== requesterId) {
         throw new CustomException(

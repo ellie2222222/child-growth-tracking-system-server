@@ -1,9 +1,10 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import { IConfig } from "../interfaces/IConfig";
+import { IConfigRepository } from "../interfaces/repositories/IConfigRepository";
 import ConfigModel from "../models/ConfigModel";
 
-class ConfigRepository {
+class ConfigRepository implements IConfigRepository {
   async getConfig(key: string): Promise<IConfig | null> {
     try {
       const data = await ConfigModel.findOne({ key });

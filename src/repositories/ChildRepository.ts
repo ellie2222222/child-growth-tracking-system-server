@@ -4,6 +4,7 @@ import { IChild } from "../interfaces/IChild";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { IChildRepository } from "../interfaces/repositories/IChildRepository";
 
 export type ChildrenData = {
   children: IChild[];
@@ -12,7 +13,7 @@ export type ChildrenData = {
   totalPages: number;
 };
 
-class ChildRepository {
+class ChildRepository implements IChildRepository {
   /**
    * Create a new child entry.
    * @param childData - Object containing child details adhering to IChild.

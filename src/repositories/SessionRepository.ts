@@ -3,8 +3,9 @@ import SessionModel from "../models/SessionModel";
 import { ISession } from "../interfaces/ISession";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import ISessionRepository from "../interfaces/repositories/ISessionRepository";
 
-class SessionRepository {
+class SessionRepository implements ISessionRepository {
   /**
    * Create a new session entry.
    * @param sessionData - Object containing session details adhering to ISession.

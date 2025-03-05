@@ -197,7 +197,7 @@ class ReceiptService {
   ) => {
     const session = await this.database.startTransaction();
     try {
-      const receipt = await this.receiptRepository.deleteRecepitById(
+      const receipt = await this.receiptRepository.deleteReceiptById(
         id,
         requesterId,
         session

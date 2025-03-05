@@ -3,14 +3,15 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import ConsultationModel from "../models/ConsultationModel";
 import { IQuery } from "../interfaces/IQuery";
-import { ConsultationStatus } from "../interfaces/IConsultation";
+import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
 import ConsultationMessageModel from "../models/ConsultationMessageModel";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultation";
 
-class ConsultationRepository {
-  async createConsultation(data: object, session?: mongoose.ClientSession) {
+class ConsultationRepository implements IConsultationRepository {
+  async createConsultation(data: object, session?: mongoose.ClientSession): Promise<IConsultation> {
     try {
       const consultation = await ConsultationModel.create([data], { session });
-      return consultation;
+      return consultation[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -22,7 +23,7 @@ class ConsultationRepository {
     }
   }
 
-  async getConsultation(id: string | ObjectId, ignoreDeleted: boolean) {
+  async getConsultation(id: string | ObjectId, ignoreDeleted: boolean): Promise<IConsultation | null> {
     type searchQuery = {
       _id: mongoose.Types.ObjectId;
       isDeleted?: boolean;
@@ -36,7 +37,7 @@ class ConsultationRepository {
         query.isDeleted = false;
       }
 
-      const consultation = await ConsultationModel.aggregate([
+      const consultation: IConsultation[] = await ConsultationModel.aggregate([
         { $match: query },
         {
           $lookup: {
@@ -72,7 +73,7 @@ class ConsultationRepository {
     query: IQuery,
     ignoreDeleted: boolean,
     status: string
-  ) {
+  ): Promise<object> {
     type searchQuery = {
       isDeleted?: boolean;
       status?: { $eq: string };
@@ -150,7 +151,7 @@ class ConsultationRepository {
     userId: string,
     status?: string,
     as?: "MEMBER" | "DOCTOR"
-  ) {
+  ): Promise<object> {
     type searchQuery = {
       "requestDetails.title"?: { $eq: string };
       "requestDetails.memberId"?: mongoose.Types.ObjectId;
@@ -251,7 +252,7 @@ class ConsultationRepository {
     id: string,
     data: object,
     session?: mongoose.ClientSession
-  ) {
+  ): Promise<IConsultation> {
     try {
       const consultation = await ConsultationModel.findOneAndUpdate(
         {
@@ -281,7 +282,7 @@ class ConsultationRepository {
     }
   }
 
-  async deleteConsultation(id: string, session?: mongoose.ClientSession) {
+  async deleteConsultation(id: string, session?: mongoose.ClientSession): Promise<IConsultation> {
     try {
       const consultation = await ConsultationModel.findOneAndUpdate(
         {
