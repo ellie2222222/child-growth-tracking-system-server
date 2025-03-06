@@ -79,33 +79,36 @@ class TierService {
     const session = await this.database.startTransaction();
     try {
       const oldTier = await this.tierRepository.getTier(id, false);
+      if (!oldTier) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Previous tier not found");
+      }
 
-      const formatedPostLimit: ILimitObject = oldTier.postsLimit;
-      const formatedUpdateRecordsLimit: ILimitObject =
+      const formattedPostLimit: ILimitObject = oldTier.postsLimit;
+      const formattedUpdateRecordsLimit: ILimitObject =
         oldTier.updateRecordsLimit;
-      const formatedViewRecordLimit: ILimitObject = oldTier.viewRecordsLimit;
+      const formattedViewRecordLimit: ILimitObject = oldTier.viewRecordsLimit;
 
       let isModify = false;
 
       if (postLimitTime && postLimitTime !== oldTier.postsLimit.time) {
-        formatedPostLimit.time = postLimitTime;
+        formattedPostLimit.time = postLimitTime;
         isModify = true;
       }
 
       if (postsLimitValue && postsLimitValue !== oldTier.postsLimit.value) {
-        formatedPostLimit.value = postsLimitValue;
+        formattedPostLimit.value = postsLimitValue;
         isModify = true;
       }
 
       if (isModify) {
-        formatedPostLimit.description = `this tier's user can post ${formatedPostLimit.value} in an interval of ${formatedPostLimit.time} day(s)`;
+        formattedPostLimit.description = `this tier's user can post ${formattedPostLimit.value} in an interval of ${formattedPostLimit.time} day(s)`;
       }
 
       if (
         updateRecordsLimitTime &&
         updateRecordsLimitTime !== oldTier.updateRecordsLimit.time
       ) {
-        formatedUpdateRecordsLimit.time = updateRecordsLimitTime;
+        formattedUpdateRecordsLimit.time = updateRecordsLimitTime;
         isModify = true;
       }
 
@@ -113,19 +116,19 @@ class TierService {
         updateRecordsLimitValue &&
         updateRecordsLimitValue !== oldTier.updateRecordsLimit.value
       ) {
-        formatedUpdateRecordsLimit.value = updateRecordsLimitValue;
+        formattedUpdateRecordsLimit.value = updateRecordsLimitValue;
         isModify = true;
       }
 
       if (isModify) {
-        formatedUpdateRecordsLimit.description = `this tier's user can update records ${formatedUpdateRecordsLimit.value} in an interval of ${formatedUpdateRecordsLimit.time} day(s)`;
+        formattedUpdateRecordsLimit.description = `this tier's user can update records ${formattedUpdateRecordsLimit.value} in an interval of ${formattedUpdateRecordsLimit.time} day(s)`;
       }
 
       if (
         viewRecordsLimitTime &&
         viewRecordsLimitTime !== oldTier.viewRecordsLimit.time
       ) {
-        formatedViewRecordLimit.time = viewRecordsLimitTime;
+        formattedViewRecordLimit.time = viewRecordsLimitTime;
         isModify = true;
       }
 
@@ -133,18 +136,18 @@ class TierService {
         viewRecordsLimitValue &&
         viewRecordsLimitValue !== oldTier.viewRecordsLimit.value
       ) {
-        formatedViewRecordLimit.value = viewRecordsLimitValue;
+        formattedViewRecordLimit.value = viewRecordsLimitValue;
         isModify = true;
       }
 
       if (isModify) {
-        formatedViewRecordLimit.description = `this tier's user can view records ${formatedViewRecordLimit.value} in an interval of ${formatedViewRecordLimit.time} day(s)`;
+        formattedViewRecordLimit.description = `this tier's user can view records ${formattedViewRecordLimit.value} in an interval of ${formattedViewRecordLimit.time} day(s)`;
       }
 
       const data: Partial<ITier> = {
-        postsLimit: formatedPostLimit,
-        updateRecordsLimit: formatedUpdateRecordsLimit,
-        viewRecordsLimit: formatedViewRecordLimit,
+        postsLimit: formattedPostLimit,
+        updateRecordsLimit: formattedUpdateRecordsLimit,
+        viewRecordsLimit: formattedViewRecordLimit,
       };
 
       const updatedTier = await this.tierRepository.updateTier(

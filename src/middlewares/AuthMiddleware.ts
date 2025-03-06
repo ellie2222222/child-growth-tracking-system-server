@@ -55,7 +55,7 @@ const AuthMiddleware = async (
   // Handle protected route
   if (!token) {
     res
-      .status(StatusCodeEnum.Unauthorized_401)
+      .status(StatusCodeEnum.Forbidden_403)
       .json({ message: "Authorization token required" });
     return;
   }

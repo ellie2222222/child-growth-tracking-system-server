@@ -3,14 +3,13 @@ import ReceiptModel from "../models/ReceiptModel";
 import { IReceipt } from "../interfaces/IReceipt";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-
 import { IQuery } from "../interfaces/IQuery";
-class ReceiptRepository {
+import { IReceiptRepository } from "../interfaces/repositories/IReceiptRepository";
+class ReceiptRepository implements IReceiptRepository {
   async createReceipt(
     data: object,
     session?: mongoose.ClientSession
   ): Promise<IReceipt> {
-    // console.log(data);
     try {
       const receipt = await ReceiptModel.create([data], { session });
       return receipt[0];
@@ -159,7 +158,7 @@ class ReceiptRepository {
     }
   }
 
-  async deleteRecepitById(
+  async deleteReceiptById(
     id: mongoose.Types.ObjectId | string,
     requesterId: mongoose.Types.ObjectId | string,
     session?: mongoose.ClientSession
@@ -176,7 +175,7 @@ class ReceiptRepository {
       if (requesterId !== checkReceipt?.userId.toString()) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
-          "You can delete other people's receipt"
+          "Cannot delete receipt"
         );
       }
       const receipt = await ReceiptModel.findOneAndUpdate(

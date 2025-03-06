@@ -5,6 +5,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IGrowthData } from "../interfaces/IGrowthData";
 import ChildModel from "../models/ChildModel";
+import { IGrowthDataRepository } from "../interfaces/repositories/IGrowthData";
 
 export type GrowthData = {
   growthData: IGrowthData[];
@@ -13,7 +14,7 @@ export type GrowthData = {
   totalPages: number;
 };
 
-class GrowthDataRepository {
+class GrowthDataRepository implements IGrowthDataRepository {
   /**
    * Create a new growthData entry.
    * @param growthData - Object containing growthData details adhering to IGrowthData.

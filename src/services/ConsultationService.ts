@@ -43,6 +43,10 @@ class ConsultationService {
         if (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkUser.role)) {
           const checkConsultation =
             await this.consultationRepository.getConsultation(id, false);
+          
+            if (!checkConsultation) {
+              throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found")
+            }
 
           if (
             checkConsultation.requestDetails.memberId.toString() !== requesterId
@@ -105,6 +109,10 @@ class ConsultationService {
         id,
         ignoreDeleted
       );
+      
+      if (!consultation) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found")
+      }
 
       const notMember =
         consultation.requestDetails.memberId.toString() !== requesterId;
@@ -277,6 +285,9 @@ class ConsultationService {
         id,
         false
       );
+      if (!consultation) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found")
+      }
 
       const notOwner =
         consultation.requestDetails.memberId.toString() !== requesterId;

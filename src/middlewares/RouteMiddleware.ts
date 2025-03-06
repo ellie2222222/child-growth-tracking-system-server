@@ -13,7 +13,7 @@ const RouteMiddleware = (
 
   const matchedRoute = publicRoutes.find((route) => {
     const matchFn = match(route.path, { decode: decodeURIComponent });
-    const matched = matchFn(pathname);
+    const matched = matchFn(pathname) || pathname.startsWith("/api-docs");
     return matched && route.method === method;
   });
   

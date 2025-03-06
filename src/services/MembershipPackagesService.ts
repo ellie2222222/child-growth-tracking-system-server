@@ -36,10 +36,10 @@ class MembershipPackageService {
   ) => {
     const session = await this.database.startTransaction();
     try {
-      const checkmembership =
+      const checkMembership =
         await this.membershipPackageRepository.getMembershipByName(name);
 
-      if (checkmembership) {
+      if (checkMembership) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
           "Membership package name already exists"
@@ -104,6 +104,10 @@ class MembershipPackageService {
           id,
           ignoreDeleted
         );
+      if (!membershipPackage) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Membership package not found");
+      }
+
       return membershipPackage;
     } catch (error) {
       if (error as Error | CustomException) {
@@ -167,11 +171,15 @@ class MembershipPackageService {
     try {
       const oldPackage =
         await this.membershipPackageRepository.getMembershipPackage(id, false);
+      
+      if (!oldPackage) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Previous package not found")
+      }
 
-      const checkmembership =
+      const checkMembership =
         await this.membershipPackageRepository.getMembershipByName(name);
-
-      if (checkmembership) {
+      
+      if (checkMembership) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
           "Membership package name already exists"

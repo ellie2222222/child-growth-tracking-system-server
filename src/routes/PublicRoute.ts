@@ -13,6 +13,7 @@ const publicRoutes: PublicRoutes[] = [
   { path: "/api/auth/signup", method: "POST" },
   { path: "/api/auth/logout", method: "POST" },
   { path: "/api/auth/renew-access-token", method: "POST" },
+  { path: "/api/auth/me", method: "POST" },
   { path: "/", method: "GET" },
   { path: "/api/auth/google", method: "GET" },
   { path: "/api/auth/google/redirect", method: "GET" },
@@ -25,7 +26,7 @@ const publicRoutes: PublicRoutes[] = [
   { path: "/api/payments/paypal/failed", method: "GET" },
   { path: "/api/payments/vnpay/callback", method: "GET" },
 
-  //Assets
+  // Assets
   { path: "/assets/:something", method: "GET" },
 ];
 

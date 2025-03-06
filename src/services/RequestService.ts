@@ -158,6 +158,10 @@ class RequestService {
         ignoreDeleted
       );
 
+      if (!request) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Request not found");
+      }
+
       const notDoctor = request.doctorId.toString() !== requesterId;
       const notRequester = request.memberId.toString() !== requesterId;
 
@@ -304,6 +308,10 @@ class RequestService {
       );
 
       const request = await this.requestRepository.getRequest(id, false);
+      
+      if (!request) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Request not found");
+      }
 
       if (request.status === status) {
         throw new CustomException(
@@ -389,6 +397,9 @@ class RequestService {
         id as string,
         false
       );
+      if (!request) {
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Request not found");
+      }
 
       if (request.memberId.toString() !== requesterId.toString()) {
         throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");

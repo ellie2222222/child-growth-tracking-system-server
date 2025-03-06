@@ -3,8 +3,9 @@ import ErrorLogModel from "../models/ErrorLogModel";
 import { IErrorLog } from "../interfaces/IErrorLog";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { IErrorLogRepository } from "../interfaces/repositories/IErrorLogRepository";
 
-class ErrorLogRepository {
+class ErrorLogRepository implements IErrorLogRepository {
   /**
    * Create a new error log entry.
    * @param errorData - Object containing error details adhering to IErrorLog.

@@ -3,12 +3,14 @@ import ConsultationMessageModel from "../models/ConsultationMessageModel";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { IConsultationMessage } from "../interfaces/IConsultationMessage";
+import { IConsultationMessageRepository } from "../interfaces/repositories/IConsultationMessage";
 
-class ConsultationMessageRepository {
+class ConsultationMessageRepository implements IConsultationMessageRepository {
   async createConsultationMessage(
     data: object,
     session?: mongoose.ClientSession
-  ) {
+  ): Promise<IConsultationMessage> {
     try {
       const consultationMessage = await ConsultationMessageModel.create(
         [data],
@@ -34,7 +36,7 @@ class ConsultationMessageRepository {
     consultationId: string | ObjectId,
     query: IQuery,
     ignoreDeleted: boolean
-  ) {
+  ): Promise<object> {
     type searchQuery = {
       consultationId: mongoose.Types.ObjectId;
       isDeleted?: boolean;
@@ -65,7 +67,7 @@ class ConsultationMessageRepository {
 
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
 
-      const consultationMessages = await ConsultationMessageModel.aggregate([
+      const consultationMessages: IConsultationMessage[] = await ConsultationMessageModel.aggregate([
         { $match: searchQuery },
         { $sort: { [sortField]: sortOrder } },
         { $limit: page * size },
@@ -99,7 +101,7 @@ class ConsultationMessageRepository {
     }
   }
 
-  async getConsultationMessage(id: string | ObjectId, ignoreDeleted: boolean) {
+  async getConsultationMessage(id: string | ObjectId, ignoreDeleted: boolean): Promise<IConsultationMessage | null> {
     try {
       const searchQuery = ignoreDeleted
         ? { _id: new mongoose.Types.ObjectId(id as string) }
@@ -134,9 +136,9 @@ class ConsultationMessageRepository {
     id: string,
     data: object,
     session?: ClientSession
-  ) {
+  ): Promise<IConsultationMessage> {
     try {
-      const consultationMesssage =
+      const consultationMessage =
         await ConsultationMessageModel.findOneAndUpdate(
           {
             _id: new mongoose.Types.ObjectId(id),
@@ -146,14 +148,14 @@ class ConsultationMessageRepository {
           { session, new: true }
         );
 
-      if (!consultationMesssage) {
+      if (!consultationMessage) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Message not found"
         );
       }
 
-      return consultationMesssage;
+      return consultationMessage;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
