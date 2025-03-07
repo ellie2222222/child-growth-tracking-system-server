@@ -63,7 +63,7 @@ class PostController {
 
       res
         .status(StatusCodeEnum.Created_201)
-        .json({ Post: post, message: "Post created successfully" });
+        .json({ post: post, message: "Post created successfully" });
     } catch (error) {
       // await new Promise((resolve) => setTimeout(resolve, 3000));
 
@@ -85,11 +85,11 @@ class PostController {
   getPost = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const requesterId = req.userInfo.userId;
+      const requesterId = req.userInfo.userId || "";
       const post = await this.postService.getPost(id, requesterId);
 
       res.status(StatusCodeEnum.OK_200).json({
-        Post: post,
+        post: post,
         message: "Get post successfully",
       });
     } catch (error) {
@@ -113,7 +113,9 @@ class PostController {
         status as string
       );
 
-      res.status(StatusCodeEnum.OK_200).json(posts);
+      res
+        .status(StatusCodeEnum.OK_200)
+        .json({ ...posts, message: "Get posts successfully" });
     } catch (error) {
       next(error);
     }
@@ -191,7 +193,7 @@ class PostController {
 
       res
         .status(StatusCodeEnum.OK_200)
-        .json({ Post: post, message: "Post updated successfully" });
+        .json({ post: post, message: "Post updated successfully" });
     } catch (error) {
       // await new Promise((resolve) => setTimeout(resolve, 3000));
 

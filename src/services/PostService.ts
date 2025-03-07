@@ -91,14 +91,11 @@ class PostService {
         requesterId,
         ignoreDeleted
       );
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
-        );
-      }
+
       if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
+        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
+          checkRequester?.role || UserEnum.MEMBER
+        )
       ) {
         ignoreDeleted = true;
       }
@@ -107,7 +104,7 @@ class PostService {
 
       if (
         (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-          checkRequester.role
+          checkRequester?.role || UserEnum.MEMBER
         ) ||
           requesterId.toString() !== post.userId.toString()) &&
         post.status !== PostStatus.PUBLISHED
@@ -136,20 +133,21 @@ class PostService {
         requesterId,
         ignoreDeleted
       );
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
-        );
-      }
+
       if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
+        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
+          checkRequester?.role || UserEnum.MEMBER
+        )
       ) {
         ignoreDeleted = true;
       }
 
       let formatedStatus;
-      if ([UserEnum.DOCTOR, UserEnum.MEMBER].includes(checkRequester.role)) {
+      if (
+        [UserEnum.DOCTOR, UserEnum.MEMBER].includes(
+          checkRequester?.role || UserEnum.MEMBER
+        )
+      ) {
         formatedStatus = "PUBLISHED";
       } else {
         formatedStatus = status;

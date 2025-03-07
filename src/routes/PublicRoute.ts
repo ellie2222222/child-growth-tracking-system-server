@@ -28,6 +28,19 @@ const publicRoutes: PublicRoutes[] = [
 
   // Assets
   { path: "/assets/:something", method: "GET" },
+
+  //Post
+  { path: "/api/posts", method: "GET" },
+  { path: "/api/posts/:id", method: "GET" },
+  { path: "/api/posts/user/:id", method: "GET" },
+
+  //Membership packages
+  { path: "/api/membership-packages", method: "GET" },
+  { path: "/api/membership-packages/:id", method: "GET" },
+
+  //tiers
+  { path: "/api/tiers", method: "GET" },
+  { path: "/api/tiers/:id", method: "GET" },
 ];
 
 export default publicRoutes;

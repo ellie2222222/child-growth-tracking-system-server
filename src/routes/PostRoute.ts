@@ -46,40 +46,14 @@ router.put(
   postController.updatePostStatus
 );
 
-router.get(
-  "/",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
-  postHandler.getPosts,
-  postController.getPosts
-);
+router.get("/", postHandler.getPosts, postController.getPosts);
 
 router.get(
   "/users/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
   postHandler.getPostsByUserId,
   postController.getPostsByUserId
 );
-router.get(
-  "/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
-  postHandler.getPost,
-  postController.getPost
-);
+router.get("/:id", postHandler.getPost, postController.getPost);
 
 router.delete(
   "/:id",
