@@ -25,7 +25,7 @@ const ReceiptSchema = new Schema<IReceipt>(
       },
       currency: {
         type: String,
-        require: true,
+        required: true,
         enum: Object.values(Currency),
       },
     },
@@ -58,7 +58,7 @@ const ReceiptSchema = new Schema<IReceipt>(
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt`
-    strict: true
+    strict: true,
   }
 );
 

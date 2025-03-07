@@ -26,6 +26,7 @@ import growthMetricsRoute from "./routes/GrowthMetricsRoute";
 import tierRoutes from "./routes/TierRoute";
 import consultationRouter from "./routes/ConsultationRoute";
 import consultationMessageRouter from "./routes/ConsultationMessageRoute";
+import statisticRouter from "./routes/StatisticRoute";
 import { swaggerDoc } from "./config/swaggerConfig";
 import limiter from "./middlewares/rateLimiter";
 
@@ -117,7 +118,7 @@ app.use("/api/membership-packages", membershipPackageRoute);
 app.use("/api/requests", requestRouter);
 app.use("/api/consultations", consultationRouter);
 app.use("/api/consultation-messages", consultationMessageRouter);
-
+app.use("/api/statistics", statisticRouter);
 // Google Login
 app.get("/", (req, res) => {
   res.send("<a href='/api/auth/google'>Login with Google</a><br>");

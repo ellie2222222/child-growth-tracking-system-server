@@ -23,6 +23,7 @@ class ReceiptRepository implements IReceiptRepository {
       );
     }
   }
+
   //admin/super-admin only
   getAllReceipt = async (
     query: IQuery,
@@ -183,6 +184,26 @@ class ReceiptRepository implements IReceiptRepository {
         { new: true }
       );
       return receipt;
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getAllReceiptsTimeInterval(
+    startDate: Date,
+    endDate: Date
+  ): Promise<IReceipt[]> {
+    try {
+      const receipts = await ReceiptModel.find({
+        createdAt: { $gte: startDate, $lte: endDate },
+      }).lean();
+      return receipts || [];
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw error;

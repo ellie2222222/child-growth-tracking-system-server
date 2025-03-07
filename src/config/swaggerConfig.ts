@@ -55,6 +55,10 @@ const options: swaggerJsdoc.Options = {
         name: "Consultation Messages",
         description: "Operations about messages in consultations",
       },
+      {
+        name: "Statistics",
+        description: "Operations about statistic performed by admin",
+      },
     ],
     components: {
       securitySchemes: {
