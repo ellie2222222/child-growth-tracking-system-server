@@ -8,7 +8,10 @@ import { IPostRepository } from "../interfaces/repositories/IPostRepository";
 
 class PostRepository implements IPostRepository {
   constructor() {}
-  async createPost(data: object, session?: mongoose.ClientSession): Promise<IPost> {
+  async createPost(
+    data: object,
+    session?: mongoose.ClientSession
+  ): Promise<IPost> {
     try {
       const post = await PostModel.create([data], { session });
       return post[0];
@@ -56,7 +59,11 @@ class PostRepository implements IPostRepository {
     }
   }
 
-  async getPosts(query: IQuery, ignoreDeleted: boolean, status: string): Promise<object> {
+  async getPosts(
+    query: IQuery,
+    ignoreDeleted: boolean,
+    status: string
+  ): Promise<object> {
     const { page, size, search, order, sortBy } = query;
     type searchQuery = {
       isDeleted?: boolean;
@@ -96,7 +103,7 @@ class PostRepository implements IPostRepository {
       const totalPost = await PostModel.countDocuments(searchQuery);
 
       return {
-        Posts,
+        posts: Posts,
         page,
         totalPost,
         totalPage: Math.ceil(totalPost / size),
@@ -152,7 +159,10 @@ class PostRepository implements IPostRepository {
     }
   }
 
-  async deletePost(id: string | ObjectId, session?: mongoose.ClientSession): Promise<IPost> {
+  async deletePost(
+    id: string | ObjectId,
+    session?: mongoose.ClientSession
+  ): Promise<IPost> {
     try {
       const post = await PostModel.findByIdAndUpdate(
         id,
@@ -180,7 +190,11 @@ class PostRepository implements IPostRepository {
     }
   }
 
-  async countPosts(userId: string | ObjectId, start: Date, end: Date): Promise<number> {
+  async countPosts(
+    userId: string | ObjectId,
+    start: Date,
+    end: Date
+  ): Promise<number> {
     try {
       const count = await PostModel.countDocuments({
         userId: new mongoose.Types.ObjectId(userId as string),
@@ -219,7 +233,11 @@ class PostRepository implements IPostRepository {
     }
   }
 
-  async getPostsByUserId(id: string, query: IQuery, status: string): Promise<object> {
+  async getPostsByUserId(
+    id: string,
+    query: IQuery,
+    status: string
+  ): Promise<object> {
     type searchQuery = {
       userId: mongoose.Types.ObjectId;
       status?: string;

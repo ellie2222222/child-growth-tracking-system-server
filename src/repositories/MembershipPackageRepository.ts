@@ -9,9 +9,14 @@ import { IMembershipPackage } from "../interfaces/IMembershipPackage";
 
 class MembershipPackageRepository implements IMembershipPackageRepository {
   constructor() {}
-  async createMembershipPackage(data: object, session?: ClientSession): Promise<IMembershipPackage> {
+  async createMembershipPackage(
+    data: object,
+    session?: ClientSession
+  ): Promise<IMembershipPackage> {
     try {
-      const membershipPackage = await MembershipModel.create([data], { session });
+      const membershipPackage = await MembershipModel.create([data], {
+        session,
+      });
       return membershipPackage[0];
     } catch (error) {
       if (error as Error | CustomException) {
@@ -24,7 +29,10 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
     }
   }
 
-  async getMembershipPackage(id: string | ObjectId, ignoreDeleted: boolean): Promise<IMembershipPackage | null> {
+  async getMembershipPackage(
+    id: string | ObjectId,
+    ignoreDeleted: boolean
+  ): Promise<IMembershipPackage | null> {
     try {
       type searchQuery = {
         _id: mongoose.Types.ObjectId;
@@ -62,7 +70,10 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
     }
   }
 
-  async getMembershipPackages(query: IQuery, ignoreDeleted: boolean): Promise<object> {
+  async getMembershipPackages(
+    query: IQuery,
+    ignoreDeleted: boolean
+  ): Promise<object> {
     const { page, size, search, order, sortBy } = query;
 
     type searchQuery = {
@@ -104,7 +115,7 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
         );
       }
       return {
-        Packages: membershipPackages,
+        packages: membershipPackages,
         page,
         totalPackages: totalMembershipPackages,
         totalPages: Math.ceil(totalMembershipPackages / size),
