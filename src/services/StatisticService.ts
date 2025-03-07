@@ -10,6 +10,12 @@ import {
   endOfYear,
   endOfWeek,
 } from "date-fns";
+
+type IRevenue = {
+  Date: string;
+  Revenue: number;
+};
+
 class StatisticService {
   private receiptRepository: ReceiptRepository;
 
@@ -23,29 +29,63 @@ class StatisticService {
     return new Date(dt.setDate(diff));
   };
 
-  getRevenue = async (time: string, unit: string, value?: number) => {
+  getRevenue = async (
+    time: string,
+    unit: string,
+    value?: number
+  ): Promise<IRevenue[]> => {
     try {
-      const today: Date = new Date();
+      const today = new Date(
+        Date.UTC(
+          new Date().getUTCFullYear(),
+          new Date().getUTCMonth(),
+          new Date().getUTCDate()
+        )
+      );
       let firstDay, lastDay;
       let interval: number;
       const revenue = [];
       let formatedValue;
       switch (time) {
         case "DAY":
-          firstDay = new Date(today.setHours(0, 0, 0, 0));
-          lastDay = new Date(today.setHours(23, 59, 59, 999));
+          firstDay = new Date(today.setUTCHours(0, 0, 0, 0));
+          lastDay = new Date(today.setUTCHours(23, 59, 59, 999));
           interval = 1;
           break;
 
         case "WEEK":
-          firstDay = startOfWeek(today, { weekStartsOn: 1 });
-          lastDay = endOfWeek(today, { weekStartsOn: 1 });
+          //This idk why it work?
+          //week start on 2 => start on tuesday
+          //but at here by setting it 2, it's correctly starting on monday
+
+          firstDay = startOfWeek(today.setUTCHours(0, 0, 0, 0), {
+            weekStartsOn: 2,
+          });
+          lastDay = endOfWeek(today.setUTCHours(23, 59, 59, 999), {
+            weekStartsOn: 2,
+          });
           interval = 7;
           break;
         case "MONTH":
-          formatedValue = value ? value : today.getMonth();
-          firstDay = startOfMonth(new Date(today.getFullYear(), formatedValue));
-          lastDay = endOfMonth(new Date(today.getFullYear(), formatedValue));
+          formatedValue = value ? value - 1 : today.getMonth();
+          firstDay = new Date(
+            startOfMonth(
+              new Date(
+                new Date(today.getUTCFullYear(), formatedValue).getTime() +
+                  24 * 60 * 60 * 1000
+              )
+            ).getTime() +
+              24 * 60 * 60 * 1000
+          );
+          lastDay = new Date(
+            endOfMonth(
+              new Date(
+                new Date(today.getUTCFullYear(), formatedValue).getTime() +
+                  24 * 60 * 60 * 1000
+              )
+            ).getTime() +
+              24 * 60 * 60 * 1000
+          );
           interval = new Date(
             today.getFullYear(),
             formatedValue + 1,
@@ -53,9 +93,14 @@ class StatisticService {
           ).getDate();
           break;
         case "YEAR":
-          formatedValue = value ? value : today.getFullYear();
-          firstDay = startOfYear(new Date(formatedValue));
-          lastDay = endOfYear(new Date(formatedValue));
+          formatedValue = value ? value : today.getUTCFullYear();
+          firstDay = startOfYear(
+            new Date(Date.UTC(Number(formatedValue), 0, 2))
+          );
+          lastDay = endOfYear(
+            new Date(Date.UTC(Number(formatedValue), 11, 31))
+          );
+
           interval = 12;
 
           break;
@@ -72,28 +117,44 @@ class StatisticService {
 
       const revenueMap = new Map();
 
-      receipts.forEach((receipt) => {
-        const dateKey = receipt.createdAt.toISOString().split("T")[0];
-        const amount =
-          unit === "VND"
-            ? receipt.totalAmount.currency === "VND"
+      if (time !== "YEAR") {
+        receipts.forEach((receipt) => {
+          const dateKey = receipt.createdAt.toISOString().split("T")[0];
+          const amount =
+            receipt.totalAmount.currency === unit
               ? receipt.totalAmount.value
-              : receipt.totalAmount.value * 25000
-            : receipt.totalAmount.value;
+              : receipt.totalAmount.currency === "VND"
+              ? receipt.totalAmount.value / 25000
+              : receipt.totalAmount.value * 25000;
 
-        revenueMap.set(dateKey, (revenueMap.get(dateKey) || 0) + amount);
-      });
+          revenueMap.set(dateKey, (revenueMap.get(dateKey) || 0) + amount);
+        });
+      } else {
+        receipts.forEach((receipt) => {
+          const date = new Date(receipt.createdAt);
+          const year = date.getUTCFullYear();
+          const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+          const dateKey = `${year}-${month}-01`;
+          const amount =
+            receipt.totalAmount.currency === unit
+              ? receipt.totalAmount.value
+              : receipt.totalAmount.currency === "VND"
+              ? receipt.totalAmount.value / 25000
+              : receipt.totalAmount.value * 25000;
+          revenueMap.set(dateKey, (revenueMap.get(dateKey) || 0) + amount);
+        });
+      }
 
       for (let i = 0; i < interval; i++) {
         const date =
           time === "YEAR"
-            ? new Date(new Date(formatedValue as number).getFullYear(), i, 1)
+            ? new Date(Date.UTC(Number(formatedValue), i, 1))
             : addDays(firstDay, i);
+
         const dateKey = date.toISOString().split("T")[0];
         revenue.push({
-          Date: date,
-          revenue: revenueMap.get(dateKey) || 0,
-          Unit: unit,
+          Date: date.toISOString().split("T")[0],
+          Revenue: revenueMap.get(dateKey) || 0,
         });
       }
 

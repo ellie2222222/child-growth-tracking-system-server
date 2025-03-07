@@ -195,13 +195,14 @@ class ReceiptRepository implements IReceiptRepository {
     }
   }
 
-  async getAllReceiptsTimeInterval(startDate: Date, endDate: Date) {
+  async getAllReceiptsTimeInterval(
+    startDate: Date,
+    endDate: Date
+  ): Promise<IReceipt[]> {
     try {
       const receipts = await ReceiptModel.find({
         createdAt: { $gte: startDate, $lte: endDate },
-      })
-        .sort({ createdAt: 1 })
-        .lean();
+      }).lean();
       return receipts || [];
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
