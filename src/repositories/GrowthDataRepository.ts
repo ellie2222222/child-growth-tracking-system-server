@@ -5,7 +5,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IGrowthData } from "../interfaces/IGrowthData";
 import ChildModel from "../models/ChildModel";
-import { IGrowthDataRepository } from "../interfaces/repositories/IGrowthData";
+import { IGrowthDataRepository } from "../interfaces/repositories/IGrowthDataRepository";
 
 export type GrowthData = {
   growthData: IGrowthData[];

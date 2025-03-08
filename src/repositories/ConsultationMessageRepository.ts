@@ -4,7 +4,7 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IConsultationMessage } from "../interfaces/IConsultationMessage";
-import { IConsultationMessageRepository } from "../interfaces/repositories/IConsultationMessage";
+import { IConsultationMessageRepository } from "../interfaces/repositories/IConsultationMessageRepository";
 
 class ConsultationMessageRepository implements IConsultationMessageRepository {
   async createConsultationMessage(

@@ -5,7 +5,7 @@ import ConsultationModel from "../models/ConsultationModel";
 import { IQuery } from "../interfaces/IQuery";
 import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
 import ConsultationMessageModel from "../models/ConsultationMessageModel";
-import { IConsultationRepository } from "../interfaces/repositories/IConsultation";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
 
 class ConsultationRepository implements IConsultationRepository {
   async createConsultation(

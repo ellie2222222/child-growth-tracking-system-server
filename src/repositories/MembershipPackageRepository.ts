@@ -4,8 +4,8 @@ import CustomException from "../exceptions/CustomException";
 import MembershipModel from "../models/MembershipPackageModel";
 import { IQuery } from "../interfaces/IQuery";
 import UserModel from "../models/UserModel";
-import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackage";
 import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 
 class MembershipPackageRepository implements IMembershipPackageRepository {
   constructor() {}
