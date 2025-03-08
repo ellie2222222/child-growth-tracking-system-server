@@ -9,7 +9,7 @@ import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
 import GrowthMetricForAgeModel from "../models/GrowthMetricsForAgeModel";
 import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
 import GrowthVelocityModel from "../models/GrowthVelocityModel";
-import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAge";
+import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAgeRepository";
 
 export type GrowthMetricsQuery = {
   age: number;
