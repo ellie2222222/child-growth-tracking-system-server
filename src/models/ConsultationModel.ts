@@ -12,9 +12,9 @@ const ConsultationSchema = new mongoose.Schema<IConsultation>(
       enum: ConsultationStatus,
       default: ConsultationStatus.OnGoing,
     },
-    userFeedback: {
-      type: String,
-      default: "",
+    rating: {
+      type: Number,
+      default: 0,
     },
     isDeleted: {
       type: Boolean,

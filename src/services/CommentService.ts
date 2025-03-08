@@ -77,9 +77,7 @@ class CommentService {
         );
       }
 
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester.role)) {
         ignoreDeleted = true;
       }
 
@@ -129,9 +127,7 @@ class CommentService {
         );
       }
 
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester.role)) {
         ignoreDeleted = true;
       }
 

@@ -27,36 +27,21 @@ router.put(
 
 router.get(
   "/",
-  RoleMiddleware([
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-  ]),
+  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.getComments,
   commentController.getCommentsByPostId
 );
 
 router.get(
   "/:id",
-  RoleMiddleware([
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-  ]),
+  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.getComment,
   commentController.getComment
 );
 
 router.delete(
   "/:id",
-  RoleMiddleware([
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-  ]),
+  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.deleteComment,
   commentController.deleteComment
 );

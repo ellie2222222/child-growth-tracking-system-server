@@ -149,6 +149,76 @@ class UserController {
       next(error);
     }
   };
+
+  createConsultationRating = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const requesterId = req.userInfo.userId;
+      const { rating } = req.body;
+
+      const updatedConsultation =
+        await this.userService.createConsultationRating(
+          id,
+          requesterId,
+          rating
+        );
+      res.status(200).json({
+        consultation: updatedConsultation,
+        message: "Consultation rating has been created",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateConsultationRating = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const requesterId = req.userInfo.userId;
+      const { rating } = req.body;
+
+      const updatedConsultation =
+        await this.userService.updateConsultationRating(
+          id,
+          requesterId,
+          rating
+        );
+      res.status(200).json({
+        consultation: updatedConsultation,
+        message: "Consultation rating has been created",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  removeConsultationRating = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { id } = req.params;
+      const requesterId = req.userInfo.userId;
+
+      const updatedConsultation =
+        await this.userService.removeConsultationRating(id, requesterId, 0);
+      res.status(200).json({
+        consultation: updatedConsultation,
+        message: "Consultation rating has been created",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default UserController;

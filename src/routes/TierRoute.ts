@@ -13,38 +13,28 @@ router.use(AuthMiddleware);
 
 router.post(
   "/",
-  RoleMiddleware([UserEnum.SUPER_ADMIN, UserEnum.ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   tierHandler.createTier,
   tierController.createTier
 );
 
 router.put(
   "/:id",
-  RoleMiddleware([UserEnum.SUPER_ADMIN, UserEnum.ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   tierHandler.updateTier,
   tierController.updateTier
 );
 
 router.get(
   "/",
-  RoleMiddleware([
-    UserEnum.SUPER_ADMIN,
-    UserEnum.ADMIN,
-    UserEnum.MEMBER,
-    UserEnum.DOCTOR,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   tierHandler.getTiers,
   tierController.getTiers
 );
 
 router.get(
   "/:id",
-  RoleMiddleware([
-    UserEnum.SUPER_ADMIN,
-    UserEnum.ADMIN,
-    UserEnum.MEMBER,
-    UserEnum.DOCTOR,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   tierController.getTier
 );
 

@@ -145,9 +145,7 @@ class RequestService {
         );
       }
 
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester?.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester?.role);
 
       if (!notAdmin) {
         ignoreDeleted = true;
@@ -159,7 +157,10 @@ class RequestService {
       );
 
       if (!request) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Request not found");
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Request not found"
+        );
       }
 
       const notDoctor = request.doctorId.toString() !== requesterId;
@@ -205,9 +206,7 @@ class RequestService {
         );
       }
 
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester?.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester?.role);
 
       //isAdmin: get all even deleted and no futher validation
       if (!notAdmin) {
@@ -303,14 +302,15 @@ class RequestService {
         );
       }
 
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester?.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester?.role);
 
       const request = await this.requestRepository.getRequest(id, false);
-      
+
       if (!request) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Request not found");
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Request not found"
+        );
       }
 
       if (request.status === status) {
@@ -398,7 +398,10 @@ class RequestService {
         false
       );
       if (!request) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Request not found");
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Request not found"
+        );
       }
 
       if (request.memberId.toString() !== requesterId.toString()) {

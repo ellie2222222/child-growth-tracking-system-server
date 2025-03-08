@@ -103,7 +103,6 @@ class GrowthDataService {
       let child: IChild | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           child = await this.childRepository.getChildById(childId, true);
           break;
 
@@ -450,7 +449,6 @@ class GrowthDataService {
       let growthData: IGrowthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           growthData = await this.growthDataRepository.getGrowthDataById(
             growthDataId,
             true
@@ -869,7 +867,6 @@ class GrowthDataService {
       let growthData: GrowthData;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           growthData = await this.growthDataRepository.getGrowthDataByChildId(
             childId,
             query,
@@ -952,7 +949,6 @@ class GrowthDataService {
       let growthData: IGrowthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           growthData = await this.growthDataRepository.getGrowthDataById(
             growthDataId,
             true
@@ -1052,7 +1048,6 @@ class GrowthDataService {
       let growthData: IGrowthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           growthData = await this.growthDataRepository.getGrowthDataById(
             growthDataId,
             true
