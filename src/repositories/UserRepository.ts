@@ -9,8 +9,14 @@ import MembershipModel from "../models/MembershipPackageModel";
 import ChildModel from "../models/ChildModel";
 import TierModel from "../models/TierModel";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import ConsultationModel from "../models/ConsultationModel";
+
+export interface IDoctor extends IUser {
+  rating?: number;
+}
+
 export type returnData = {
-  users: IUser[];
+  users: IDoctor[];
   page: number;
   total: number;
   totalPages: number;

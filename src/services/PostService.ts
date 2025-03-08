@@ -92,20 +92,14 @@ class PostService {
         ignoreDeleted
       );
 
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-          checkRequester?.role || UserEnum.MEMBER
-        )
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role || UserEnum.MEMBER)) {
         ignoreDeleted = true;
       }
 
       const post = await this.postRepository.getPost(id, ignoreDeleted);
 
       if (
-        (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-          checkRequester?.role || UserEnum.MEMBER
-        ) ||
+        (![UserEnum.ADMIN].includes(checkRequester?.role || UserEnum.MEMBER) ||
           requesterId.toString() !== post.userId.toString()) &&
         post.status !== PostStatus.PUBLISHED
       ) {
@@ -134,11 +128,7 @@ class PostService {
         ignoreDeleted
       );
 
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-          checkRequester?.role || UserEnum.MEMBER
-        )
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role || UserEnum.MEMBER)) {
         ignoreDeleted = true;
       }
 
@@ -265,7 +255,7 @@ class PostService {
       const checkPost = await this.postRepository.getPost(id, false);
       if (
         checkPost.userId.toString() !== requesterId &&
-        ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(user.role)
+        ![UserEnum.ADMIN].includes(user.role)
       ) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
@@ -281,7 +271,7 @@ class PostService {
       switch (status as PostStatus) {
         case PostStatus.REJECTED:
           // console.log("REJECTED");
-          if (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(user.role)) {
+          if (![UserEnum.ADMIN].includes(user.role)) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,
               "Forbidden"
@@ -291,7 +281,7 @@ class PostService {
 
         case PostStatus.PUBLISHED:
           // console.log("PUBLISHED");
-          if (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(user.role)) {
+          if (![UserEnum.ADMIN].includes(user.role)) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,
               "Forbidden"

@@ -30,10 +30,10 @@ const RoleMiddleware = (roles: Array<number>) => {
         return;
       }
 
-      if (user.role === UserEnum.ADMIN || user.role === UserEnum.SUPER_ADMIN) {
+      if (user.role === UserEnum.ADMIN) {
         return next();
       }
-      
+
       if (!roles.includes(user?.role)) {
         res
           .status(StatusCodeEnum.Forbidden_403)

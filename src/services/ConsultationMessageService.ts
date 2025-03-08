@@ -59,11 +59,13 @@ class ConsultationMessageService {
           consultationId,
           false
         );
-      
-      if (!checkConsultation) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found");
-      }
 
+      if (!checkConsultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
 
       if (checkConsultation.status !== ConsultationStatus.OnGoing) {
         throw new CustomException(
@@ -131,9 +133,7 @@ class ConsultationMessageService {
         );
       }
 
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester?.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester?.role);
 
       if (!notAdmin) {
         ignoreDeleted = true;
@@ -145,7 +145,10 @@ class ConsultationMessageService {
           ignoreDeleted
         );
       if (!consultationMessage) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation message not found")
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation message not found"
+        );
       }
 
       if (notAdmin) {
@@ -154,10 +157,13 @@ class ConsultationMessageService {
             consultationMessage.consultationId,
             ignoreDeleted
           );
-      
-      if (!checkConsultation) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found");
-      }
+
+        if (!checkConsultation) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Consultation not found"
+          );
+        }
 
         const notDoctor =
           requesterId !== checkConsultation.requestDetails.doctorId.toString();
@@ -202,9 +208,7 @@ class ConsultationMessageService {
         );
       }
 
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester?.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester?.role);
 
       if (!notAdmin) {
         ignoreDeleted = true;
@@ -216,10 +220,13 @@ class ConsultationMessageService {
             consultationId,
             ignoreDeleted
           );
-      
-      if (!checkConsultation) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found");
-      }
+
+        if (!checkConsultation) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Consultation not found"
+          );
+        }
 
         const notDoctor =
           requesterId !== checkConsultation.requestDetails.doctorId.toString();
@@ -272,18 +279,19 @@ class ConsultationMessageService {
         );
       }
 
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester?.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester?.role);
 
       const consultationMessage =
         await this.consultationMessageRepository.getConsultationMessage(
           id,
           false
         );
-      
+
       if (!consultationMessage) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation message not found")
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation message not found"
+        );
       }
 
       if (requesterId !== consultationMessage.sender.toString() && notAdmin) {
@@ -342,18 +350,19 @@ class ConsultationMessageService {
         );
       }
 
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester?.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester?.role);
 
       const consultationMessage =
         await this.consultationMessageRepository.getConsultationMessage(
           id,
           false
         );
-      
+
       if (!consultationMessage) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation message not found")
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation message not found"
+        );
       }
 
       if (notAdmin && consultationMessage.sender.toString() !== requesterId) {

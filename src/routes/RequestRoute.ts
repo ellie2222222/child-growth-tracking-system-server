@@ -34,31 +34,21 @@ requestRouter.delete(
 
 requestRouter.get(
   "/",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   requestHandler.getAllRequests,
   requestController.getAllRequests
 );
 
 requestRouter.get(
   "/users/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
   requestHandler.getRequestsByUserId,
   requestController.getRequestsByUserId
 );
 
 requestRouter.get(
   "/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-    UserEnum.SUPER_ADMIN,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
   requestHandler.getRequest,
   requestController.getRequest
 );

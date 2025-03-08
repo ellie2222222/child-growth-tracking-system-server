@@ -13,45 +13,35 @@ router.use(AuthMiddleware);
 
 router.post(
   "/",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   membershipPackageHandler.createMembershipPackage,
   membershipPackageController.createMembershipPackage
 );
 
 router.get(
   "/",
-  RoleMiddleware([
-    UserEnum.MEMBER,
-    UserEnum.DOCTOR,
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-  ]),
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]),
   membershipPackageHandler.getMembershipPackages,
   membershipPackageController.getMembershipPackages
 );
 
 router.put(
   "/:id",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   membershipPackageHandler.updateMembershipPackage,
   membershipPackageController.updateMembershipPackage
 );
 
 router.delete(
   "/:id",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   membershipPackageHandler.deleteMembershipPackage,
   membershipPackageController.deleteMembershipPackage
 );
 
 router.get(
   "/:id",
-  RoleMiddleware([
-    UserEnum.MEMBER,
-    UserEnum.DOCTOR,
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-  ]),
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]),
   membershipPackageHandler.getMembershipPackage,
   membershipPackageController.getMembershipPackage
 );

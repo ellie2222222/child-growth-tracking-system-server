@@ -8,7 +8,10 @@ import ConsultationMessageModel from "../models/ConsultationMessageModel";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultation";
 
 class ConsultationRepository implements IConsultationRepository {
-  async createConsultation(data: object, session?: mongoose.ClientSession): Promise<IConsultation> {
+  async createConsultation(
+    data: object,
+    session?: mongoose.ClientSession
+  ): Promise<IConsultation> {
     try {
       const consultation = await ConsultationModel.create([data], { session });
       return consultation[0];
@@ -23,7 +26,10 @@ class ConsultationRepository implements IConsultationRepository {
     }
   }
 
-  async getConsultation(id: string | ObjectId, ignoreDeleted: boolean): Promise<IConsultation | null> {
+  async getConsultation(
+    id: string | ObjectId,
+    ignoreDeleted: boolean
+  ): Promise<IConsultation | null> {
     type searchQuery = {
       _id: mongoose.Types.ObjectId;
       isDeleted?: boolean;
@@ -282,7 +288,10 @@ class ConsultationRepository implements IConsultationRepository {
     }
   }
 
-  async deleteConsultation(id: string, session?: mongoose.ClientSession): Promise<IConsultation> {
+  async deleteConsultation(
+    id: string,
+    session?: mongoose.ClientSession
+  ): Promise<IConsultation> {
     try {
       const consultation = await ConsultationModel.findOneAndUpdate(
         {
@@ -376,6 +385,37 @@ class ConsultationRepository implements IConsultationRepository {
         },
         { $set: { status: ConsultationStatus.Ended } }
       );
+    } catch (error) {
+      if (error instanceof Error || error instanceof CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getAllConsultationsByDoctorId(userId: string) {
+    try {
+      const consultations = await ConsultationModel.aggregate([
+        {
+          $lookup: {
+            from: "requests",
+            localField: "requestId",
+            foreignField: "_id",
+            as: "requestDetails",
+          },
+        },
+        { $unwind: "$requestDetails" },
+        {
+          $match: {
+            "requestDetails.doctorId": new mongoose.Types.ObjectId(userId),
+          },
+        },
+      ]);
+
+      return consultations;
     } catch (error) {
       if (error instanceof Error || error instanceof CustomException) {
         throw error;

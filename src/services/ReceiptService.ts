@@ -87,9 +87,7 @@ class ReceiptService {
           "Requester not found"
         );
       }
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
         ignoreDeleted = true;
       }
       const receipts = await this.receiptRepository.getAllReceipt(
@@ -125,9 +123,7 @@ class ReceiptService {
           "Requester not found"
         );
       }
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
         ignoreDeleted = true;
       }
       if (!ignoreDeleted && requesterId.toString() !== userId.toString()) {
@@ -169,9 +165,7 @@ class ReceiptService {
           "Requester not found"
         );
       }
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
         ignoreDeleted = true;
       }
 

@@ -3,13 +3,14 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
 import { IUser } from "../interfaces/IUser";
-import UserRepository from "../repositories/UserRepository";
+import UserRepository, { IDoctor } from "../repositories/UserRepository";
 import Database from "../utils/database";
 import SessionService from "./SessionService";
 import { IQuery } from "../interfaces/IQuery";
 import { returnData } from "../repositories/UserRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import TierRepository from "../repositories/TierRepository";
+import ConsultationRepository from "../repositories/ConsultationRepository";
 
 class UserService {
   private userRepository: UserRepository;
@@ -17,13 +18,14 @@ class UserService {
   private database: Database;
   private membershipPackageRepository: MembershipPackageRepository;
   private tierRepository: TierRepository;
-
+  private consultationRepository: ConsultationRepository;
   constructor() {
     this.userRepository = new UserRepository();
     this.sessionService = new SessionService();
     this.database = Database.getInstance();
     this.membershipPackageRepository = new MembershipPackageRepository();
     this.tierRepository = new TierRepository();
+    this.consultationRepository = new ConsultationRepository();
   }
 
   /**
@@ -67,19 +69,9 @@ class UserService {
         );
       }
 
-      // Check if a super admin is trying to change their own role or another super admin's role
-      if (requesterRole === UserEnum.SUPER_ADMIN) {
-        if (role === UserEnum.SUPER_ADMIN) {
-          throw new CustomException(
-            StatusCodeEnum.BadRequest_400,
-            "Only one super admin allowed"
-          );
-        }
-      }
-
       // If the requester is an admin, they cannot change another admin's role
       if (requesterRole === UserEnum.ADMIN) {
-        if (role === UserEnum.ADMIN || role === UserEnum.SUPER_ADMIN) {
+        if (role === UserEnum.ADMIN) {
           throw new CustomException(
             StatusCodeEnum.BadRequest_400,
             "Admins cannot change another admin's role"
@@ -172,7 +164,7 @@ class UserService {
   getUserById = async (
     id: string | ObjectId,
     requesterId: string | ObjectId
-  ): Promise<IUser | CustomException> => {
+  ): Promise<IDoctor | IUser | CustomException> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -186,10 +178,8 @@ class UserService {
           "Requester not found"
         );
       }
-      ignoreDeleted = [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester.role
-      );
-      const checkUser = await this.userRepository.getUserById(
+      ignoreDeleted = [UserEnum.ADMIN].includes(checkRequester.role);
+      let checkUser = await this.userRepository.getUserById(
         id as string,
         ignoreDeleted
       );
@@ -200,8 +190,34 @@ class UserService {
         );
       }
 
+      if (checkUser.role === UserEnum.DOCTOR) {
+        let totalRating = 0;
+        let totalRatingCount = 0;
+        const consultations =
+          await this.consultationRepository.getAllConsultationsByDoctorId(
+            id as string
+          );
+
+        if ((consultations || []).length > 0) {
+          consultations.map((c) => {
+            if (c.rating > 0) {
+              totalRating += c.rating;
+              totalRatingCount += 1;
+            }
+          });
+        } else {
+          totalRating = 0;
+          totalRatingCount = 1;
+        }
+
+        checkUser = {
+          ...checkUser.toObject(),
+          rating: totalRating / totalRatingCount,
+        };
+      }
+
       if (id.toString() === requesterId.toString()) {
-        return checkUser;
+        return checkUser as IUser | IDoctor;
       }
 
       switch (checkRequester?.role) {
@@ -213,27 +229,16 @@ class UserService {
               "User can not get other users' info"
             );
           }
-          return checkUser;
+          return checkUser as IUser | IDoctor;
 
         //everyone can get doctor
-        case UserEnum.DOCTOR:
-          return checkUser;
+        case UserEnum.DOCTOR: {
+          return checkUser as IUser | IDoctor;
+        }
 
         //admin can get admins and super admin
         case UserEnum.ADMIN:
-          if (
-            ![UserEnum.SUPER_ADMIN, UserEnum.ADMIN].includes(checkUser?.role)
-          ) {
-            throw new CustomException(
-              StatusCodeEnum.Forbidden_403,
-              "You do not have the authorization to perform this action"
-            );
-          }
-          return checkUser;
-
-        //get all
-        case UserEnum.SUPER_ADMIN:
-          return checkUser;
+          return checkUser as IUser | IDoctor;
 
         default:
           throw new CustomException(
@@ -252,6 +257,7 @@ class UserService {
       );
     }
   };
+
   getUsers = async (
     Query: IQuery,
     requesterId: string | ObjectId
@@ -269,9 +275,7 @@ class UserService {
       );
     }
 
-    ignoreDeleted = [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-      checkRequester.role
-    );
+    ignoreDeleted = [UserEnum.ADMIN].includes(checkRequester.role);
     try {
       let users;
       switch (checkRequester?.role) {
@@ -293,35 +297,57 @@ class UserService {
           users = await this.userRepository.getAllUsersRepository(
             Query,
             ignoreDeleted,
-            [
-              UserEnum.MEMBER,
-              UserEnum.DOCTOR,
-              UserEnum.ADMIN,
-              UserEnum.SUPER_ADMIN,
-            ]
+            [UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]
           );
           break;
-        case UserEnum.SUPER_ADMIN:
-          users = await this.userRepository.getAllUsersRepository(
-            Query,
-            ignoreDeleted,
-            [
-              UserEnum.MEMBER,
-              UserEnum.DOCTOR,
-              UserEnum.ADMIN,
-              UserEnum.SUPER_ADMIN,
-            ]
-          );
-          break;
+
         default:
           throw new CustomException(
             StatusCodeEnum.BadRequest_400,
             "Your role is not supported"
           );
       }
-      return users;
+
+      const formatedUsers = await Promise.all(
+        users.users.map(async (user) => {
+          if (user.role === UserEnum.DOCTOR) {
+            let totalRating = 0;
+            let totalRatingCount = 0;
+            const consultations =
+              await this.consultationRepository.getAllConsultationsByDoctorId(
+                user._id as string
+              );
+
+            if ((consultations || []).length > 0) {
+              consultations.map((c) => {
+                if (c.rating > 0) {
+                  totalRating += c.rating;
+                  totalRatingCount += 1;
+                }
+              });
+            } else {
+              totalRating = 0;
+              totalRatingCount = 1;
+            }
+
+            return {
+              ...(typeof user.toObject === "function" ? user.toObject() : user),
+              rating: totalRating / totalRatingCount,
+            };
+          }
+
+          return user;
+        })
+      );
+
+      return {
+        users: formatedUsers as unknown as IDoctor[] | IUser[],
+        total: users.total,
+        page: users.page,
+        totalPages: users.totalPages,
+      };
     } catch (error) {
-      if (error as Error | CustomException) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -389,21 +415,6 @@ class UserService {
             "Admin can only update doctor"
           );
 
-        case UserEnum.SUPER_ADMIN:
-          if ([UserEnum.DOCTOR, UserEnum.ADMIN].includes(checkUser?.role)) {
-            const user = await this.userRepository.updateUserById(
-              id as string,
-              data,
-              session
-            );
-            await this.database.commitTransaction(session);
-            return user;
-          }
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Super admin can only update doctor, admin"
-          );
-
         default:
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,
@@ -464,15 +475,6 @@ class UserService {
             "Admin can only delete doctor"
           );
 
-        case UserEnum.SUPER_ADMIN:
-          if ([UserEnum.ADMIN, UserEnum.DOCTOR].includes(checkUser?.role)) {
-            const user = await this.userRepository.deleteUserById(id as string);
-            return user;
-          }
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Super admin can only delete admin and doctor"
-          );
         default:
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,
@@ -639,6 +641,210 @@ class UserService {
         throw error;
       }
 
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  createConsultationRating = async (
+    consultationId: string,
+    requesterId: string,
+    rating: number
+  ) => {
+    const session = await this.database.startTransaction();
+    try {
+      const consultation = await this.consultationRepository.getConsultation(
+        consultationId,
+        false
+      );
+
+      if (!consultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
+
+      if (
+        consultation.requestDetails.memberId.toString() !==
+        requesterId.toString()
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation"
+        );
+      }
+
+      if (consultation.status !== "Ended") {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation because it has not ended yet"
+        );
+      }
+
+      if (consultation.rating !== 0) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Please use the update rating to update consultation"
+        );
+      }
+
+      const updatedConsultation =
+        await this.consultationRepository.updateConsultation(
+          consultationId,
+          {
+            rating: rating,
+          },
+          session
+        );
+
+      console.log(updatedConsultation);
+      await this.database.commitTransaction(session);
+      return updatedConsultation;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  updateConsultationRating = async (
+    consultationId: string,
+    requesterId: string,
+    rating: number
+  ) => {
+    const session = await this.database.startTransaction();
+    try {
+      const consultation = await this.consultationRepository.getConsultation(
+        consultationId,
+        false
+      );
+
+      if (!consultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
+
+      if (
+        consultation.requestDetails.memberId.toString() !==
+        requesterId.toString()
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation"
+        );
+      }
+
+      if (consultation.status !== "Ended") {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation because it has not ended yet"
+        );
+      }
+
+      if (consultation.rating === 0) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "You need to have a rating before you can update it"
+        );
+      }
+      const updatedConsultation =
+        await this.consultationRepository.updateConsultation(
+          consultationId,
+          {
+            rating: rating,
+          },
+          session
+        );
+
+      await this.database.commitTransaction(session);
+      return updatedConsultation;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  removeConsultationRating = async (
+    consultationId: string,
+    requesterId: string,
+    rating: number
+  ) => {
+    const session = await this.database.startTransaction();
+    try {
+      const consultation = await this.consultationRepository.getConsultation(
+        consultationId,
+        false
+      );
+
+      if (!consultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
+
+      if (
+        consultation.requestDetails.memberId.toString() !==
+        requesterId.toString()
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation"
+        );
+      }
+
+      if (consultation.status !== "Ended") {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation because it has not ended yet"
+        );
+      }
+
+      if (consultation.rating === 0) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Consultation can not be deleted because it does not exist"
+        );
+      }
+      const updatedConsultation =
+        await this.consultationRepository.updateConsultation(
+          consultationId,
+          {
+            rating: rating,
+          },
+          session
+        );
+
+      await this.database.commitTransaction(session);
+      return updatedConsultation;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"

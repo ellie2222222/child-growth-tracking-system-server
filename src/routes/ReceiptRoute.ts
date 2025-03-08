@@ -13,31 +13,21 @@ router.use(AuthMiddleware);
 
 router.get(
   "/",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   receiptHandler.getAllReceipts,
   receiptController.getAllReceipts
 );
 
 router.get(
   "/users/:userId",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.MEMBER,
-    UserEnum.DOCTOR,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   receiptHandler.getReceiptsByUserId,
   receiptController.getReceiptsByUserId
 );
 
 router.get(
   "/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.MEMBER,
-    UserEnum.DOCTOR,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   receiptHandler.getReceiptById,
   receiptController.getReceiptById
 );

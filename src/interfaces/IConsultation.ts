@@ -8,7 +8,7 @@ export enum ConsultationStatus {
 export interface IConsultation extends IBaseEntity {
   requestId: ObjectId;
   status: ConsultationStatus;
-  userFeedback: string;
+  rating: number;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;

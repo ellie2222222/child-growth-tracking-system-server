@@ -40,13 +40,16 @@ class ConsultationService {
           );
         }
 
-        if (![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkUser.role)) {
+        if (![UserEnum.ADMIN].includes(checkUser.role)) {
           const checkConsultation =
             await this.consultationRepository.getConsultation(id, false);
-          
-            if (!checkConsultation) {
-              throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found")
-            }
+
+          if (!checkConsultation) {
+            throw new CustomException(
+              StatusCodeEnum.NotFound_404,
+              "Consultation not found"
+            );
+          }
 
           if (
             checkConsultation.requestDetails.memberId.toString() !== requesterId
@@ -97,9 +100,7 @@ class ConsultationService {
           "User not found"
         );
       }
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        requester.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(requester.role);
 
       if (!notAdmin) {
         ignoreDeleted = true;
@@ -109,9 +110,12 @@ class ConsultationService {
         id,
         ignoreDeleted
       );
-      
+
       if (!consultation) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found")
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
       }
 
       const notMember =
@@ -158,9 +162,7 @@ class ConsultationService {
           "User not found"
         );
       }
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        requester.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(requester.role);
 
       if (!notAdmin) {
         ignoreDeleted = true;
@@ -205,9 +207,7 @@ class ConsultationService {
         );
       }
 
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester.role);
 
       if (notAdmin) {
         //requesting someone else's data
@@ -277,16 +277,17 @@ class ConsultationService {
           "User not found"
         );
       }
-      const notAdmin = ![UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester.role
-      );
+      const notAdmin = ![UserEnum.ADMIN].includes(checkRequester.role);
 
       const consultation = await this.consultationRepository.getConsultation(
         id,
         false
       );
       if (!consultation) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Consultation not found")
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
       }
 
       const notOwner =

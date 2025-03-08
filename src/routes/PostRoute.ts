@@ -36,12 +36,7 @@ router.put(
 
 router.put(
   "/status/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.MEMBER,
-    UserEnum.DOCTOR,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   postHandler.updatePostStatus,
   postController.updatePostStatus
 );
@@ -57,12 +52,7 @@ router.get("/:id", postHandler.getPost, postController.getPost);
 
 router.delete(
   "/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
   postHandler.deletePost,
   postController.deletePost
 );

@@ -177,7 +177,7 @@ class UserHandler {
 
   getUsers = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
-    const { page, size, search, order, sortBy } = req.query;
+    const { page, size, order, sortBy } = req.query;
     if (Number.isNaN(page)) {
       validationErrors.push({
         field: "Page",
@@ -280,6 +280,109 @@ class UserHandler {
       validationErrors.push({
         field: "Invalid userId",
         error: (error as Error | CustomException).message,
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+      return;
+    } else {
+      next();
+    }
+  };
+
+  createConsultationRating = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const validationErrors: { field: string; error: string }[] = [];
+
+    const { id } = req.params;
+    const { rating } = req.body;
+
+    try {
+      validateMongooseObjectId(id);
+    } catch {
+      validationErrors.push({
+        field: "id",
+        error: "Invalid consultationId",
+      });
+    }
+
+    if (rating < 1 || rating > 5) {
+      validationErrors.push({
+        field: "rating",
+        error: "Rating must be between 1 and 5",
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+      return;
+    } else {
+      next();
+    }
+  };
+
+  updateConsultationRating = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const validationErrors: { field: string; error: string }[] = [];
+
+    const { id } = req.params;
+    const { rating } = req.body;
+
+    try {
+      validateMongooseObjectId(id);
+    } catch {
+      validationErrors.push({
+        field: "id",
+        error: "Invalid consultationId",
+      });
+    }
+
+    if (rating < 1 || rating > 5) {
+      validationErrors.push({
+        field: "rating",
+        error: "Rating must be between 1 and 5",
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+      return;
+    } else {
+      next();
+    }
+  };
+
+  removeConsultationRating = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const validationErrors: { field: string; error: string }[] = [];
+
+    const { id } = req.params;
+
+    try {
+      validateMongooseObjectId(id);
+    } catch {
+      validationErrors.push({
+        field: "id",
+        error: "Invalid consultationId",
       });
     }
 

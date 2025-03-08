@@ -48,7 +48,6 @@ class ChildService {
 
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
         case UserEnum.MEMBER:
           break;
 
@@ -111,7 +110,6 @@ class ChildService {
       let child: IChild | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           child = await this.childRepository.getChildById(childId, true);
           break;
 
@@ -179,7 +177,6 @@ class ChildService {
       let data: ChildrenData;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           data = await this.childRepository.getChildrenByUserId(
             userId,
             query,
@@ -238,7 +235,6 @@ class ChildService {
       let child: IChild | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           child = await this.childRepository.getChildById(childId, true);
           break;
 
@@ -322,7 +318,6 @@ class ChildService {
       let child: IChild | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
-        case UserEnum.SUPER_ADMIN:
           child = await this.childRepository.getChildById(childId, true);
           break;
 

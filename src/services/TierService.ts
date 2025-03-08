@@ -80,7 +80,10 @@ class TierService {
     try {
       const oldTier = await this.tierRepository.getTier(id, false);
       if (!oldTier) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Previous tier not found");
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Previous tier not found"
+        );
       }
 
       const formattedPostLimit: ILimitObject = oldTier.postsLimit;
@@ -183,10 +186,9 @@ class TierService {
         );
       }
 
-      const shouldIgnoreDeleted = [
-        UserEnum.ADMIN,
-        UserEnum.SUPER_ADMIN,
-      ].includes(checkRequester?.role);
+      const shouldIgnoreDeleted = [UserEnum.ADMIN].includes(
+        checkRequester?.role
+      );
 
       const tierInfo = await this.tierRepository.getTier(
         id,
@@ -220,7 +222,7 @@ class TierService {
       }
 
       const shouldIgnoreDeleted =
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role) &&
+        [UserEnum.ADMIN].includes(checkRequester?.role) &&
         Boolean(ignoreDeleted);
 
       const TiersInfo = await this.tierRepository.getTiers(

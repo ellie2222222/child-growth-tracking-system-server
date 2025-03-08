@@ -14,45 +14,35 @@ consultationRouter.use(AuthMiddleware);
 
 consultationRouter.put(
   "/status/:id",
-  RoleMiddleware([UserEnum.MEMBER, UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.ADMIN]),
   consultationHandler.updateConsultationStatus,
   consultationController.updateConsultationStatus
 );
 
 consultationRouter.get(
   "/",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   consultationHandler.getConsultations,
   consultationController.getConsultations
 );
 
 consultationRouter.get(
   "/users/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
   consultationHandler.getConsultationsByUserId,
   consultationController.getConsultationsByUserId
 );
 
 consultationRouter.get(
   "/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
   consultationHandler.getConsultation,
   consultationController.getConsultation
 );
 
 consultationRouter.delete(
   "/:id",
-  RoleMiddleware([UserEnum.MEMBER, UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.ADMIN]),
   consultationHandler.deleteConsultation,
   consultationController.deleteConsultation
 );

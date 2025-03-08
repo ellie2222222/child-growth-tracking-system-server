@@ -13,7 +13,7 @@ router.use(AuthMiddleware);
 
 router.get(
   "/revenue",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.SUPER_ADMIN]),
+  RoleMiddleware([UserEnum.ADMIN]),
   statisticHandler.getRevenue,
   statisticController.getRevenue
 );

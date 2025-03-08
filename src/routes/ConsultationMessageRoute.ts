@@ -22,24 +22,14 @@ consultationMessageRouter.post(
 
 consultationMessageRouter.get(
   "/consultations/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
   consultationMessageHandler.getConsultationMessages,
   consultationMessageController.getConsultationMessages
 );
 
 consultationMessageRouter.get(
   "/:id",
-  RoleMiddleware([
-    UserEnum.ADMIN,
-    UserEnum.SUPER_ADMIN,
-    UserEnum.DOCTOR,
-    UserEnum.MEMBER,
-  ]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
   consultationMessageHandler.getConsultationMessage,
   consultationMessageController.getConsultationMessage
 );

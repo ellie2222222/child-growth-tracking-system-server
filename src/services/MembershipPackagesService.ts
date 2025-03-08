@@ -93,9 +93,7 @@ class MembershipPackageService {
         );
       }
 
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
         ignoreDeleted = true;
       }
 
@@ -105,7 +103,10 @@ class MembershipPackageService {
           ignoreDeleted
         );
       if (!membershipPackage) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Membership package not found");
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Membership package not found"
+        );
       }
 
       return membershipPackage;
@@ -136,9 +137,7 @@ class MembershipPackageService {
         );
       }
 
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
         ignoreDeleted = true;
       }
 
@@ -171,14 +170,17 @@ class MembershipPackageService {
     try {
       const oldPackage =
         await this.membershipPackageRepository.getMembershipPackage(id, false);
-      
+
       if (!oldPackage) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "Previous package not found")
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Previous package not found"
+        );
       }
 
       const checkMembership =
         await this.membershipPackageRepository.getMembershipByName(name);
-      
+
       if (checkMembership) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
