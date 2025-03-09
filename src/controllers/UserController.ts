@@ -34,14 +34,14 @@ class UserController {
   createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const requesterId = req.userInfo.userId;
-      const { name, email, phoneNumber, password, type } = req.body;
+      const { name, email, phoneNumber, password, role } = req.body;
 
       const user = await this.userService.createUser(
         name,
         password,
         email,
         phoneNumber,
-        type,
+        role,
         requesterId
       );
 

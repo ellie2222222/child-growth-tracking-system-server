@@ -11,6 +11,7 @@ import { returnData } from "../repositories/UserRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import TierRepository from "../repositories/TierRepository";
 import ConsultationRepository from "../repositories/ConsultationRepository";
+import bcrypt from "bcrypt";
 
 class UserService {
   private userRepository: UserRepository;
@@ -103,7 +104,7 @@ class UserService {
     password: string,
     phoneNumber: string,
     email: string,
-    type: string,
+    role: number,
     requesterId: string
   ): Promise<IUser> => {
     const session = await this.database.startTransaction();
@@ -120,32 +121,29 @@ class UserService {
         );
       }
 
-      let data;
-      let user: IUser;
-
-      switch (type) {
-        case "doctor":
-          data = { name, password, phoneNumber, email, role: 3 };
-          user = await this.userRepository.createDoctor(data, session);
-          break;
-
-        case "admin":
-          if (checkUser.role === UserEnum.ADMIN) {
-            throw new CustomException(
-              StatusCodeEnum.Forbidden_403,
-              "Admins cannot create another admin"
-            );
-          }
-          data = { name, password, role: 1, email, phoneNumber };
-          user = await this.userRepository.createAdmin(data, session);
-          break;
-
-        default:
-          throw new CustomException(
-            StatusCodeEnum.BadRequest_400,
-            "User type not supported"
-          );
+      if (checkUser.role !== UserEnum.ADMIN) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "Only admins can create new users"
+        );
       }
+
+      const saltRounds = 10;
+      const salt = await bcrypt.genSalt(saltRounds);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const data = {
+        name: name,
+        password: hashedPassword,
+        phoneNumber,
+        email,
+        role: role,
+      };
+
+      console.log(data);
+
+      const user: IUser = await this.userRepository.createUser(data, session);
+
       await this.database.commitTransaction(session);
       return user;
     } catch (error) {
@@ -297,7 +295,7 @@ class UserService {
           users = await this.userRepository.getAllUsersRepository(
             Query,
             ignoreDeleted,
-            [UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]
+            [UserEnum.MEMBER, UserEnum.DOCTOR]
           );
           break;
 

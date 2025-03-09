@@ -11,14 +11,23 @@ import { IUser } from "../interfaces/IUser";
 import { Schema } from "mongoose";
 import sendMail from "../utils/mailer";
 import Mail from "nodemailer/lib/mailer";
-import IJwtPayload, { IVerificationTokenPayload } from "../interfaces/IJwtPayload";
+import IJwtPayload, {
+  IVerificationTokenPayload,
+} from "../interfaces/IJwtPayload";
 import path from "path";
 import ejs from "ejs";
+import UserEnum from "../enums/UserEnum";
 
 dotenv.config();
 
-const emailTemplatePath = path.resolve(__dirname, "../templates/EmailVerification.ejs");
-const resetPasswordTemplatePath = path.resolve(__dirname, "../templates/ResetPassword.ejs");
+const emailTemplatePath = path.resolve(
+  __dirname,
+  "../templates/EmailVerification.ejs"
+);
+const resetPasswordTemplatePath = path.resolve(
+  __dirname,
+  "../templates/ResetPassword.ejs"
+);
 
 class AuthService {
   private userRepository: UserRepository;
@@ -47,7 +56,7 @@ class AuthService {
         expiresIn: accessTokenExpiration,
       });
     } catch (error) {
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -73,7 +82,7 @@ class AuthService {
         expiresIn: refreshTokenExpiration,
       });
     } catch (error) {
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -89,13 +98,16 @@ class AuthService {
    * @param refreshToken - The refresh token string.
    * @returns A promise that resolves to the new JWT Access Token.
    */
-  renewAccessToken = async (accessToken: string, refreshToken: string): Promise<string> => {
+  renewAccessToken = async (
+    accessToken: string,
+    refreshToken: string
+  ): Promise<string> => {
     try {
       const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET!;
       const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET!;
-  
+
       let isAccessTokenExpired = false;
-  
+
       // Verify the access token
       try {
         jwt.verify(accessToken, accessTokenSecret);
@@ -113,29 +125,44 @@ class AuthService {
           );
         }
       }
-  
+
       if (isAccessTokenExpired) {
         let payload: IJwtPayload | null = null;
         try {
-          payload = jwt.verify(refreshToken, refreshTokenSecret) as IJwtPayload | null;
+          payload = jwt.verify(
+            refreshToken,
+            refreshTokenSecret
+          ) as IJwtPayload | null;
           if (!payload) {
-            throw new CustomException(StatusCodeEnum.Unauthorized_401, "Invalid refresh token");
+            throw new CustomException(
+              StatusCodeEnum.Unauthorized_401,
+              "Invalid refresh token"
+            );
           }
         } catch (error) {
           if (error instanceof jwt.TokenExpiredError) {
-            throw new CustomException(StatusCodeEnum.Unauthorized_401, "Refresh token expired. Please log in again.");
+            throw new CustomException(
+              StatusCodeEnum.Unauthorized_401,
+              "Refresh token expired. Please log in again."
+            );
           }
-          throw new CustomException(StatusCodeEnum.Unauthorized_401, "Invalid refresh token");
+          throw new CustomException(
+            StatusCodeEnum.Unauthorized_401,
+            "Invalid refresh token"
+          );
         }
-  
-        const user = await this.userRepository.getUserById(payload!.userId, false);
+
+        const user = await this.userRepository.getUserById(
+          payload!.userId,
+          false
+        );
         if (!user) {
           throw new CustomException(
             StatusCodeEnum.Unauthorized_401,
             "User not found"
           );
         }
-  
+
         // Generate a new access token
         const newPayload = {
           userId: user._id,
@@ -144,16 +171,16 @@ class AuthService {
           role: user.role,
           timestamp: new Date().toISOString(),
         };
-  
+
         return this.generateAccessToken(newPayload);
       }
-  
+
       throw new CustomException(
         StatusCodeEnum.BadRequest_400,
         "Unexpected error occurred while refreshing token"
       );
     } catch (error) {
-      if ((error instanceof CustomException) || (error instanceof Error)) {
+      if (error instanceof CustomException || error instanceof Error) {
         throw error;
       }
       throw new CustomException(
@@ -161,7 +188,7 @@ class AuthService {
         "Internal Server Error"
       );
     }
-  };  
+  };
 
   /**
    * Logs in a user and generates an access token.
@@ -233,7 +260,7 @@ class AuthService {
         sessionId,
       };
     } catch (error) {
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -247,38 +274,41 @@ class AuthService {
     const session = await this.database.startTransaction();
     try {
       const payload = jwt.decode(refreshToken) as IJwtPayload | null;
-  
+
       if (!payload || !payload.userId) {
         throw new CustomException(
           StatusCodeEnum.Unauthorized_401,
           "Invalid refresh token payload"
         );
       }
-  
+
       const { userId } = payload;
-  
+
       // Check if user exists
       const user = await this.userRepository.getUserById(userId, false);
       if (!user) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "User not found");
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
       }
-  
+
       await this.sessionService.deleteSessionsByUserId(userId);
-  
+
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      
+
       if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
-  
+
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
     }
-  };  
+  };
 
   loginGoogle = async (
     googleUser: any,
@@ -310,6 +340,13 @@ class AuthService {
           avatar: picture,
           googleId: sub,
         });
+      }
+
+      if (user.role === UserEnum.DOCTOR) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Invalid login method for doctor"
+        );
       }
 
       // Create session data
@@ -346,7 +383,7 @@ class AuthService {
         sessionId,
       };
     } catch (error) {
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -383,7 +420,7 @@ class AuthService {
 
       return;
     } catch (error) {
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -399,19 +436,20 @@ class AuthService {
    * @param userId - The user ID.
    * @returns A void promise.
    */
-  getUserByToken = async (
-    accessToken: string
-  ): Promise<IUser | null> => {
+  getUserByToken = async (accessToken: string): Promise<IUser | null> => {
     try {
       const decoded = jwt.verify(
-      accessToken,
-      process.env.ACCESS_TOKEN_SECRET as string
-    ) as IJwtPayload;
+        accessToken,
+        process.env.ACCESS_TOKEN_SECRET as string
+      ) as IJwtPayload;
 
       const { userId } = decoded;
       const user = await this.userRepository.getUserById(userId, false);
       if (!user) {
-        throw new CustomException(StatusCodeEnum.NotFound_404, "User not found")
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
       }
 
       return user;
@@ -469,12 +507,19 @@ class AuthService {
           expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
         },
       };
-      await this.userRepository.updateUserById(user._id as string, updateData, session);
+      await this.userRepository.updateUserById(
+        user._id as string,
+        updateData,
+        session
+      );
 
-      const resetPasswordHtml = await ejs.renderFile(resetPasswordTemplatePath, { 
-        name: user.name,
-        pin: pin,
-      });
+      const resetPasswordHtml = await ejs.renderFile(
+        resetPasswordTemplatePath,
+        {
+          name: user.name,
+          pin: pin,
+        }
+      );
 
       const mailOptions: Mail.Options = {
         from: process.env.EMAIL_USER,
@@ -488,7 +533,7 @@ class AuthService {
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -558,7 +603,7 @@ class AuthService {
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -620,7 +665,7 @@ class AuthService {
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -678,7 +723,7 @@ class AuthService {
       await this.database.commitTransaction(session);
     } catch (error) {
       await this.database.abortTransaction(session);
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -695,7 +740,11 @@ class AuthService {
    * @param name - The user's name.
    * @returns A void promise.
    */
-  private sendVerificationEmail = async (email: string, password: string, name: string): Promise<void> => {
+  private sendVerificationEmail = async (
+    email: string,
+    password: string,
+    name: string
+  ): Promise<void> => {
     try {
       // Generate token
       const token = jwt.sign(
@@ -704,10 +753,10 @@ class AuthService {
         { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
       );
 
-      const emailHtml = await ejs.renderFile(emailTemplatePath, { 
+      const emailHtml = await ejs.renderFile(emailTemplatePath, {
         name: name,
         expiration: process.env.EMAIL_TOKEN_EXPIRATION,
-        verificationLink: `${process.env.FRONTEND_URL}/verify-email?verificationToken=${token}`
+        verificationLink: `${process.env.FRONTEND_URL}/verify-email?verificationToken=${token}`,
       });
 
       const mailOptions: Mail.Options = {
@@ -721,7 +770,7 @@ class AuthService {
 
       return;
     } catch (error) {
-      if ((error instanceof Error) || (error instanceof CustomException)) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -739,7 +788,10 @@ class AuthService {
   confirmEmailVerificationToken = async (token: string): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
-      const payload = jwt.verify(token, process.env.EMAIL_TOKEN_SECRET!) as IVerificationTokenPayload;
+      const payload = jwt.verify(
+        token,
+        process.env.EMAIL_TOKEN_SECRET!
+      ) as IVerificationTokenPayload;
       const { name, email, password } = payload;
 
       // Check if user already exists
@@ -754,7 +806,7 @@ class AuthService {
       const saltRounds = 10;
       const salt = await bcrypt.genSalt(saltRounds);
       const hashedPassword = await bcrypt.hash(password, salt);
-      
+
       await this.userRepository.createUser(
         {
           name,
@@ -781,7 +833,7 @@ class AuthService {
             "Invalid email verification token"
           );
         }
-      } 
+      }
       if (error instanceof CustomException) {
         throw error;
       }

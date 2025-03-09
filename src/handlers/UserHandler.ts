@@ -54,90 +54,50 @@ class UserHandler {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const { name, email, password, phoneNumber, type } = req.body;
+    const { name, email, password, phoneNumber, role } = req.body;
     const validationErrors: { field: string; error: string }[] = [];
 
-    switch (type) {
-      case "doctor":
-        try {
-          await validateName(name);
-        } catch (error) {
-          validationErrors.push({
-            field: "Invalid doctor field",
-            error: (error as CustomException | Error).message,
-          });
-        }
+    if (![UserEnum.MEMBER, UserEnum.ADMIN, UserEnum.DOCTOR].includes(role)) {
+      validationErrors.push({
+        field: "role",
+        error: "Invalid role for user",
+      });
+    }
 
-        try {
-          await validateEmail(email);
-        } catch (error) {
-          validationErrors.push({
-            field: "Invalid doctor field",
-            error: (error as CustomException | Error).message,
-          });
-        }
+    try {
+      await validateName(name);
+    } catch (error) {
+      validationErrors.push({
+        field: "Invalid doctor field",
+        error: (error as CustomException | Error).message,
+      });
+    }
 
-        try {
-          await validatePassword(password);
-        } catch (error) {
-          validationErrors.push({
-            field: "Invalid doctor field",
-            error: (error as CustomException | Error).message,
-          });
-        }
+    try {
+      await validateEmail(email);
+    } catch (error) {
+      validationErrors.push({
+        field: "Invalid doctor field",
+        error: (error as CustomException | Error).message,
+      });
+    }
 
-        try {
-          await validatePhoneNumber(phoneNumber);
-        } catch (error) {
-          validationErrors.push({
-            field: "Invalid doctor field",
-            error: (error as CustomException | Error).message,
-          });
-        }
-        break;
+    try {
+      await validatePassword(password);
+    } catch (error) {
+      validationErrors.push({
+        field: "Invalid doctor field",
+        error: (error as CustomException | Error).message,
+      });
+    }
 
-      case "admin":
-        try {
-          await validateName(name);
-        } catch (error) {
-          validationErrors.push({
-            field: "Invalid admin field",
-            error: (error as CustomException | Error).message,
-          });
-        }
-
-        try {
-          await validatePassword(password);
-        } catch (error) {
-          validationErrors.push({
-            field: "Invalid admin field",
-            error: (error as CustomException | Error).message,
-          });
-        }
-        if (email && email !== "") {
-          try {
-            await validateEmail(email);
-          } catch (error) {
-            validationErrors.push({
-              field: "Invalid admin field",
-              error: (error as CustomException | Error).message,
-            });
-          }
-        }
-        if (phoneNumber && phoneNumber !== "") {
-          try {
-            await validatePhoneNumber(phoneNumber);
-          } catch (error) {
-            validationErrors.push({
-              field: "invalid admin field",
-              error: (error as CustomException | Error).message,
-            });
-          }
-        }
-        break;
-
-      default:
-        break;
+    try {
+      await validatePhoneNumber(phoneNumber);
+    } catch (error) {
+      validationErrors.push({
+        field: "Invalid doctor field",
+        error: (error as CustomException | Error).message,
+      });
     }
 
     if (validationErrors.length > 0) {
