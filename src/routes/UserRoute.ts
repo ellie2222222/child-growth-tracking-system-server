@@ -12,12 +12,6 @@ const userRoutes = express.Router();
 
 userRoutes.use(AuthMiddleware);
 
-userRoutes.get(
-  "/:userId/role",
-  RoleMiddleware([UserEnum.ADMIN]),
-  userController.updateRole
-);
-
 userRoutes.post(
   "/",
   RoleMiddleware([UserEnum.ADMIN]),
@@ -30,6 +24,12 @@ userRoutes.get(
   RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   userHandler.getUsers,
   userController.getUsers
+);
+
+userRoutes.get(
+  "/:userId/role",
+  RoleMiddleware([UserEnum.ADMIN]),
+  userController.updateRole
 );
 
 userRoutes.get(

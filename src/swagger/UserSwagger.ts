@@ -3,7 +3,7 @@
  * /api/users/{userId}/role:
  *   patch:
  *     summary: Update user role
- *     description: Updates the role of a user. Only accessible by admins and super admins.
+ *     description: Updates the role of a user. Only accessible by admins .
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
@@ -32,13 +32,17 @@
  *       500:
  *         description: Internal server error
  */
-
 /**
  * @swagger
  * /api/users:
  *   post:
  *     summary: Create a new user
- *     description: Creates a new user. Only accessible by admins and super admins.
+ *     description: |
+ *       Creates a new user. Only accessible by admins .
+ *       Role currently has 3 values:
+ *       - User: 0
+ *       - Admin: 1
+ *       - Doctor: 2
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
@@ -61,9 +65,9 @@
  *               password:
  *                 type: string
  *                 example: "password123"
- *               type:
- *                 type: string
- *                 example: "MEMBER"
+ *               role:
+ *                 type: integer
+ *                 enum: [0, 1, 2]
  *     responses:
  *       201:
  *         description: User created successfully
@@ -182,7 +186,7 @@
  * /api/users/{id}:
  *   delete:
  *     summary: Delete a user
- *     description: Deletes a user by ID. Only accessible by admins and super admins.
+ *     description: Deletes a user by ID. Only accessible by admins .
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
@@ -227,3 +231,83 @@
  *         description: Internal server error
  */
 
+/**
+ * @swagger
+ * /api/users/consultation/{id}/rating:
+ *   post:
+ *     summary: Create a consultation rating
+ *     description: Allows a user to submit a rating for a consultation.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The consultation ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 example: 5
+ *     responses:
+ *       200:
+ *         description: Consultation rating has been created
+ *       400:
+ *         description: Invalid request data
+ *       500:
+ *         description: Internal server error
+ *
+ *   put:
+ *     summary: Update a consultation rating
+ *     description: Allows a user to update their rating for a consultation.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The consultation ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: number
+ *                 example: 4
+ *     responses:
+ *       200:
+ *         description: Consultation rating has been updated
+ *       400:
+ *         description: Invalid request data
+ *       500:
+ *         description: Internal server error
+ *
+ *   delete:
+ *     summary: Remove a consultation rating
+ *     description: Allows a user to remove their rating for a consultation.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The consultation ID
+ *     responses:
+ *       200:
+ *         description: Consultation rating has been removed
+ *       400:
+ *         description: Invalid request data
+ *       500:
+ *         description: Internal server error
+ */
