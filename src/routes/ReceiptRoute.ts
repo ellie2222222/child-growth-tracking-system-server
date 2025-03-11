@@ -4,7 +4,10 @@ import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import ReceiptHandler from "../handlers/ReceiptHandler";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
-const receiptController = new ReceiptController();
+import ReceiptService from "../services/ReceiptService";
+
+const receiptService = new ReceiptService();
+const receiptController = new ReceiptController(receiptService);
 const router = Router();
 
 const receiptHandler = new ReceiptHandler();

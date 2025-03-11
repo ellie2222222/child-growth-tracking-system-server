@@ -6,6 +6,12 @@ import { IQuery } from "../interfaces/IQuery";
 import { IConsultationMessage } from "../interfaces/IConsultationMessage";
 import { IConsultationMessageRepository } from "../interfaces/repositories/IConsultationMessageRepository";
 
+export type ReturnDataConsultationMessages = {
+  consultationMessages: IConsultationMessage[];
+  page: number;
+  totalMessages: number;
+  totalPage: number;
+};
 class ConsultationMessageRepository implements IConsultationMessageRepository {
   async createConsultationMessage(
     data: object,
@@ -36,7 +42,7 @@ class ConsultationMessageRepository implements IConsultationMessageRepository {
     consultationId: string | ObjectId,
     query: IQuery,
     ignoreDeleted: boolean
-  ): Promise<object> {
+  ): Promise<ReturnDataConsultationMessages> {
     type searchQuery = {
       consultationId: mongoose.Types.ObjectId;
       isDeleted?: boolean;
@@ -67,11 +73,12 @@ class ConsultationMessageRepository implements IConsultationMessageRepository {
 
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
 
-      const consultationMessages: IConsultationMessage[] = await ConsultationMessageModel.aggregate([
-        { $match: searchQuery },
-        { $sort: { [sortField]: sortOrder } },
-        { $limit: page * size },
-      ]);
+      const consultationMessages: IConsultationMessage[] =
+        await ConsultationMessageModel.aggregate([
+          { $match: searchQuery },
+          { $sort: { [sortField]: sortOrder } },
+          { $limit: page * size },
+        ]);
 
       if (!consultationId) {
         throw new CustomException(
@@ -84,10 +91,10 @@ class ConsultationMessageRepository implements IConsultationMessageRepository {
         searchQuery
       );
       return {
-        ConsultationMessages: consultationMessages,
-        Page: page,
-        TotalMessages: messageCount,
-        TotalPage: Math.ceil(messageCount / size),
+        consultationMessages: consultationMessages,
+        page: page,
+        totalMessages: messageCount,
+        totalPage: Math.ceil(messageCount / size),
       };
     } catch (error) {
       if (error as Error | CustomException) {
@@ -101,7 +108,10 @@ class ConsultationMessageRepository implements IConsultationMessageRepository {
     }
   }
 
-  async getConsultationMessage(id: string | ObjectId, ignoreDeleted: boolean): Promise<IConsultationMessage | null> {
+  async getConsultationMessage(
+    id: string | ObjectId,
+    ignoreDeleted: boolean
+  ): Promise<IConsultationMessage | null> {
     try {
       const searchQuery = ignoreDeleted
         ? { _id: new mongoose.Types.ObjectId(id as string) }

@@ -4,10 +4,12 @@ import CommentHandler from "../handlers/CommentHandler";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
+import CommentService from "../services/CommentService";
 
 const router = Router();
-const commentController = new CommentController();
 const commentHandler = new CommentHandler();
+const commentService = new CommentService();
+const commentController = new CommentController(commentService);
 
 router.use(AuthMiddleware);
 

@@ -3,8 +3,9 @@ import AuthController from "../controllers/AuthController";
 import AuthHandler from "../handlers/AuthHandler";
 import passport from "../config/passportConfig";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
-
-const authController = new AuthController();
+import AuthService from "../services/AuthService";
+const authService = new AuthService();
+const authController = new AuthController(authService);
 const authHandler = new AuthHandler();
 
 const authRoutes = express.Router();
@@ -52,7 +53,8 @@ authRoutes.put(
 authRoutes.post(
   "/send-reset-password-pin",
   authHandler.sendResetPasswordPin,
-  authController.sendResetPasswordPin);
+  authController.sendResetPasswordPin
+);
 
 authRoutes.post(
   "/confirm-reset-password-pin",

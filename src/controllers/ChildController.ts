@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import ChildService from "../services/ChildService";
+// import ChildService from "../services/ChildService";
 import { IQuery } from "../interfaces/IQuery";
+import { IChildService } from "../interfaces/services/IChildService";
 
 class ChildController {
-  private childService: ChildService;
+  private childService: IChildService;
 
-  constructor() {
-    this.childService = new ChildService();
+  constructor(childService: IChildService) {
+    this.childService = childService;
   }
 
   /**

@@ -12,8 +12,10 @@ import MembershipPackageRepository from "../repositories/MembershipPackageReposi
 import TierRepository from "../repositories/TierRepository";
 import ConsultationRepository from "../repositories/ConsultationRepository";
 import bcrypt from "bcrypt";
+import { IConsultation } from "../interfaces/IConsultation";
+import { IUserService } from "../interfaces/services/IUserService";
 
-class UserService {
+class UserService implements IUserService {
   private userRepository: UserRepository;
   private sessionService: SessionService;
   private database: Database;
@@ -361,7 +363,7 @@ class UserService {
     data: {
       name: string;
     }
-  ) => {
+  ): Promise<IUser | null> => {
     const session = await this.database.startTransaction();
     const ignoreDeleted = false;
     try {
@@ -433,7 +435,7 @@ class UserService {
   deleteUser = async (
     id: string | ObjectId,
     requesterId: string | ObjectId
-  ) => {
+  ): Promise<boolean> => {
     const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;
@@ -494,7 +496,7 @@ class UserService {
   updateSubscription = async (
     id: string | ObjectId,
     membershipPackageId: string | mongoose.Types.ObjectId
-  ) => {
+  ): Promise<IUser | null> => {
     const session = await this.database.startTransaction();
     try {
       const checkUser = await this.userRepository.getUserById(
@@ -565,7 +567,7 @@ class UserService {
   removeCurrentSubscription = async (
     userId: string | ObjectId,
     requesterId: string
-  ) => {
+  ): Promise<IUser | null> => {
     const session = await this.database.startTransaction();
     try {
       if (requesterId !== userId.toString()) {
@@ -652,7 +654,7 @@ class UserService {
     consultationId: string,
     requesterId: string,
     rating: number
-  ) => {
+  ): Promise<IConsultation> => {
     const session = await this.database.startTransaction();
     try {
       const consultation = await this.consultationRepository.getConsultation(
@@ -721,7 +723,7 @@ class UserService {
     consultationId: string,
     requesterId: string,
     rating: number
-  ) => {
+  ): Promise<IConsultation> => {
     const session = await this.database.startTransaction();
     try {
       const consultation = await this.consultationRepository.getConsultation(
@@ -789,7 +791,7 @@ class UserService {
     consultationId: string,
     requesterId: string,
     rating: number
-  ) => {
+  ): Promise<IConsultation> => {
     const session = await this.database.startTransaction();
     try {
       const consultation = await this.consultationRepository.getConsultation(

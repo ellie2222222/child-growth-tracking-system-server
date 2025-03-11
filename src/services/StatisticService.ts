@@ -1,5 +1,6 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
+import { IStatisticService } from "../interfaces/services/IStatisticService";
 import ReceiptRepository from "../repositories/ReceiptRepository";
 import {
   addDays,
@@ -11,12 +12,12 @@ import {
   endOfWeek,
 } from "date-fns";
 
-type IRevenue = {
+export type IRevenue = {
   Date: string;
   Revenue: number;
 };
 
-class StatisticService {
+class StatisticService implements IStatisticService {
   private receiptRepository: ReceiptRepository;
 
   constructor() {

@@ -7,6 +7,13 @@ import UserModel from "../models/UserModel";
 import { IMembershipPackage } from "../interfaces/IMembershipPackage";
 import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 
+export type ReturnDataMembershipPackages = {
+  packages: IMembershipPackage[];
+  page: number;
+  totalPackages: number;
+  totalPages: number;
+};
+
 class MembershipPackageRepository implements IMembershipPackageRepository {
   constructor() {}
   async createMembershipPackage(
@@ -73,7 +80,7 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
   async getMembershipPackages(
     query: IQuery,
     ignoreDeleted: boolean
-  ): Promise<object> {
+  ): Promise<ReturnDataMembershipPackages> {
     const { page, size, search, order, sortBy } = query;
 
     type searchQuery = {

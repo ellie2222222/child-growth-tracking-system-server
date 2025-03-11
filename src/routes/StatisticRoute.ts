@@ -4,8 +4,10 @@ import RoleMiddleware from "../middlewares/RoleMiddleware";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
 import UserEnum from "../enums/UserEnum";
 import StatisticHandler from "../handlers/StatisticHandler";
+import StatisticService from "../services/StatisticService";
 
-const statisticController = new StatisticController();
+const statisticService = new StatisticService();
+const statisticController = new StatisticController(statisticService);
 const router = Router();
 const statisticHandler = new StatisticHandler();
 

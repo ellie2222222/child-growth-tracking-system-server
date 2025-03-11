@@ -1,11 +1,13 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
+import { IReceipt } from "../interfaces/IReceipt";
+import { IPaymentQueue } from "../interfaces/queue/IPaymentQueue";
 import ReceiptService from "../services/ReceiptService";
 import UserService from "../services/UserService";
 import { closeConnection, createConnection } from "../utils/queueUtils";
 
 const PAYMENT_QUEUE_NAME = "Payment_queue";
-class PaymentQueue {
+class PaymentQueue implements IPaymentQueue {
   private receiptService: ReceiptService;
   private userService: UserService;
 
@@ -13,7 +15,8 @@ class PaymentQueue {
     this.receiptService = new ReceiptService();
     this.userService = new UserService();
   }
-  sendPaymentData = async (data: object) => {
+
+  sendPaymentData = async (data: object): Promise<void> => {
     const { connection, channel } = await createConnection();
 
     try {
@@ -35,7 +38,7 @@ class PaymentQueue {
     }
   };
 
-  consumePaymentData = async () => {
+  consumePaymentData = async (): Promise<IReceipt> => {
     const { connection, channel } = await createConnection();
     let receipt = {};
     try {
@@ -92,7 +95,7 @@ class PaymentQueue {
     } finally {
       await closeConnection(connection, channel);
     }
-    return receipt;
+    return receipt as IReceipt;
   };
 }
 

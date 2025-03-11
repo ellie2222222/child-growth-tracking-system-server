@@ -4,10 +4,11 @@ import SessionRepository from "../repositories/SessionRepository";
 import { ISession } from "../interfaces/ISession";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { ISessionService } from "../interfaces/services/ISessionService";
 
 dotenv.config();
 
-class SessionService {
+class SessionService implements ISessionService {
   private sessionRepository: SessionRepository;
   private database: Database;
 

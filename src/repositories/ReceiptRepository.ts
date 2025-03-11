@@ -5,6 +5,14 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IReceiptRepository } from "../interfaces/repositories/IReceiptRepository";
+
+export type ReturnDataReceipts = {
+  receipts: IReceipt[];
+  page: number;
+  totalReceipts: number;
+  totalPages: number;
+};
+
 class ReceiptRepository implements IReceiptRepository {
   async createReceipt(
     data: object,
@@ -28,7 +36,7 @@ class ReceiptRepository implements IReceiptRepository {
   getAllReceipt = async (
     query: IQuery,
     ignoreDeleted: boolean
-  ): Promise<object> => {
+  ): Promise<ReturnDataReceipts> => {
     try {
       const { page, size, order, sortBy } = query;
       type searchQuery = {
@@ -56,7 +64,7 @@ class ReceiptRepository implements IReceiptRepository {
       const countReceipts = await ReceiptModel.countDocuments(searchQuery);
 
       return {
-        Receipts: receipts,
+        receipts: receipts,
         page,
         totalReceipts: countReceipts,
         totalPages: Math.ceil(countReceipts / size),
@@ -78,7 +86,7 @@ class ReceiptRepository implements IReceiptRepository {
     query: IQuery,
     userId: mongoose.Types.ObjectId | string,
     ignoreDeleted: boolean
-  ): Promise<object> {
+  ): Promise<ReturnDataReceipts> {
     try {
       const { page, size, order, sortBy } = query;
       type searchQuery = {
@@ -112,7 +120,7 @@ class ReceiptRepository implements IReceiptRepository {
       const countReceipts = await ReceiptModel.countDocuments(searchQuery);
 
       return {
-        Receipts: receipts,
+        receipts: receipts,
         page,
         totalReceipts: countReceipts,
         totalPages: Math.ceil(countReceipts / size),

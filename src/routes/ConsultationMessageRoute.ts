@@ -5,8 +5,12 @@ import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import { uploadFile } from "../middlewares/storeFile";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
+import ConsultationMessageService from "../services/ConsultationMessageService";
 
-const consultationMessageController = new ConsultationMessageController();
+const consultationMessageService = new ConsultationMessageService();
+const consultationMessageController = new ConsultationMessageController(
+  consultationMessageService
+);
 const consultationMessageHandler = new ConsultationMessageHandler();
 const consultationMessageRouter = Router();
 

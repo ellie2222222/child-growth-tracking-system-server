@@ -5,8 +5,10 @@ import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import UserHandler from "../handlers/UserHandler";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
+import UserService from "../services/UserService";
 
-const userController: UserController = new UserController();
+const userService = new UserService();
+const userController: UserController = new UserController(userService);
 const userHandler: UserHandler = new UserHandler();
 const userRoutes = express.Router();
 

@@ -2,14 +2,18 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
 import { ConsultationStatus } from "../interfaces/IConsultation";
+import { IConsultationMessage } from "../interfaces/IConsultationMessage";
 import { IQuery } from "../interfaces/IQuery";
-import ConsultationMessageRepository from "../repositories/ConsultationMessageRepository";
+import { IConsultationMessageService } from "../interfaces/services/IConsultationMessageService";
+import ConsultationMessageRepository, {
+  ReturnDataConsultationMessages,
+} from "../repositories/ConsultationMessageRepository";
 import ConsultationRepository from "../repositories/ConsultationRepository";
 import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import { cleanUpFileArray, extractAndReplaceImages } from "../utils/fileUtils";
 
-class ConsultationMessageService {
+class ConsultationMessageService implements IConsultationMessageService {
   private consultationRepository: ConsultationRepository;
   private database: Database;
   private userRepository: UserRepository;
@@ -27,7 +31,7 @@ class ConsultationMessageService {
     requesterId: string,
     message: string,
     attachments: [string]
-  ) => {
+  ): Promise<IConsultationMessage> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(
@@ -119,7 +123,10 @@ class ConsultationMessageService {
     }
   };
 
-  getConsultationMessage = async (id: string, requesterId: string) => {
+  getConsultationMessage = async (
+    id: string,
+    requesterId: string
+  ): Promise<IConsultationMessage> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -194,7 +201,7 @@ class ConsultationMessageService {
     consultationId: string,
     query: IQuery,
     requesterId: string
-  ) => {
+  ): Promise<ReturnDataConsultationMessages> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -265,7 +272,7 @@ class ConsultationMessageService {
     requesterId: string,
     message: string,
     attachments: [string]
-  ) => {
+  ): Promise<IConsultationMessage> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(
@@ -336,7 +343,10 @@ class ConsultationMessageService {
     }
   };
 
-  deleteConsultationMessage = async (id: string, requesterId: string) => {
+  deleteConsultationMessage = async (
+    id: string,
+    requesterId: string
+  ): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(

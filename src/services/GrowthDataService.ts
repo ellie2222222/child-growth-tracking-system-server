@@ -26,7 +26,8 @@ import {
   checkViewGrowthDataLimit,
 } from "../utils/tierUtils";
 import TierRepository from "../repositories/TierRepository";
-class GrowthDataService {
+import { IGrowthDataService } from "../interfaces/services/IGrowthDataService";
+class GrowthDataService implements IGrowthDataService {
   private growthDataRepository: GrowthDataRepository;
   private userRepository: UserRepository;
   private childRepository: ChildRepository;
@@ -1154,7 +1155,7 @@ class GrowthDataService {
     }
   };
 
-  checkTierUpdateGrowthDataLimit = async (userId: string) => {
+  private checkTierUpdateGrowthDataLimit = async (userId: string) => {
     try {
       const user = await this.userRepository.getUserById(
         userId as string,
@@ -1198,7 +1199,7 @@ class GrowthDataService {
     }
   };
 
-  checkTierViewGrowthDataLimit = async (userId: string) => {
+  private checkTierViewGrowthDataLimit = async (userId: string) => {
     try {
       const user = await this.userRepository.getUserById(
         userId as string,

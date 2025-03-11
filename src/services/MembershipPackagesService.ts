@@ -1,22 +1,25 @@
 import { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import MembershipPackageRepository, {
+  ReturnDataMembershipPackages,
+} from "../repositories/MembershipPackageRepository";
 import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import { IMembershipPackageService } from "../interfaces/services/IMembershipPackagesService";
 
-type PriceType = {
+export type PriceType = {
   value: number;
   unit: "USD" | "VND";
 };
-type DurationType = {
+export type DurationType = {
   value: number;
   unit: "DAY";
 };
-class MembershipPackageService {
+class MembershipPackageService implements IMembershipPackageService {
   private membershipPackageRepository: MembershipPackageRepository;
   private userRepository: UserRepository;
   private database: Database;
@@ -33,7 +36,7 @@ class MembershipPackageService {
     price: PriceType,
     duration: DurationType,
     tier: number
-  ) => {
+  ): Promise<IMembershipPackage> => {
     const session = await this.database.startTransaction();
     try {
       const checkMembership =
@@ -121,7 +124,10 @@ class MembershipPackageService {
     }
   };
 
-  getMembershipPackages = async (query: IQuery, requesterId: string) => {
+  getMembershipPackages = async (
+    query: IQuery,
+    requesterId: string
+  ): Promise<ReturnDataMembershipPackages> => {
     try {
       let ignoreDeleted = false;
 
@@ -165,7 +171,7 @@ class MembershipPackageService {
     price: PriceType,
     duration: DurationType,
     tier: number
-  ) => {
+  ): Promise<IMembershipPackage> => {
     const session = await this.database.startTransaction();
     try {
       const oldPackage =
@@ -246,7 +252,7 @@ class MembershipPackageService {
     }
   };
 
-  deleteMembershipPackage = async (id: string | ObjectId) => {
+  deleteMembershipPackage = async (id: string | ObjectId): Promise<boolean> => {
     const session = await this.database.startTransaction();
     try {
       const result =

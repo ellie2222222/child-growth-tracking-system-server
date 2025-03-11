@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from "express";
-import AuthService from "../services/AuthService";
+// import AuthService from "../services/AuthService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import ms from "ms";
 import { ISession } from "../interfaces/ISession";
-import UserService from "../services/UserService";
-class AuthController {
-  private authService: AuthService;
+// import UserService from "../services/UserService";
+import { IAuthService } from "../interfaces/services/IAuthService";
 
-  constructor() {
-    this.authService = new AuthService();
+class AuthController {
+  private authService: IAuthService;
+
+  constructor(authService: IAuthService) {
+    this.authService = authService;
   }
 
   /**
@@ -54,7 +56,7 @@ class AuthController {
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        accessToken
+        accessToken,
       });
     } catch (error) {
       next(error);
@@ -70,7 +72,7 @@ class AuthController {
       const refreshToken = req.cookies?.refreshToken;
 
       await this.authService.logout(refreshToken);
-      
+
       res.clearCookie("sessionId", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "PRODUCTION",
@@ -90,22 +92,27 @@ class AuthController {
       });
 
       res.status(StatusCodeEnum.OK_200).json({
-        message: "Success"
+        message: "Success",
       });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   /**
-   * Handle Google login 
+   * Handle Google login
    */
-  loginGoogle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  loginGoogle = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const googleUser = req.user;
       const sessionData: Partial<ISession> = req.userInfo;
 
-      const { accessToken, refreshToken, sessionId } = await this.authService.loginGoogle(googleUser, sessionData);
+      const { accessToken, refreshToken, sessionId } =
+        await this.authService.loginGoogle(googleUser, sessionData);
 
       // Set Refresh Token and session ID in cookies
       const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
@@ -132,7 +139,7 @@ class AuthController {
         maxAge: refreshTokenMaxAge, // 30 days
       });
 
-      res.redirect(`${process.env.FRONTEND_URL}`)
+      res.redirect(`${process.env.FRONTEND_URL}`);
     } catch (error) {
       next(error);
     }
@@ -159,11 +166,7 @@ class AuthController {
     }
   };
 
-  getUserByToken = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  getUserByToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const accessToken = req.cookies?.accessToken;
 
@@ -171,12 +174,12 @@ class AuthController {
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        user
-      })
+        user,
+      });
     } catch (error) {
       next(error);
     }
-  }
+  };
 
   /**
    * Handles refreshing of an access token.
@@ -205,7 +208,7 @@ class AuthController {
       });
 
       res.status(StatusCodeEnum.OK_200).json({
-        message: "Success"
+        message: "Success",
       });
     } catch (error) {
       next(error);

@@ -2,13 +2,16 @@ import { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
-import ConsultationRepository from "../repositories/ConsultationRepository";
+import ConsultationRepository, {
+  returnDataConsultation,
+} from "../repositories/ConsultationRepository";
 import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import { IQuery } from "../interfaces/IQuery";
-import { ConsultationStatus } from "../interfaces/IConsultation";
+import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
+import { IConsultationService } from "../interfaces/services/IConsultationService";
 
-class ConsultationService {
+class ConsultationService implements IConsultationService {
   private consultationRepository: ConsultationRepository;
   private database: Database;
   private userRepository: UserRepository;
@@ -24,7 +27,7 @@ class ConsultationService {
     status: string,
     requesterId: string,
     cronJob?: boolean
-  ) => {
+  ): Promise<IConsultation> => {
     const session = await this.database.startTransaction();
     try {
       if (!cronJob) {
@@ -86,7 +89,10 @@ class ConsultationService {
     }
   };
 
-  getConsultation = async (id: string | ObjectId, requesterId: string) => {
+  getConsultation = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<IConsultation> => {
     try {
       let ignoreDeleted = false;
       const requester = await this.userRepository.getUserById(
@@ -147,7 +153,7 @@ class ConsultationService {
     query: IQuery,
     status: string,
     requesterId: string
-  ) => {
+  ): Promise<returnDataConsultation> => {
     try {
       let ignoreDeleted = false;
 
@@ -192,7 +198,7 @@ class ConsultationService {
     userId: string | ObjectId,
     requesterId: string,
     as: "MEMBER" | "DOCTOR"
-  ) => {
+  ): Promise<returnDataConsultation> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -263,7 +269,10 @@ class ConsultationService {
     }
   };
 
-  deleteConsultation = async (id: string | ObjectId, requesterId: string) => {
+  deleteConsultation = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<IConsultation> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(

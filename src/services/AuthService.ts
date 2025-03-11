@@ -17,6 +17,7 @@ import IJwtPayload, {
 import path from "path";
 import ejs from "ejs";
 import UserEnum from "../enums/UserEnum";
+import { IAuthService } from "../interfaces/services/IAuthService";
 
 dotenv.config();
 
@@ -29,7 +30,7 @@ const resetPasswordTemplatePath = path.resolve(
   "../templates/ResetPassword.ejs"
 );
 
-class AuthService {
+class AuthService implements IAuthService {
   private userRepository: UserRepository;
   private sessionService: SessionService;
   private database: Database;

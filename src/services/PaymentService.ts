@@ -5,8 +5,9 @@ import StatusCodeEnums from "../enums/StatusCodeEnum";
 import { IUser } from "../interfaces/IUser";
 import { ObjectId } from "mongoose";
 import { PaypalPayment, VnpayPayment } from "../utils/payment";
+import { IPaymentService } from "../interfaces/services/IPaymentService";
 
-class PaymentService {
+class PaymentService implements IPaymentService {
   private membershipPackageService: MembershipPackageService;
   private userService: UserService;
 
@@ -15,7 +16,7 @@ class PaymentService {
     this.userService = new UserService();
   }
 
-  checkUserPackage = async (userId: string) => {
+  private checkUserPackage = async (userId: string) => {
     const user = await this.userService.getUserById(userId, userId);
     if (!user) {
       throw new CustomException(
@@ -35,7 +36,7 @@ class PaymentService {
     price: number,
     packageId: string | ObjectId,
     userId: string
-  ) => {
+  ): Promise<string> => {
     try {
       await this.checkUserPackage(userId);
       const testPackage =
@@ -92,7 +93,7 @@ class PaymentService {
     packageId: string,
     ipAddr: string,
     bankCode?: string
-  ) => {
+  ): Promise<string> => {
     try {
       await this.checkUserPackage(userId);
       const testPackage =

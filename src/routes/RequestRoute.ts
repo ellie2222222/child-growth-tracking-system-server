@@ -4,10 +4,12 @@ import UserEnum from "../enums/UserEnum";
 import RequestHandler from "../handlers/RequestHandler";
 import RequestController from "../controllers/RequestController";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
+import RequestService from "../services/RequestService";
 
 const requestRouter = Router();
+const requestService = new RequestService();
 const requestHandler = new RequestHandler();
-const requestController = new RequestController();
+const requestController = new RequestController(requestService);
 
 requestRouter.use(AuthMiddleware);
 

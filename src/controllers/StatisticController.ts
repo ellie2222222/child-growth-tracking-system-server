@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from "express";
-import StatisticService from "../services/StatisticService";
+// import StatisticService from "../services/StatisticService";
+import { IStatisticService } from "../interfaces/services/IStatisticService";
 
 class StatisticController {
-  private statisticService: StatisticService;
+  private statisticService: IStatisticService;
 
-  constructor() {
-    this.statisticService = new StatisticService();
+  constructor(statisticService: IStatisticService) {
+    this.statisticService = statisticService;
   }
 
   getRevenue = async (
@@ -22,13 +23,11 @@ class StatisticController {
         parseInt(value as string)
       );
 
-      res
-        .status(200)
-        .json({
-          Unit: unit,
-          Revenue: revenue,
-          message: "Get revenue successfully",
-        });
+      res.status(200).json({
+        Unit: unit,
+        Revenue: revenue,
+        message: "Get revenue successfully",
+      });
     } catch (error) {
       next(error);
     }

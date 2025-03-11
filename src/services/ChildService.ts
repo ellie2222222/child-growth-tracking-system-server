@@ -10,8 +10,9 @@ import UserEnum from "../enums/UserEnum";
 import TierRepository from "../repositories/TierRepository";
 import mongoose, { isValidObjectId, ObjectId } from "mongoose";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import { IChildService } from "../interfaces/services/IChildService";
 
-class ChildService {
+class ChildService implements IChildService {
   private childRepository: ChildRepository;
   private userRepository: UserRepository;
   private database: Database;

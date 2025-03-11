@@ -7,8 +7,10 @@ import { ObjectId } from "mongoose";
 import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { IComment } from "../interfaces/IComment";
+import { ICommentService } from "../interfaces/services/ICommentService";
 
-class CommentService {
+class CommentService implements ICommentService {
   private commentRepository: CommentRepository;
   private database: Database;
   private postRepository: PostRepository;
@@ -21,7 +23,11 @@ class CommentService {
     this.userRepository = new UserRepository();
   }
 
-  createComment = async (postId: string, userId: string, content: string) => {
+  createComment = async (
+    postId: string,
+    userId: string,
+    content: string
+  ): Promise<IComment> => {
     const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;
@@ -62,7 +68,10 @@ class CommentService {
     }
   };
 
-  getComment = async (commentId: string | ObjectId, requesterId: string) => {
+  getComment = async (
+    commentId: string | ObjectId,
+    requesterId: string
+  ): Promise<IComment> => {
     try {
       let ignoreDeleted = false;
 
@@ -112,7 +121,12 @@ class CommentService {
     postId: string | ObjectId,
     query: IQuery,
     requesterId: string
-  ) => {
+  ): Promise<{
+    comments: IComment[];
+    page: number;
+    total: number;
+    totalPages: number;
+  }> => {
     try {
       let ignoreDeleted = false;
 
@@ -163,7 +177,7 @@ class CommentService {
     id: string | ObjectId,
     content: string,
     requesterId: string
-  ) => {
+  ): Promise<IComment> => {
     const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;
@@ -210,7 +224,10 @@ class CommentService {
     }
   };
 
-  deleteComment = async (id: string | ObjectId, requesterId: string) => {
+  deleteComment = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<boolean> => {
     const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;

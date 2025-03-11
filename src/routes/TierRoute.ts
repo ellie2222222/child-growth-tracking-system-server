@@ -4,9 +4,11 @@ import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import TierHandler from "../handlers/TierHandler";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
+import TierService from "../services/TierService";
 
 const router = Router();
-const tierController = new TierController();
+const tierService = new TierService();
+const tierController = new TierController(tierService);
 const tierHandler = new TierHandler();
 
 router.use(AuthMiddleware);

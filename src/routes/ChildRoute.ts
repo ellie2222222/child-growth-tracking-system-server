@@ -6,12 +6,16 @@ import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
 import GrowthDataHandler from "../handlers/GrowthDataHandler";
+import ChildService from "../services/ChildService";
+import GrowthDataService from "../services/GrowthDataService";
 
 const childRoutes = express.Router();
 const childHandler = new ChildHandler();
 const growthDataHandler = new GrowthDataHandler();
-const childController = new ChildController();
-const growthDataController = new GrowthDataController();
+const growthDataService = new GrowthDataService();
+const growthDataController = new GrowthDataController(growthDataService);
+const childService = new ChildService();
+const childController = new ChildController(childService);
 
 childRoutes.use(AuthMiddleware);
 

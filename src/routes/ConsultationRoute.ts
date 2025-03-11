@@ -4,11 +4,12 @@ import ConsultationController from "../controllers/ConsultationController";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
+import ConsultationService from "../services/ConsultationService";
 
 const consultationRouter = Router();
-
+const consultationService = new ConsultationService();
 const consultationHandler = new ConsultationHandler();
-const consultationController = new ConsultationController();
+const consultationController = new ConsultationController(consultationService);
 
 consultationRouter.use(AuthMiddleware);
 

@@ -4,8 +4,12 @@ import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import MembershipPackageHandler from "../handlers/MembershipPackageHandler";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
+import MembershipPackageService from "../services/MembershipPackagesService";
 
-const membershipPackageController = new MembershipPackageController();
+const membershipPackageService = new MembershipPackageService();
+const membershipPackageController = new MembershipPackageController(
+  membershipPackageService
+);
 const membershipPackageHandler = new MembershipPackageHandler();
 const router = Router();
 
