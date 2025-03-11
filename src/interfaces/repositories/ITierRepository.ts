@@ -1,6 +1,7 @@
 import mongoose, { ObjectId } from "mongoose";
 import { ITier } from "../ITier";
 import { IQuery } from "../IQuery";
+import { ReturnDataTiers } from "../../repositories/TierRepository";
 
 export interface ITierRepository {
   createTier(
@@ -16,10 +17,7 @@ export interface ITierRepository {
 
   getTier(id: string | ObjectId, ignoreDeleted: boolean): Promise<ITier | null>;
 
-  getTiers(
-    query: IQuery,
-    ignoreDeleted: boolean
-  ): Promise<object>;
+  getTiers(query: IQuery, ignoreDeleted: boolean): Promise<ReturnDataTiers>;
 
   getCurrentTierData(tier: number): Promise<ITier>;
 }

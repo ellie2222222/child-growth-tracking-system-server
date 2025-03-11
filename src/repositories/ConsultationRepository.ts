@@ -7,6 +7,13 @@ import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
 import ConsultationMessageModel from "../models/ConsultationMessageModel";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
 
+export type returnDataConsultation = {
+  consultations: IConsultation[];
+  page: number;
+  totalConsultation: number;
+  totalPages: number;
+};
+
 class ConsultationRepository implements IConsultationRepository {
   async createConsultation(
     data: object,
@@ -79,7 +86,7 @@ class ConsultationRepository implements IConsultationRepository {
     query: IQuery,
     ignoreDeleted: boolean,
     status: string
-  ): Promise<object> {
+  ): Promise<returnDataConsultation> {
     type searchQuery = {
       isDeleted?: boolean;
       status?: { $eq: string };
@@ -157,7 +164,7 @@ class ConsultationRepository implements IConsultationRepository {
     userId: string,
     status?: string,
     as?: "MEMBER" | "DOCTOR"
-  ): Promise<object> {
+  ): Promise<returnDataConsultation> {
     type searchQuery = {
       "requestDetails.title"?: { $eq: string };
       "requestDetails.memberId"?: mongoose.Types.ObjectId;
@@ -396,7 +403,9 @@ class ConsultationRepository implements IConsultationRepository {
     }
   }
 
-  async getAllConsultationsByDoctorId(userId: string) {
+  async getAllConsultationsByDoctorId(
+    userId: string
+  ): Promise<IConsultation[]> {
     try {
       const consultations = await ConsultationModel.aggregate([
         {

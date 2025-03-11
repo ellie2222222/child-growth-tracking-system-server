@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from "express";
-import GrowthMetricsService from "../services/GrowthMetricsService";
+// import GrowthMetricsService from "../services/GrowthMetricsService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { IGrowthMetricsService } from "../interfaces/services/IGrowthMetricsService";
 
 class GrowthMetricsController {
-  private growthMetricsService: GrowthMetricsService;
+  private growthMetricsService: IGrowthMetricsService;
 
-  constructor() {
-    this.growthMetricsService = new GrowthMetricsService();
+  constructor(growthMetricsService: IGrowthMetricsService) {
+    this.growthMetricsService = growthMetricsService;
   }
 
   uploadGrowthMetricsFile = async (
@@ -18,13 +19,17 @@ class GrowthMetricsController {
       const { metric } = req.body;
       const { excelJsonData } = req;
 
-      const { result, insertedCount, updatedCount } = await this.growthMetricsService.uploadGrowthMetricsFile(metric, excelJsonData);
+      const { result, insertedCount, updatedCount } =
+        await this.growthMetricsService.uploadGrowthMetricsFile(
+          metric,
+          excelJsonData
+        );
 
       res.status(StatusCodeEnum.Created_201).json({
         message: "Success",
-        result, 
-        insertedCount, 
-        updatedCount
+        result,
+        insertedCount,
+        updatedCount,
       });
     } catch (error) {
       next(error);

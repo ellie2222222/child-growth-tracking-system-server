@@ -1,22 +1,28 @@
 import { UpdateWriteOpResult } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
+// import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
 import Database from "../utils/database";
 import { Request } from "express";
 import { ProgressBar } from "../utils/progressBar";
-import ConfigRepository from "../repositories/ConfigRepository";
+// import ConfigRepository from "../repositories/ConfigRepository";
 import getLogger from "../utils/logger";
+import { IGrowthMetricsService } from "../interfaces/services/IGrowthMetricsService";
+import { IConfigRepository } from "../interfaces/repositories/IConfigRepository";
+import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAgeRepository";
 const logger = getLogger("GROWTH_METRICS_SERVICE");
 
-class GrowthMetricsService {
-  private growthMetricsRepository: GrowthMetricsRepository;
-  private configRepository: ConfigRepository;
+class GrowthMetricsService implements IGrowthMetricsService {
+  private growthMetricsRepository: IGrowthMetricsRepository;
+  private configRepository: IConfigRepository;
   private database;
 
-  constructor() {
-    this.growthMetricsRepository = new GrowthMetricsRepository();
-    this.configRepository = new ConfigRepository();
+  constructor(
+    growthMetricsRepository: IGrowthMetricsRepository,
+    configRepository: IConfigRepository
+  ) {
+    this.growthMetricsRepository = growthMetricsRepository;
+    this.configRepository = configRepository;
     this.database = Database.getInstance();
   }
 
@@ -30,7 +36,7 @@ class GrowthMetricsService {
   }> => {
     try {
       // Prepare return data and counters
-      let result: Array<object> = [];
+      const result: Array<object> = [];
       let updatedCount = 0;
       let insertedCount = 0;
 
@@ -107,11 +113,12 @@ class GrowthMetricsService {
             try {
               for (const data of batch) {
                 result.push(data);
-                const resultData: UpdateWriteOpResult = await this.growthMetricsRepository.upsertGrowthMetricsForAgeData(
-                  data,
-                  metric,
-                  session
-                );
+                const resultData: UpdateWriteOpResult =
+                  await this.growthMetricsRepository.upsertGrowthMetricsForAgeData(
+                    data,
+                    metric,
+                    session
+                  );
 
                 updatedCount += resultData.modifiedCount;
                 insertedCount += resultData.upsertedCount;
@@ -131,7 +138,7 @@ class GrowthMetricsService {
           break;
         }
 
-        case "WFLH":
+        case "WFLH": {
           const transformedData = excelJsonData.map(
             ({ gender, height, l, m, s, ...percentiles }) => {
               return {
@@ -175,7 +182,11 @@ class GrowthMetricsService {
             try {
               for (const data of batch) {
                 result.push(data);
-                const resultData: UpdateWriteOpResult = await this.growthMetricsRepository.upsertWflhData(data, session);
+                const resultData: UpdateWriteOpResult =
+                  await this.growthMetricsRepository.upsertWflhData(
+                    data,
+                    session
+                  );
                 updatedCount += resultData.modifiedCount;
                 insertedCount += resultData.upsertedCount;
                 progressBar.update();
@@ -192,7 +203,7 @@ class GrowthMetricsService {
 
           progressBar.complete(insertedCount, updatedCount);
           break;
-
+        }
         case "WV":
         case "HV":
         case "HCV": {
@@ -212,17 +223,19 @@ class GrowthMetricsService {
             ({ gender, interval, l, m, s, delta, ...percentiles }) => {
               // Convert the configuration value from string to number
               const conversionRateValue = parseFloat(conversionRate.value); // e.g., 30.4375
-          
+
               // Split the interval string using a regex to catch both hyphen and en dash
-              const parts = interval.split(/[-–]/).map((part: string) => part.trim());
+              const parts = interval
+                .split(/[-–]/)
+                .map((part: string) => part.trim());
               // Expect two parts: first interval and last interval
               const firstPart = parts[0];
               const lastPart = parts[1];
-          
+
               // Parse each part to extract the numeric value and unit
               const firstIntervalParsed = this.parseIntervalPart(firstPart);
               const lastIntervalParsed = this.parseIntervalPart(lastPart);
-          
+
               // Convert the parsed intervals to months, weeks, and days
               const firstIntervalConverted = this.convertInterval(
                 firstIntervalParsed.value,
@@ -234,7 +247,7 @@ class GrowthMetricsService {
                 lastIntervalParsed.unit,
                 conversionRateValue
               );
-          
+
               return {
                 gender,
                 firstInterval: {
@@ -286,11 +299,12 @@ class GrowthMetricsService {
             try {
               for (const data of batch) {
                 result.push(data);
-                const resultData: UpdateWriteOpResult = await this.growthMetricsRepository.upsertGrowthVelocityData(
-                  data,
-                  metric,
-                  session
-                );
+                const resultData: UpdateWriteOpResult =
+                  await this.growthMetricsRepository.upsertGrowthVelocityData(
+                    data,
+                    metric,
+                    session
+                  );
 
                 updatedCount += resultData.modifiedCount;
                 insertedCount += resultData.upsertedCount;
@@ -315,7 +329,7 @@ class GrowthMetricsService {
             "Unsupported metric"
           );
       }
-      
+
       return {
         result,
         insertedCount,
@@ -333,7 +347,7 @@ class GrowthMetricsService {
     }
   };
 
-    /**
+  /**
    * Parses a part of the interval string.
    * Example inputs: "4wks", "2 mo", "0"
    */
@@ -387,7 +401,10 @@ class GrowthMetricsService {
         inMonths = inDays / conversionRateValue;
         break;
       default:
-        throw new CustomException(StatusCodeEnum.BadRequest_400, "Unspecified unit")
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Unspecified unit"
+        );
     }
     return { inMonths, inWeeks, inDays };
   }

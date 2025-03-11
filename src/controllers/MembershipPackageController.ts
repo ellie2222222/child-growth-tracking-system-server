@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import MembershipPackageService from "../services/MembershipPackagesService";
+// import MembershipPackageService from "../services/MembershipPackagesService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
+import { IMembershipPackageService } from "../interfaces/services/IMembershipPackagesService";
 
 class MembershipPackageController {
-  private membershipPackageService: MembershipPackageService;
-  constructor() {
-    this.membershipPackageService = new MembershipPackageService();
+  private membershipPackageService: IMembershipPackageService;
+
+  constructor(membershipPackageService: IMembershipPackageService) {
+    this.membershipPackageService = membershipPackageService;
   }
   createMembershipPackage = async (
     req: Request,

@@ -1,27 +1,40 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import CommentRepository from "../repositories/CommentRepository";
+// import CommentRepository from "../repositories/CommentRepository";
 import Database from "../utils/database";
-import PostRepository from "../repositories/PostRepository";
+// import PostRepository from "../repositories/PostRepository";
 import { ObjectId } from "mongoose";
-import UserRepository from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { IComment } from "../interfaces/IComment";
+import { ICommentService } from "../interfaces/services/ICommentService";
+import { ICommentRepository } from "../interfaces/repositories/ICommentRepository";
+import { IPostRepository } from "../interfaces/repositories/IPostRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
-class CommentService {
-  private commentRepository: CommentRepository;
+class CommentService implements ICommentService {
+  private commentRepository: ICommentRepository;
+  private postRepository: IPostRepository;
+  private userRepository: IUserRepository;
   private database: Database;
-  private postRepository: PostRepository;
-  private userRepository: UserRepository;
 
-  constructor() {
-    this.commentRepository = new CommentRepository();
+  constructor(
+    commentRepository: ICommentRepository,
+    postRepository: IPostRepository,
+    userRepository: IUserRepository
+  ) {
+    this.commentRepository = commentRepository;
+    this.postRepository = postRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.postRepository = new PostRepository();
-    this.userRepository = new UserRepository();
   }
 
-  createComment = async (postId: string, userId: string, content: string) => {
+  createComment = async (
+    postId: string,
+    userId: string,
+    content: string
+  ): Promise<IComment> => {
     const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;
@@ -62,7 +75,10 @@ class CommentService {
     }
   };
 
-  getComment = async (commentId: string | ObjectId, requesterId: string) => {
+  getComment = async (
+    commentId: string | ObjectId,
+    requesterId: string
+  ): Promise<IComment> => {
     try {
       let ignoreDeleted = false;
 
@@ -112,7 +128,12 @@ class CommentService {
     postId: string | ObjectId,
     query: IQuery,
     requesterId: string
-  ) => {
+  ): Promise<{
+    comments: IComment[];
+    page: number;
+    total: number;
+    totalPages: number;
+  }> => {
     try {
       let ignoreDeleted = false;
 
@@ -163,7 +184,7 @@ class CommentService {
     id: string | ObjectId,
     content: string,
     requesterId: string
-  ) => {
+  ): Promise<IComment> => {
     const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;
@@ -210,7 +231,10 @@ class CommentService {
     }
   };
 
-  deleteComment = async (id: string | ObjectId, requesterId: string) => {
+  deleteComment = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<boolean> => {
     const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;

@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import ConsultationService from "../services/ConsultationService";
+// import ConsultationService from "../services/ConsultationService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { IConsultationService } from "../interfaces/services/IConsultationService";
 
 class ConsultationController {
-  private consultationService: ConsultationService;
+  private consultationService: IConsultationService;
 
-  constructor() {
-    this.consultationService = new ConsultationService();
+  constructor(consultationService: IConsultationService) {
+    this.consultationService = consultationService;
   }
 
   updateConsultationStatus = async (

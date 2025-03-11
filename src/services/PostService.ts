@@ -1,5 +1,6 @@
 import { ObjectId } from "mongoose";
-import PostRepository from "../repositories/PostRepository";
+import { ReturnDataPosts } from "../repositories/PostRepository";
+// import PostRepository from "../repositories/PostRepository";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import Database from "../utils/database";
@@ -9,30 +10,40 @@ import {
   cleanUpFileArray,
   extractAndReplaceImages,
 } from "../utils/fileUtils";
-import UserRepository from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
-import TierRepository from "../repositories/TierRepository";
-import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
-import { PostStatus } from "../interfaces/IPost";
+// import TierRepository from "../repositories/TierRepository";
+// import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import { IPost, PostStatus } from "../interfaces/IPost";
 import {
   checkPostLimit,
   getCheckIntervalBounds,
   validateUserMembership,
 } from "../utils/tierUtils";
+import { IPostService } from "../interfaces/services/IPostService";
+import { ITierRepository } from "../interfaces/repositories/ITierRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { IPostRepository } from "../interfaces/repositories/IPostRepository";
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 
-class PostService {
-  private postRepository: PostRepository;
+class PostService implements IPostService {
+  private postRepository: IPostRepository;
+  private userRepository: IUserRepository;
+  private tierRepository: ITierRepository;
+  private membershipPackageRepository: IMembershipPackageRepository;
   private database: Database;
-  private userRepository: UserRepository;
-  private tierRepository: TierRepository;
-  private membershipPackageRepository: MembershipPackageRepository;
 
-  constructor() {
-    this.postRepository = new PostRepository();
+  constructor(
+    postRepository: IPostRepository,
+    userRepository: IUserRepository,
+    tierRepository: ITierRepository,
+    membershipPackageRepository: IMembershipPackageRepository
+  ) {
+    this.postRepository = postRepository;
+    this.userRepository = userRepository;
+    this.tierRepository = tierRepository;
+    this.membershipPackageRepository = membershipPackageRepository;
     this.database = Database.getInstance();
-    this.userRepository = new UserRepository();
-    this.tierRepository = new TierRepository();
-    this.membershipPackageRepository = new MembershipPackageRepository();
   }
   createPost = async (
     userId: string | ObjectId,
@@ -40,7 +51,7 @@ class PostService {
     content: string,
     attachments: Array<string>,
     thumbnailUrl?: string
-  ) => {
+  ): Promise<IPost> => {
     const session = await this.database.startTransaction();
 
     try {
@@ -84,7 +95,10 @@ class PostService {
     }
   };
 
-  getPost = async (id: string | ObjectId, requesterId: string) => {
+  getPost = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<IPost> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -120,7 +134,11 @@ class PostService {
     }
   };
 
-  getPosts = async (query: IQuery, requesterId: string, status: string) => {
+  getPosts = async (
+    query: IQuery,
+    requesterId: string,
+    status: string
+  ): Promise<ReturnDataPosts> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -166,7 +184,7 @@ class PostService {
     attachments: Array<string>,
     thumbnailUrl: string,
     requesterId: string
-  ) => {
+  ): Promise<IPost | null> => {
     const session = await this.database.startTransaction();
     try {
       const oldPost = await this.postRepository.getPost(id, true);
@@ -240,7 +258,7 @@ class PostService {
     id: string | ObjectId,
     status: PostStatus,
     requesterId: string
-  ) => {
+  ): Promise<IPost | null> => {
     const session = await this.database.startTransaction();
     try {
       const user = await this.userRepository.getUserById(requesterId, false);
@@ -311,7 +329,10 @@ class PostService {
     }
   };
 
-  deletePost = async (id: string | ObjectId, requesterId: string) => {
+  deletePost = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<IPost | null> => {
     const session = await this.database.startTransaction();
 
     try {
@@ -346,7 +367,11 @@ class PostService {
     }
   };
 
-  async getPostsByUserId(requesterId: string, userId: string, query: IQuery) {
+  getPostsByUserId = async (
+    requesterId: string,
+    userId: string,
+    query: IQuery
+  ): Promise<ReturnDataPosts> => {
     try {
       let status;
       if (requesterId !== userId) {
@@ -368,7 +393,7 @@ class PostService {
         "Internal Server Error"
       );
     }
-  }
+  };
 
   checkTierPostLimit = async (userId: string | ObjectId) => {
     try {

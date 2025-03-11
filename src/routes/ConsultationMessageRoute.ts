@@ -1,12 +1,33 @@
 import { Router } from "express";
-import ConsultationMessageController from "../controllers/ConsultationMessageController";
-import ConsultationMessageHandler from "../handlers/ConsultationMessageHander";
+
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import { uploadFile } from "../middlewares/storeFile";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
 
-const consultationMessageController = new ConsultationMessageController();
+import ConsultationMessageHandler from "../handlers/ConsultationMessageHander";
+
+import ConsultationMessageController from "../controllers/ConsultationMessageController";
+
+import ConsultationMessageService from "../services/ConsultationMessageService";
+
+import ConsultationRepository from "../repositories/ConsultationRepository";
+import UserRepository from "../repositories/UserRepository";
+import ConsultationMessageRepository from "../repositories/ConsultationMessageRepository";
+
+const consultationRepository = new ConsultationRepository();
+const userRepository = new UserRepository();
+const consultationMessageRepository = new ConsultationMessageRepository();
+
+const consultationMessageService = new ConsultationMessageService(
+  consultationRepository,
+  userRepository,
+  consultationMessageRepository
+);
+
+const consultationMessageController = new ConsultationMessageController(
+  consultationMessageService
+);
 const consultationMessageHandler = new ConsultationMessageHandler();
 const consultationMessageRouter = Router();
 

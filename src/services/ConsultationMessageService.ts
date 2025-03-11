@@ -2,24 +2,34 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
 import { ConsultationStatus } from "../interfaces/IConsultation";
+import { IConsultationMessage } from "../interfaces/IConsultationMessage";
 import { IQuery } from "../interfaces/IQuery";
-import ConsultationMessageRepository from "../repositories/ConsultationMessageRepository";
-import ConsultationRepository from "../repositories/ConsultationRepository";
-import UserRepository from "../repositories/UserRepository";
+import { IConsultationMessageRepository } from "../interfaces/repositories/IConsultationMessageRepository";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { IConsultationMessageService } from "../interfaces/services/IConsultationMessageService";
+import { ReturnDataConsultationMessages } from "../repositories/ConsultationMessageRepository";
+// import ConsultationMessageRepository from "../repositories/ConsultationMessageRepository";
+// import ConsultationRepository from "../repositories/ConsultationRepository";
+// import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import { cleanUpFileArray, extractAndReplaceImages } from "../utils/fileUtils";
 
-class ConsultationMessageService {
-  private consultationRepository: ConsultationRepository;
+class ConsultationMessageService implements IConsultationMessageService {
+  private consultationRepository: IConsultationRepository;
+  private userRepository: IUserRepository;
+  private consultationMessageRepository: IConsultationMessageRepository;
   private database: Database;
-  private userRepository: UserRepository;
-  private consultationMessageRepository: ConsultationMessageRepository;
 
-  constructor() {
-    this.consultationRepository = new ConsultationRepository();
+  constructor(
+    consultationRepository: IConsultationRepository,
+    userRepository: IUserRepository,
+    consultationMessageRepository: IConsultationMessageRepository
+  ) {
+    this.consultationRepository = consultationRepository;
+    this.userRepository = userRepository;
+    this.consultationMessageRepository = consultationMessageRepository;
     this.database = Database.getInstance();
-    this.userRepository = new UserRepository();
-    this.consultationMessageRepository = new ConsultationMessageRepository();
   }
 
   createConsultationMessage = async (
@@ -27,7 +37,7 @@ class ConsultationMessageService {
     requesterId: string,
     message: string,
     attachments: [string]
-  ) => {
+  ): Promise<IConsultationMessage> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(
@@ -119,7 +129,10 @@ class ConsultationMessageService {
     }
   };
 
-  getConsultationMessage = async (id: string, requesterId: string) => {
+  getConsultationMessage = async (
+    id: string,
+    requesterId: string
+  ): Promise<IConsultationMessage> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -194,7 +207,7 @@ class ConsultationMessageService {
     consultationId: string,
     query: IQuery,
     requesterId: string
-  ) => {
+  ): Promise<ReturnDataConsultationMessages> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -265,7 +278,7 @@ class ConsultationMessageService {
     requesterId: string,
     message: string,
     attachments: [string]
-  ) => {
+  ): Promise<IConsultationMessage> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(
@@ -336,7 +349,10 @@ class ConsultationMessageService {
     }
   };
 
-  deleteConsultationMessage = async (id: string, requesterId: string) => {
+  deleteConsultationMessage = async (
+    id: string,
+    requesterId: string
+  ): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(

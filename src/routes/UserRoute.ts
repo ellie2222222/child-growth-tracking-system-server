@@ -1,12 +1,36 @@
 import express from "express";
-import UserController from "../controllers/UserController";
+
 // import AuthMiddleware from "../middlewares/AuthMiddleware";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
-import UserHandler from "../handlers/UserHandler";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
 
-const userController: UserController = new UserController();
+import UserHandler from "../handlers/UserHandler";
+import UserController from "../controllers/UserController";
+import UserService from "../services/UserService";
+import SessionService from "../services/SessionService";
+
+import TierRepository from "../repositories/TierRepository";
+import UserRepository from "../repositories/UserRepository";
+import SessionRepository from "../repositories/SessionRepository";
+import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import ConsultationRepository from "../repositories/ConsultationRepository";
+
+const userRepository = new UserRepository();
+const sessionRepository = new SessionRepository();
+const tierRepository = new TierRepository();
+const membershipPackageRepository = new MembershipPackageRepository();
+const consultationRepository = new ConsultationRepository();
+
+const sessionService = new SessionService(sessionRepository);
+const userService = new UserService(
+  userRepository,
+  sessionService,
+  membershipPackageRepository,
+  tierRepository,
+  consultationRepository
+);
+const userController: UserController = new UserController(userService);
 const userHandler: UserHandler = new UserHandler();
 const userRoutes = express.Router();
 

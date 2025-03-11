@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { IReceipt } from "../IReceipt";
 import { IQuery } from "../IQuery";
+import { ReturnDataReceipts } from "../../repositories/ReceiptRepository";
 
 export interface IReceiptRepository {
   createReceipt(
@@ -11,13 +12,13 @@ export interface IReceiptRepository {
   getAllReceipt(
     query: IQuery,
     ignoreDeleted: boolean
-  ): Promise<object>;
+  ): Promise<ReturnDataReceipts>;
 
   getReceiptsByUserId(
     query: IQuery,
     userId: mongoose.Types.ObjectId | string,
     ignoreDeleted: boolean
-  ): Promise<object>;
+  ): Promise<ReturnDataReceipts>;
 
   getReceiptById(
     id: mongoose.Types.ObjectId | string,
@@ -30,4 +31,9 @@ export interface IReceiptRepository {
     requesterId: mongoose.Types.ObjectId | string,
     session?: mongoose.ClientSession
   ): Promise<IReceipt | null>;
+
+  getAllReceiptsTimeInterval(
+    startDate: Date,
+    endDate: Date
+  ): Promise<IReceipt[]>;
 }

@@ -1,14 +1,28 @@
 import { Router } from "express";
-import ConsultationHandler from "../handlers/ConsultationHandler";
-import ConsultationController from "../controllers/ConsultationController";
+
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
 
-const consultationRouter = Router();
+import ConsultationHandler from "../handlers/ConsultationHandler";
+import ConsultationController from "../controllers/ConsultationController";
+import ConsultationService from "../services/ConsultationService";
 
+import UserRepository from "../repositories/UserRepository";
+import ConsultationRepository from "../repositories/ConsultationRepository";
+
+const consultationRepository = new ConsultationRepository();
+const userRepository = new UserRepository();
+
+const consultationService = new ConsultationService(
+  consultationRepository,
+  userRepository
+);
+
+const consultationController = new ConsultationController(consultationService);
 const consultationHandler = new ConsultationHandler();
-const consultationController = new ConsultationController();
+
+const consultationRouter = Router();
 
 consultationRouter.use(AuthMiddleware);
 

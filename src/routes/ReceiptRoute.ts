@@ -1,13 +1,32 @@
 import { Router } from "express";
-import ReceiptController from "../controllers/ReceiptController";
+
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
-import ReceiptHandler from "../handlers/ReceiptHandler";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
-const receiptController = new ReceiptController();
-const router = Router();
 
+import ReceiptHandler from "../handlers/ReceiptHandler";
+import ReceiptController from "../controllers/ReceiptController";
+
+import ReceiptService from "../services/ReceiptService";
+
+import UserRepository from "../repositories/UserRepository";
+import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import ReceiptRepository from "../repositories/ReceiptRepository";
+
+const userRepository = new UserRepository();
+const membershipPackageRepository = new MembershipPackageRepository();
+const receiptRepository = new ReceiptRepository();
+
+const receiptService = new ReceiptService(
+  receiptRepository,
+  membershipPackageRepository,
+  userRepository
+);
+
+const receiptController = new ReceiptController(receiptService);
 const receiptHandler = new ReceiptHandler();
+
+const router = Router();
 
 router.use(AuthMiddleware);
 

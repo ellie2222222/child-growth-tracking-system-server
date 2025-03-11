@@ -1,19 +1,24 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import ReceiptService from "../services/ReceiptService";
-import UserService from "../services/UserService";
+import { IReceipt } from "../interfaces/IReceipt";
+import { IPaymentQueue } from "../interfaces/queue/IPaymentQueue";
+import { IReceiptService } from "../interfaces/services/IReceiptService";
+import { IUserService } from "../interfaces/services/IUserService";
+// import ReceiptService from "../services/ReceiptService";
+// import UserService from "../services/UserService";
 import { closeConnection, createConnection } from "../utils/queueUtils";
 
 const PAYMENT_QUEUE_NAME = "Payment_queue";
-class PaymentQueue {
-  private receiptService: ReceiptService;
-  private userService: UserService;
+class PaymentQueue implements IPaymentQueue {
+  private receiptService: IReceiptService;
+  private userService: IUserService;
 
-  constructor() {
-    this.receiptService = new ReceiptService();
-    this.userService = new UserService();
+  constructor(receiptService: IReceiptService, userService: IUserService) {
+    this.receiptService = receiptService;
+    this.userService = userService;
   }
-  sendPaymentData = async (data: object) => {
+
+  sendPaymentData = async (data: object): Promise<void> => {
     const { connection, channel } = await createConnection();
 
     try {
@@ -35,7 +40,7 @@ class PaymentQueue {
     }
   };
 
-  consumePaymentData = async () => {
+  consumePaymentData = async (): Promise<IReceipt> => {
     const { connection, channel } = await createConnection();
     let receipt = {};
     try {
@@ -92,7 +97,7 @@ class PaymentQueue {
     } finally {
       await closeConnection(connection, channel);
     }
-    return receipt;
+    return receipt as IReceipt;
   };
 }
 

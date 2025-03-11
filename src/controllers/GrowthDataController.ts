@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
-import GrowthDataService from "../services/GrowthDataService";
+// import GrowthDataService from "../services/GrowthDataService";
+import { IGrowthDataService } from "../interfaces/services/IGrowthDataService";
 
 class GrowthDataController {
-  private growthDataService: GrowthDataService;
+  private growthDataService: IGrowthDataService;
 
-  constructor() {
-    this.growthDataService = new GrowthDataService();
+  constructor(growthDataService: IGrowthDataService) {
+    this.growthDataService = growthDataService;
   }
 
   /**
@@ -19,17 +20,26 @@ class GrowthDataController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { inputDate, height, weight, headCircumference, armCircumference } = req.body;
+      const { inputDate, height, weight, headCircumference, armCircumference } =
+        req.body;
       const { childId } = req.params;
       const requesterInfo = req.userInfo;
 
-      const growthData = await this.growthDataService.createGrowthData(requesterInfo, childId, {
-        inputDate, height, weight, headCircumference, armCircumference
-      });
+      const growthData = await this.growthDataService.createGrowthData(
+        requesterInfo,
+        childId,
+        {
+          inputDate,
+          height,
+          weight,
+          headCircumference,
+          armCircumference,
+        }
+      );
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        growthData
+        growthData,
       });
     } catch (error) {
       next(error);
@@ -47,15 +57,24 @@ class GrowthDataController {
     try {
       const requesterInfo = req.userInfo;
       const { growthDataId } = req.params;
-      const { inputDate, height, weight, headCircumference, armCircumference } = req.body;
+      const { inputDate, height, weight, headCircumference, armCircumference } =
+        req.body;
 
-      const updatedGrowthData = await this.growthDataService.updateGrowthData(growthDataId, requesterInfo, {
-        inputDate, height, weight, headCircumference, armCircumference
-      });
+      const updatedGrowthData = await this.growthDataService.updateGrowthData(
+        growthDataId,
+        requesterInfo,
+        {
+          inputDate,
+          height,
+          weight,
+          headCircumference,
+          armCircumference,
+        }
+      );
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        updatedGrowthData
+        updatedGrowthData,
       });
     } catch (error) {
       next(error);
@@ -74,7 +93,10 @@ class GrowthDataController {
       const { growthDataId } = req.params;
       const requesterInfo = req.userInfo;
 
-      await this.growthDataService.deleteGrowthData(growthDataId, requesterInfo);
+      await this.growthDataService.deleteGrowthData(
+        growthDataId,
+        requesterInfo
+      );
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
@@ -96,18 +118,20 @@ class GrowthDataController {
       const { growthDataId } = req.params;
       const requesterInfo = req.userInfo;
 
-      const growthData = await this.growthDataService.getGrowthDataById(growthDataId, requesterInfo);
+      const growthData = await this.growthDataService.getGrowthDataById(
+        growthDataId,
+        requesterInfo
+      );
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        growthData
+        growthData,
       });
     } catch (error) {
       next(error);
     }
   };
 
-  
   /**
    * Handles retrieving a growth velocity by child ID.
    */
@@ -119,17 +143,21 @@ class GrowthDataController {
     try {
       const { childId } = req.params;
       const requesterInfo = req.userInfo;
-      
-      const growthVelocity = await this.growthDataService.generateGrowthVelocityByChildId(childId, requesterInfo);
-      
+
+      const growthVelocity =
+        await this.growthDataService.generateGrowthVelocityByChildId(
+          childId,
+          requesterInfo
+        );
+
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        growthVelocity
+        growthVelocity,
       });
     } catch (error) {
-      next(error); 
+      next(error);
     }
-  }
+  };
 
   /**
    * Handles retrieving a list of growthData by child ID.
@@ -148,18 +176,23 @@ class GrowthDataController {
         sortBy: (req.query.sortBy as "date") || "date",
         order: (req.query.order as "ascending" | "descending") || "descending",
       };
-      
-      const { growthData, page, total, totalPages } = await this.growthDataService.getGrowthDataByChildId(childId, requesterInfo, query);
+
+      const { growthData, page, total, totalPages } =
+        await this.growthDataService.getGrowthDataByChildId(
+          childId,
+          requesterInfo,
+          query
+        );
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
         growthData,
         page,
         total,
-        totalPages
+        totalPages,
       });
     } catch (error) {
-      next(error); 
+      next(error);
     }
   };
 }

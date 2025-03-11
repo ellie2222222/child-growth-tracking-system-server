@@ -2,21 +2,28 @@ import { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
-import ConsultationRepository from "../repositories/ConsultationRepository";
-import UserRepository from "../repositories/UserRepository";
+// import ConsultationRepository from "../repositories/ConsultationRepository";
+import { returnDataConsultation } from "../repositories/ConsultationRepository";
+// import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import { IQuery } from "../interfaces/IQuery";
-import { ConsultationStatus } from "../interfaces/IConsultation";
+import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
+import { IConsultationService } from "../interfaces/services/IConsultationService";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
-class ConsultationService {
-  private consultationRepository: ConsultationRepository;
+class ConsultationService implements IConsultationService {
+  private consultationRepository: IConsultationRepository;
+  private userRepository: IUserRepository;
   private database: Database;
-  private userRepository: UserRepository;
 
-  constructor() {
-    this.consultationRepository = new ConsultationRepository();
+  constructor(
+    consultationRepository: IConsultationRepository,
+    userRepository: IUserRepository
+  ) {
+    this.consultationRepository = consultationRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.userRepository = new UserRepository();
   }
 
   updateConsultationStatus = async (
@@ -24,7 +31,7 @@ class ConsultationService {
     status: string,
     requesterId: string,
     cronJob?: boolean
-  ) => {
+  ): Promise<IConsultation> => {
     const session = await this.database.startTransaction();
     try {
       if (!cronJob) {
@@ -86,7 +93,10 @@ class ConsultationService {
     }
   };
 
-  getConsultation = async (id: string | ObjectId, requesterId: string) => {
+  getConsultation = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<IConsultation> => {
     try {
       let ignoreDeleted = false;
       const requester = await this.userRepository.getUserById(
@@ -147,7 +157,7 @@ class ConsultationService {
     query: IQuery,
     status: string,
     requesterId: string
-  ) => {
+  ): Promise<returnDataConsultation> => {
     try {
       let ignoreDeleted = false;
 
@@ -192,7 +202,7 @@ class ConsultationService {
     userId: string | ObjectId,
     requesterId: string,
     as: "MEMBER" | "DOCTOR"
-  ) => {
+  ): Promise<returnDataConsultation> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -263,7 +273,10 @@ class ConsultationService {
     }
   };
 
-  deleteConsultation = async (id: string | ObjectId, requesterId: string) => {
+  deleteConsultation = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<IConsultation> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(

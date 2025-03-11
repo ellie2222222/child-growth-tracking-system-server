@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import PostService from "../services/PostService";
+// import PostService from "../services/PostService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import {
   cleanUpFile,
@@ -8,6 +8,7 @@ import {
   formatPathSingle,
 } from "../utils/fileUtils";
 import { PostStatus } from "../interfaces/IPost";
+import { IPostService } from "../interfaces/services/IPostService";
 
 type BlogFiles = {
   postAttachments: Express.Multer.File[];
@@ -15,9 +16,9 @@ type BlogFiles = {
 };
 
 class PostController {
-  private postService: PostService;
-  constructor() {
-    this.postService = new PostService();
+  private postService: IPostService;
+  constructor(postService: IPostService) {
+    this.postService = postService;
   }
 
   createPost = async (req: Request, res: Response, next: NextFunction) => {

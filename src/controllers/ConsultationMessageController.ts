@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import ConsultationMessageService from "../services/ConsultationMessageService";
+// import ConsultationMessageService from "../services/ConsultationMessageService";
 import { cleanUpFileArray, formatPathArray } from "../utils/fileUtils";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { IConsultationMessageService } from "../interfaces/services/IConsultationMessageService";
 
 class ConsultationMessageController {
-  private consultationMessageService: ConsultationMessageService;
+  private consultationMessageService: IConsultationMessageService;
 
-  constructor() {
-    this.consultationMessageService = new ConsultationMessageService();
+  constructor(consultationMessageService: IConsultationMessageService) {
+    this.consultationMessageService = consultationMessageService;
   }
 
   createConsultationMessage = async (

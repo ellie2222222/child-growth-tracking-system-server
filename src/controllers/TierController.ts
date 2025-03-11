@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import TierService from "../services/TierService";
+// import TierService from "../services/TierService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { ITierService } from "../interfaces/services/ITierService";
 
 class TierController {
-  private tierService: TierService;
+  private tierService: ITierService;
 
-  constructor() {
-    this.tierService = new TierService();
+  constructor(tierService: ITierService) {
+    this.tierService = tierService;
   }
 
   createTier = async (req: Request, res: Response, next: NextFunction) => {

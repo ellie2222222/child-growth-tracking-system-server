@@ -1,28 +1,39 @@
 import mongoose, { ObjectId } from "mongoose";
-import RequestRepository from "../repositories/RequestRepository";
-import UserRepository from "../repositories/UserRepository";
+import { ReturnDataRequest } from "../repositories/RequestRepository";
+// import RequestRepository from "../repositories/RequestRepository";
+// import UserRepository from "../repositories/UserRepository";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import Database from "../utils/database";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
-import { RequestStatus } from "../interfaces/IRequest";
-import ChildRepository from "../repositories/ChildRepository";
-import ConsultationRepository from "../repositories/ConsultationRepository";
+import { IRequest, RequestStatus } from "../interfaces/IRequest";
+// import ChildRepository from "../repositories/ChildRepository";
+// import ConsultationRepository from "../repositories/ConsultationRepository";
+import { IRequestService } from "../interfaces/services/IRequestService";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
+import { IChildRepository } from "../interfaces/repositories/IChildRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { IRequestRepository } from "../interfaces/repositories/IRequestRepository";
 
-class RequestService {
-  private requestRepository: RequestRepository;
-  private userRepository: UserRepository;
+class RequestService implements IRequestService {
+  private requestRepository: IRequestRepository;
+  private userRepository: IUserRepository;
+  private childRepository: IChildRepository;
+  private consultationRepository: IConsultationRepository;
   private database: Database;
-  private childRepository: ChildRepository;
-  private consultationRepository: ConsultationRepository;
 
-  constructor() {
-    this.requestRepository = new RequestRepository();
-    this.userRepository = new UserRepository();
+  constructor(
+    requestRepository: IRequestRepository,
+    userRepository: IUserRepository,
+    childRepository: IChildRepository,
+    consultationRepository: IConsultationRepository
+  ) {
+    this.requestRepository = requestRepository;
+    this.userRepository = userRepository;
+    this.childRepository = childRepository;
+    this.consultationRepository = consultationRepository;
     this.database = Database.getInstance();
-    this.childRepository = new ChildRepository();
-    this.consultationRepository = new ConsultationRepository();
   }
 
   //validate child's existence, doctor existence with role
@@ -31,7 +42,7 @@ class RequestService {
     doctorId: string | ObjectId,
     title: string,
     requesterId: string
-  ) => {
+  ): Promise<IRequest> => {
     const session = await this.database.startTransaction();
     try {
       //daily limit
@@ -130,7 +141,10 @@ class RequestService {
     }
   };
 
-  getRequest = async (id: string | ObjectId, requesterId: string) => {
+  getRequest = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<IRequest> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -191,7 +205,7 @@ class RequestService {
     query: IQuery,
     status?: string,
     as?: "MEMBER" | "DOCTOR"
-  ) => {
+  ): Promise<ReturnDataRequest> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -263,7 +277,10 @@ class RequestService {
   };
 
   //only admin can see => ignoreDeleted = true
-  getAllRequests = async (query: IQuery, status?: string) => {
+  getAllRequests = async (
+    query: IQuery,
+    status?: string
+  ): Promise<ReturnDataRequest> => {
     try {
       const requests = await this.requestRepository.getAllRequests(
         query,
@@ -287,7 +304,7 @@ class RequestService {
     id: string | ObjectId,
     requesterId: string,
     status: string
-  ) => {
+  ): Promise<IRequest> => {
     const session = await this.database.startTransaction();
     try {
       const checkRequester = await this.userRepository.getUserById(
@@ -390,7 +407,10 @@ class RequestService {
     }
   };
 
-  deleteRequest = async (id: string, requesterId: string) => {
+  deleteRequest = async (
+    id: string,
+    requesterId: string
+  ): Promise<IRequest> => {
     const session = await this.database.startTransaction();
     try {
       const request = await this.requestRepository.getRequest(

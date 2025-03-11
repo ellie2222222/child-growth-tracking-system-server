@@ -8,8 +8,17 @@ import { IRequest, RequestStatus } from "../interfaces/IRequest";
 import { IRequestRepository } from "../interfaces/repositories/IRequestRepository";
 dotenv.config();
 
+export type ReturnDataRequest = {
+  requests: IRequest[];
+  page: number;
+  total: number;
+  totalPages: number;
+};
 class RequestRepository implements IRequestRepository {
-  async createRequest(data: object, session?: mongoose.ClientSession): Promise<IRequest> {
+  async createRequest(
+    data: object,
+    session?: mongoose.ClientSession
+  ): Promise<IRequest> {
     try {
       const request = await RequestModel.create([data], { session });
       return request[0];
@@ -24,7 +33,10 @@ class RequestRepository implements IRequestRepository {
     }
   }
 
-  async getRequest(id: string | ObjectId, ignoreDeleted: boolean): Promise<IRequest | null> {
+  async getRequest(
+    id: string | ObjectId,
+    ignoreDeleted: boolean
+  ): Promise<IRequest | null> {
     try {
       const searchQuery = ignoreDeleted
         ? { _id: new mongoose.Types.ObjectId(id as string) }
@@ -54,7 +66,11 @@ class RequestRepository implements IRequestRepository {
     }
   }
 
-  async getAllRequests(query: IQuery, ignoreDeleted: boolean, status?: string): Promise<object> {
+  async getAllRequests(
+    query: IQuery,
+    ignoreDeleted: boolean,
+    status?: string
+  ): Promise<ReturnDataRequest> {
     type SearchQuery = {
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
@@ -99,7 +115,8 @@ class RequestRepository implements IRequestRepository {
         );
       }
 
-      return requests;
+      const total = await RequestModel.countDocuments(searchQuery);
+      return { requests, page, total, totalPages: Math.ceil(total / size) };
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -117,7 +134,7 @@ class RequestRepository implements IRequestRepository {
     ignoreDeleted: boolean,
     status?: string,
     as?: "MEMBER" | "DOCTOR"
-  ): Promise<object> {
+  ): Promise<ReturnDataRequest> {
     type SearchQuery = {
       memberId?: mongoose.Types.ObjectId;
       doctorId?: mongoose.Types.ObjectId;
@@ -171,7 +188,13 @@ class RequestRepository implements IRequestRepository {
         );
       }
 
-      return requests;
+      const totalRequest = await RequestModel.countDocuments(searchQuery);
+      return {
+        requests,
+        page,
+        total: totalRequest,
+        totalPages: Math.ceil(totalRequest / size),
+      };
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -217,7 +240,10 @@ class RequestRepository implements IRequestRepository {
     }
   }
 
-  async deleteRequest(id: string, session?: mongoose.ClientSession): Promise<IRequest> {
+  async deleteRequest(
+    id: string,
+    session?: mongoose.ClientSession
+  ): Promise<IRequest> {
     try {
       const request = await RequestModel.findOneAndUpdate(
         {

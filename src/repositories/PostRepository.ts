@@ -6,6 +6,13 @@ import { IQuery } from "../interfaces/IQuery";
 import { IPost, PostStatus } from "../interfaces/IPost";
 import { IPostRepository } from "../interfaces/repositories/IPostRepository";
 
+export type ReturnDataPosts = {
+  posts: IPost[];
+  page: number;
+  total: number;
+  totalPage: number;
+};
+
 class PostRepository implements IPostRepository {
   constructor() {}
   async createPost(
@@ -63,7 +70,7 @@ class PostRepository implements IPostRepository {
     query: IQuery,
     ignoreDeleted: boolean,
     status: string
-  ): Promise<object> {
+  ): Promise<ReturnDataPosts> {
     const { page, size, search, order, sortBy } = query;
     type searchQuery = {
       isDeleted?: boolean;
@@ -105,7 +112,7 @@ class PostRepository implements IPostRepository {
       return {
         posts: Posts,
         page,
-        totalPost,
+        total: totalPost,
         totalPage: Math.ceil(totalPost / size),
       };
     } catch (error) {
@@ -237,7 +244,7 @@ class PostRepository implements IPostRepository {
     id: string,
     query: IQuery,
     status: string
-  ): Promise<object> {
+  ): Promise<ReturnDataPosts> {
     type searchQuery = {
       userId: mongoose.Types.ObjectId;
       status?: string;
@@ -279,9 +286,9 @@ class PostRepository implements IPostRepository {
 
       const totalPosts = await PostModel.countDocuments(searchQuery);
       return {
-        Posts,
+        posts: Posts,
         page,
-        totalPosts,
+        total: totalPosts,
         totalPage: Math.ceil(totalPosts / size),
       };
     } catch (error) {

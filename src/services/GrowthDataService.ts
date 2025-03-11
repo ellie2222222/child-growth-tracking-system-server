@@ -2,18 +2,17 @@ import Database from "../utils/database";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import { IQuery } from "../interfaces/IQuery";
-import UserRepository from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import { Request } from "express";
 import UserEnum from "../enums/UserEnum";
-import ChildRepository from "../repositories/ChildRepository";
+// import ChildRepository from "../repositories/ChildRepository";
 import { IChild } from "../interfaces/IChild";
 import mongoose from "mongoose";
-import GrowthDataRepository, {
-  GrowthData,
-} from "../repositories/GrowthDataRepository";
+import { GrowthData } from "../repositories/GrowthDataRepository";
+// import GrowthDataRepository from "../repositories/GrowthDataRepository";
 import { IGrowthData } from "../interfaces/IGrowthData";
-import ConfigRepository from "../repositories/ConfigRepository";
-import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
+// import ConfigRepository from "../repositories/ConfigRepository";
+// import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
 import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
 import { IGrowthResult } from "../interfaces/IGrowthResult";
 import { BmiLevelEnum, LevelEnum } from "../enums/LevelEnum";
@@ -25,24 +24,39 @@ import {
   validateUserMembership,
   checkViewGrowthDataLimit,
 } from "../utils/tierUtils";
-import TierRepository from "../repositories/TierRepository";
-class GrowthDataService {
-  private growthDataRepository: GrowthDataRepository;
-  private userRepository: UserRepository;
-  private childRepository: ChildRepository;
-  private configRepository: ConfigRepository;
-  private growthMetricsRepository: GrowthMetricsRepository;
-  private database: Database;
-  private tierRepository: TierRepository;
+// import TierRepository from "../repositories/TierRepository";
+import { IGrowthDataService } from "../interfaces/services/IGrowthDataService";
+import { IGrowthDataRepository } from "../interfaces/repositories/IGrowthDataRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { IChildRepository } from "../interfaces/repositories/IChildRepository";
+import { IConfigRepository } from "../interfaces/repositories/IConfigRepository";
+import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAgeRepository";
+import { ITierRepository } from "../interfaces/repositories/ITierRepository";
 
-  constructor() {
-    this.growthDataRepository = new GrowthDataRepository();
-    this.userRepository = new UserRepository();
-    this.childRepository = new ChildRepository();
-    this.growthMetricsRepository = new GrowthMetricsRepository();
-    this.configRepository = new ConfigRepository();
+class GrowthDataService implements IGrowthDataService {
+  private growthDataRepository: IGrowthDataRepository;
+  private userRepository: IUserRepository;
+  private childRepository: IChildRepository;
+  private configRepository: IConfigRepository;
+  private growthMetricsRepository: IGrowthMetricsRepository;
+  private tierRepository: ITierRepository;
+  private database: Database;
+
+  constructor(
+    growthDataRepository: IGrowthDataRepository,
+    userRepository: IUserRepository,
+    childRepository: IChildRepository,
+    configRepository: IConfigRepository,
+    growthMetricsRepository: IGrowthMetricsRepository,
+    tierRepository: ITierRepository
+  ) {
+    this.growthDataRepository = growthDataRepository;
+    this.userRepository = userRepository;
+    this.childRepository = childRepository;
+    this.configRepository = configRepository;
+    this.growthMetricsRepository = growthMetricsRepository;
+    this.tierRepository = tierRepository;
     this.database = Database.getInstance();
-    this.tierRepository = new TierRepository();
   }
 
   private getPercentile(
@@ -1154,7 +1168,7 @@ class GrowthDataService {
     }
   };
 
-  checkTierUpdateGrowthDataLimit = async (userId: string) => {
+  private checkTierUpdateGrowthDataLimit = async (userId: string) => {
     try {
       const user = await this.userRepository.getUserById(
         userId as string,
@@ -1198,7 +1212,7 @@ class GrowthDataService {
     }
   };
 
-  checkTierViewGrowthDataLimit = async (userId: string) => {
+  private checkTierViewGrowthDataLimit = async (userId: string) => {
     try {
       const user = await this.userRepository.getUserById(
         userId as string,

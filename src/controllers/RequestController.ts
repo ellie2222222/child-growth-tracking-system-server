@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import RequestService from "../services/RequestService";
+// import RequestService from "../services/RequestService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { IRequestService } from "../interfaces/services/IRequestService";
 
 class RequestController {
-  private requestService: RequestService;
+  private requestService: IRequestService;
 
-  constructor() {
-    this.requestService = new RequestService();
+  constructor(requestService: IRequestService) {
+    this.requestService = requestService;
   }
 
   createRequest = async (req: Request, res: Response, next: NextFunction) => {

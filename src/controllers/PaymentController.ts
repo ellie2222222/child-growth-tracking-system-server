@@ -2,12 +2,14 @@ import { NextFunction, Request, Response } from "express";
 import { client } from "../config/paypalConfig";
 import paypal from "@paypal/checkout-server-sdk";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
-import PaymentQueue from "../queue/PaymentQueue";
+// import PaymentQueue from "../queue/PaymentQueue";
 import querystring from "qs";
 import crypto from "crypto";
 import { sortObject } from "../utils/payment";
 import { vnpayConfig } from "../config/vnpayConfig";
-import PaymentService from "../services/PaymentService";
+// import PaymentService from "../services/PaymentService";
+import { IPaymentQueue } from "../interfaces/queue/IPaymentQueue";
+import { IPaymentService } from "../interfaces/services/IPaymentService";
 
 export interface ILink {
   href: string;
@@ -31,12 +33,12 @@ export interface VnpParams {
 }
 
 class PaymentController {
-  private paymentQueue: PaymentQueue;
-  private paymentService: PaymentService;
+  private paymentQueue: IPaymentQueue;
+  private paymentService: IPaymentService;
 
-  constructor() {
-    this.paymentQueue = new PaymentQueue();
-    this.paymentService = new PaymentService();
+  constructor(paymentQueue: IPaymentQueue, paymentService: IPaymentService) {
+    this.paymentQueue = paymentQueue;
+    this.paymentService = paymentService;
   }
 
   createPaypalPayment = async (

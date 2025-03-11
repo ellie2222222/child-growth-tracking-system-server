@@ -1,6 +1,8 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import ReceiptRepository from "../repositories/ReceiptRepository";
+import { IReceiptRepository } from "../interfaces/repositories/IReceiptRepository";
+import { IStatisticService } from "../interfaces/services/IStatisticService";
+// import ReceiptRepository from "../repositories/ReceiptRepository";
 import {
   addDays,
   startOfWeek,
@@ -11,17 +13,18 @@ import {
   endOfWeek,
 } from "date-fns";
 
-type IRevenue = {
+export type IRevenue = {
   Date: string;
   Revenue: number;
 };
 
-class StatisticService {
-  private receiptRepository: ReceiptRepository;
+class StatisticService implements IStatisticService {
+  private receiptRepository: IReceiptRepository;
 
-  constructor() {
-    this.receiptRepository = new ReceiptRepository();
+  constructor(receiptRepository: IReceiptRepository) {
+    this.receiptRepository = receiptRepository;
   }
+
   getMonday = (d: Date) => {
     const dt = new Date(d);
     const day = dt.getDay();

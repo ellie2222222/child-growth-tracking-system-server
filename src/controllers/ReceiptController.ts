@@ -1,13 +1,15 @@
 import { NextFunction, Request, Response } from "express";
-import ReceiptService from "../services/ReceiptService";
+// import ReceiptService from "../services/ReceiptService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { IReceiptService } from "../interfaces/services/IReceiptService";
 
 class ReceiptController {
-  private receiptService: ReceiptService;
+  private receiptService: IReceiptService;
 
-  constructor() {
-    this.receiptService = new ReceiptService();
+  constructor(receiptService: IReceiptService) {
+    this.receiptService = receiptService;
   }
+
   getAllReceipts = async (
     req: Request,
     res: Response,

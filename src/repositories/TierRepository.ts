@@ -5,8 +5,18 @@ import { ITier } from "../interfaces/ITier";
 import TierModel from "../models/TierModel";
 import { IQuery } from "../interfaces/IQuery";
 import { ITierRepository } from "../interfaces/repositories/ITierRepository";
+
+export type ReturnDataTiers = {
+  tiers: ITier[];
+  page: number;
+  totalPage: number;
+  total: number;
+};
 class TierRepository implements ITierRepository {
-  async createTier(data: Partial<ITier>, session?: mongoose.ClientSession): Promise<ITier> {
+  async createTier(
+    data: Partial<ITier>,
+    session?: mongoose.ClientSession
+  ): Promise<ITier> {
     try {
       const checkTier = await TierModel.findOne({
         isDeleted: false,
@@ -21,6 +31,7 @@ class TierRepository implements ITierRepository {
       }
 
       const tier = await TierModel.create([data], { session });
+
       return tier[0];
     } catch (error) {
       if (error as Error | CustomException) {
@@ -74,7 +85,10 @@ class TierRepository implements ITierRepository {
     }
   }
 
-  async getTier(id: string | ObjectId, ignoreDeleted: boolean): Promise<ITier | null> {
+  async getTier(
+    id: string | ObjectId,
+    ignoreDeleted: boolean
+  ): Promise<ITier | null> {
     try {
       type searchQuery = {
         _id: mongoose.Types.ObjectId;
@@ -113,7 +127,10 @@ class TierRepository implements ITierRepository {
     }
   }
 
-  async getTiers(query: IQuery, ignoreDeleted: boolean): Promise<object> {
+  async getTiers(
+    query: IQuery,
+    ignoreDeleted: boolean
+  ): Promise<ReturnDataTiers> {
     try {
       const { page, size, search, order, sortBy } = query;
       type searchQuery = {
@@ -148,7 +165,12 @@ class TierRepository implements ITierRepository {
       }
 
       const tierCount = await TierModel.countDocuments(searchQuery);
-      return { tiers, page, totalPage: Math.ceil(tierCount / size), tierCount };
+      return {
+        tiers,
+        page,
+        totalPage: Math.ceil(tierCount / size),
+        total: tierCount,
+      };
     } catch (error) {
       if (error as Error | CustomException) {
         throw new CustomException(

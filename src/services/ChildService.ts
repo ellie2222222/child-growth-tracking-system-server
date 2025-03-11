@@ -1,29 +1,40 @@
 import Database from "../utils/database";
-import ChildRepository, { ChildrenData } from "../repositories/ChildRepository";
+import { ChildrenData } from "../repositories/ChildRepository";
+// import ChildRepository from "../repositories/ChildRepository";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import { IChild } from "../interfaces/IChild";
 import { IQuery } from "../interfaces/IQuery";
-import UserRepository from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import { Request } from "express";
 import UserEnum from "../enums/UserEnum";
-import TierRepository from "../repositories/TierRepository";
-import mongoose, { isValidObjectId, ObjectId } from "mongoose";
-import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+// import TierRepository from "../repositories/TierRepository";
+import mongoose from "mongoose";
+// import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import { IChildService } from "../interfaces/services/IChildService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { IChildRepository } from "../interfaces/repositories/IChildRepository";
+import { ITierRepository } from "../interfaces/repositories/ITierRepository";
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 
-class ChildService {
-  private childRepository: ChildRepository;
-  private userRepository: UserRepository;
+class ChildService implements IChildService {
+  private childRepository: IChildRepository;
+  private userRepository: IUserRepository;
+  private tierRepository: ITierRepository;
+  private membershipPackageRepository: IMembershipPackageRepository;
   private database: Database;
-  private tierRepository: TierRepository;
-  private membershipPackageRepository: MembershipPackageRepository;
 
-  constructor() {
-    this.childRepository = new ChildRepository();
-    this.userRepository = new UserRepository();
+  constructor(
+    childRepository: IChildRepository,
+    userRepository: IUserRepository,
+    tierRepository: ITierRepository,
+    membershipPackageRepository: IMembershipPackageRepository
+  ) {
+    this.childRepository = childRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.tierRepository = new TierRepository();
-    this.membershipPackageRepository = new MembershipPackageRepository();
+    this.tierRepository = tierRepository;
+    this.membershipPackageRepository = membershipPackageRepository;
   }
 
   /**

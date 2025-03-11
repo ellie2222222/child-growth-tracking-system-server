@@ -1,10 +1,20 @@
 import express from "express";
-import AuthController from "../controllers/AuthController";
-import AuthHandler from "../handlers/AuthHandler";
-import passport from "../config/passportConfig";
-import AuthMiddleware from "../middlewares/AuthMiddleware";
 
-const authController = new AuthController();
+import AuthMiddleware from "../middlewares/AuthMiddleware";
+import passport from "../config/passportConfig";
+
+import AuthHandler from "../handlers/AuthHandler";
+import AuthController from "../controllers/AuthController";
+import AuthService from "../services/AuthService";
+import SessionService from "../services/SessionService";
+import UserRepository from "../repositories/UserRepository";
+import SessionRepository from "../repositories/SessionRepository";
+
+const userRepository = new UserRepository();
+const sessionRepository = new SessionRepository();
+const sessionService = new SessionService(sessionRepository);
+const authService = new AuthService(userRepository, sessionService);
+const authController = new AuthController(authService);
 const authHandler = new AuthHandler();
 
 const authRoutes = express.Router();
@@ -52,7 +62,8 @@ authRoutes.put(
 authRoutes.post(
   "/send-reset-password-pin",
   authHandler.sendResetPasswordPin,
-  authController.sendResetPasswordPin);
+  authController.sendResetPasswordPin
+);
 
 authRoutes.post(
   "/confirm-reset-password-pin",

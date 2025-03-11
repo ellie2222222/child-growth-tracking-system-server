@@ -1,6 +1,7 @@
-import mongoose, { ClientSession, ObjectId } from "mongoose";
+import { ClientSession, ObjectId } from "mongoose";
 import { IMembershipPackage } from "../IMembershipPackage";
 import { IQuery } from "../IQuery";
+import { ReturnDataMembershipPackages } from "../../repositories/MembershipPackageRepository";
 
 export interface IMembershipPackageRepository {
   createMembershipPackage(
@@ -16,7 +17,7 @@ export interface IMembershipPackageRepository {
   getMembershipPackages(
     query: IQuery,
     ignoreDeleted: boolean
-  ): Promise<object>;
+  ): Promise<ReturnDataMembershipPackages>;
 
   updateMembershipPackage(
     id: string | ObjectId,

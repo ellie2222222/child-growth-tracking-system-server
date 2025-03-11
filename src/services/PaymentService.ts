@@ -1,21 +1,27 @@
 import CustomException from "../exceptions/CustomException";
-import MembershipPackageService from "./MembershipPackagesService";
-import UserService from "./UserService";
+// import MembershipPackageService from "./MembershipPackagesService";
+// import UserService from "./UserService";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
 import { IUser } from "../interfaces/IUser";
 import { ObjectId } from "mongoose";
 import { PaypalPayment, VnpayPayment } from "../utils/payment";
+import { IPaymentService } from "../interfaces/services/IPaymentService";
+import { IMembershipPackageService } from "../interfaces/services/IMembershipPackagesService";
+import { IUserService } from "../interfaces/services/IUserService";
 
-class PaymentService {
-  private membershipPackageService: MembershipPackageService;
-  private userService: UserService;
+class PaymentService implements IPaymentService {
+  private membershipPackageService: IMembershipPackageService;
+  private userService: IUserService;
 
-  constructor() {
-    this.membershipPackageService = new MembershipPackageService();
-    this.userService = new UserService();
+  constructor(
+    membershipPackageService: IMembershipPackageService,
+    userService: IUserService
+  ) {
+    this.membershipPackageService = membershipPackageService;
+    this.userService = userService;
   }
 
-  checkUserPackage = async (userId: string) => {
+  private checkUserPackage = async (userId: string) => {
     const user = await this.userService.getUserById(userId, userId);
     if (!user) {
       throw new CustomException(
@@ -35,7 +41,7 @@ class PaymentService {
     price: number,
     packageId: string | ObjectId,
     userId: string
-  ) => {
+  ): Promise<string> => {
     try {
       await this.checkUserPackage(userId);
       const testPackage =
@@ -92,7 +98,7 @@ class PaymentService {
     packageId: string,
     ipAddr: string,
     bankCode?: string
-  ) => {
+  ): Promise<string> => {
     try {
       await this.checkUserPackage(userId);
       const testPackage =

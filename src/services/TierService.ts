@@ -1,22 +1,29 @@
 import { ObjectId } from "mongoose";
 import CustomException from "../exceptions/CustomException";
 import { ILimitObject, ITier } from "../interfaces/ITier";
-import TierRepository from "../repositories/TierRepository";
+import { ReturnDataTiers } from "../repositories/TierRepository";
+// import TierRepository from "../repositories/TierRepository";
 import Database from "../utils/database";
-import UserRepository from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { ITierService } from "../interfaces/services/ITierService";
+import { ITierRepository } from "../interfaces/repositories/ITierRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
-class TierService {
-  private tierRepository: TierRepository;
+class TierService implements ITierService {
+  private tierRepository: ITierRepository;
+  private userRepository: IUserRepository;
   private database: Database;
-  private userRepository: UserRepository;
 
-  constructor() {
-    this.tierRepository = new TierRepository();
+  constructor(
+    tierRepository: ITierRepository,
+    userRepository: IUserRepository
+  ) {
+    this.tierRepository = tierRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.userRepository = new UserRepository();
   }
 
   createTier = async (
@@ -27,7 +34,7 @@ class TierService {
     updateRecordsLimitTime: number,
     viewRecordsLimitValue: number,
     viewRecordsLimitTime: number
-  ) => {
+  ): Promise<ITier> => {
     const session = await this.database.startTransaction();
 
     try {
@@ -62,6 +69,10 @@ class TierService {
       if (error as Error | CustomException) {
         throw error;
       }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     } finally {
       session.endSession();
     }
@@ -75,7 +86,7 @@ class TierService {
     updateRecordsLimitTime: number,
     viewRecordsLimitValue: number,
     viewRecordsLimitTime: number
-  ) => {
+  ): Promise<ITier | null> => {
     const session = await this.database.startTransaction();
     try {
       const oldTier = await this.tierRepository.getTier(id, false);
@@ -167,12 +178,19 @@ class TierService {
       if (error as Error | CustomException) {
         throw error;
       }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     } finally {
       session.endSession();
     }
   };
 
-  getTier = async (id: string | ObjectId, requesterId: string) => {
+  getTier = async (
+    id: string | ObjectId,
+    requesterId: string
+  ): Promise<ITier | null> => {
     try {
       const checkRequester = await this.userRepository.getUserById(
         requesterId,
@@ -200,6 +218,10 @@ class TierService {
       if (error as Error | CustomException) {
         throw error;
       }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 
@@ -207,7 +229,7 @@ class TierService {
     query: IQuery,
     requesterId: string,
     ignoreDeleted: boolean
-  ) => {
+  ): Promise<ReturnDataTiers> => {
     try {
       const checkRequester = await this.userRepository.getUserById(
         requesterId,
@@ -235,6 +257,10 @@ class TierService {
       if (error as Error | CustomException) {
         throw error;
       }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   };
 }

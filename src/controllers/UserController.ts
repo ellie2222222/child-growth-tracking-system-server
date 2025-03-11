@@ -1,12 +1,13 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import UserService from "../services/UserService";
+import { IUserService } from "../interfaces/services/IUserService";
+// import UserService from "../services/UserService";
 import { Request, Response, NextFunction } from "express";
 
 class UserController {
-  private userService: UserService;
+  private userService: IUserService;
 
-  constructor() {
-    this.userService = new UserService();
+  constructor(userService: IUserService) {
+    this.userService = userService;
   }
 
   /**
