@@ -2,27 +2,33 @@ import mongoose, { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import { IReceipt } from "../interfaces/IReceipt";
-import ReceiptRepository, {
-  ReturnDataReceipts,
-} from "../repositories/ReceiptRepository";
+import { ReturnDataReceipts } from "../repositories/ReceiptRepository";
 import Database from "../utils/database";
-import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+// import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+// import ReceiptRepository from "../repositories/ReceiptRepository";
+// import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
-import UserRepository from "../repositories/UserRepository";
 import { IQuery } from "../interfaces/IQuery";
 import { IReceiptService } from "../interfaces/services/IReceiptService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
+import { IReceiptRepository } from "../interfaces/repositories/IReceiptRepository";
 
 class ReceiptService implements IReceiptService {
+  private receiptRepository: IReceiptRepository;
+  private membershipPackageRepository: IMembershipPackageRepository;
+  private userRepository: IUserRepository;
   private database: Database;
-  private receiptRepository: ReceiptRepository;
-  private membershipPackageRepository: MembershipPackageRepository;
-  private userRepository: UserRepository;
 
-  constructor() {
-    this.receiptRepository = new ReceiptRepository();
+  constructor(
+    receiptRepository: IReceiptRepository,
+    membershipPackageRepository: IMembershipPackageRepository,
+    userRepository: IUserRepository
+  ) {
+    this.receiptRepository = receiptRepository;
+    this.membershipPackageRepository = membershipPackageRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.membershipPackageRepository = new MembershipPackageRepository();
-    this.userRepository = new UserRepository();
   }
 
   createReceipt = async (

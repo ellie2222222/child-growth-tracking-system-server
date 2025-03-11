@@ -3,32 +3,45 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
 import { IUser } from "../interfaces/IUser";
-import UserRepository, { IDoctor } from "../repositories/UserRepository";
+import { IDoctor } from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
-import SessionService from "./SessionService";
+// import SessionService from "./SessionService";
 import { IQuery } from "../interfaces/IQuery";
 import { returnData } from "../repositories/UserRepository";
-import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
-import TierRepository from "../repositories/TierRepository";
-import ConsultationRepository from "../repositories/ConsultationRepository";
+// import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+// import TierRepository from "../repositories/TierRepository";
+// import ConsultationRepository from "../repositories/ConsultationRepository";
 import bcrypt from "bcrypt";
 import { IConsultation } from "../interfaces/IConsultation";
 import { IUserService } from "../interfaces/services/IUserService";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
+import { ITierRepository } from "../interfaces/repositories/ITierRepository";
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
+import { ISessionService } from "../interfaces/services/ISessionService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 class UserService implements IUserService {
-  private userRepository: UserRepository;
-  private sessionService: SessionService;
+  private userRepository: IUserRepository;
+  private sessionService: ISessionService;
+  private membershipPackageRepository: IMembershipPackageRepository;
+  private tierRepository: ITierRepository;
+  private consultationRepository: IConsultationRepository;
   private database: Database;
-  private membershipPackageRepository: MembershipPackageRepository;
-  private tierRepository: TierRepository;
-  private consultationRepository: ConsultationRepository;
-  constructor() {
-    this.userRepository = new UserRepository();
-    this.sessionService = new SessionService();
+
+  constructor(
+    userRepository: IUserRepository,
+    sessionService: ISessionService,
+    membershipPackageRepository: IMembershipPackageRepository,
+    tierRepository: ITierRepository,
+    consultationRepository: IConsultationRepository
+  ) {
+    this.userRepository = userRepository;
+    this.sessionService = sessionService;
+    this.membershipPackageRepository = membershipPackageRepository;
+    this.tierRepository = tierRepository;
+    this.consultationRepository = consultationRepository;
     this.database = Database.getInstance();
-    this.membershipPackageRepository = new MembershipPackageRepository();
-    this.tierRepository = new TierRepository();
-    this.consultationRepository = new ConsultationRepository();
   }
 
   /**

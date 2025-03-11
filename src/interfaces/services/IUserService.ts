@@ -65,4 +65,10 @@ export interface IUserService {
     requesterId: string,
     rating: number
   ) => Promise<IConsultation>;
+
+  removeConsultationRating: (
+    consultationId: string,
+    requesterId: string,
+    rating: number
+  ) => Promise<IConsultation>;
 }

@@ -27,15 +27,18 @@ export interface IPostService {
     attachments: Array<string>,
     thumbnailUrl: string,
     requesterId: string
-  ) => Promise<IPost>;
+  ) => Promise<IPost | null>;
 
   updatePostStatus: (
     id: string | ObjectId,
     status: PostStatus,
     requesterId: string
-  ) => Promise<IPost>;
+  ) => Promise<IPost | null>;
 
-  deletePost: (id: string | ObjectId, requesterId: string) => Promise<IPost>;
+  deletePost: (
+    id: string | ObjectId,
+    requesterId: string
+  ) => Promise<IPost | null>;
   getPostsByUserId: (
     requesterId: string,
     userId: string,

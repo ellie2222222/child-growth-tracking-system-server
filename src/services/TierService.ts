@@ -1,25 +1,29 @@
 import { ObjectId } from "mongoose";
 import CustomException from "../exceptions/CustomException";
 import { ILimitObject, ITier } from "../interfaces/ITier";
-import TierRepository, {
-  ReturnDataTiers,
-} from "../repositories/TierRepository";
+import { ReturnDataTiers } from "../repositories/TierRepository";
+// import TierRepository from "../repositories/TierRepository";
 import Database from "../utils/database";
-import UserRepository from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { ITierService } from "../interfaces/services/ITierService";
+import { ITierRepository } from "../interfaces/repositories/ITierRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 class TierService implements ITierService {
-  private tierRepository: TierRepository;
+  private tierRepository: ITierRepository;
+  private userRepository: IUserRepository;
   private database: Database;
-  private userRepository: UserRepository;
 
-  constructor() {
-    this.tierRepository = new TierRepository();
+  constructor(
+    tierRepository: ITierRepository,
+    userRepository: IUserRepository
+  ) {
+    this.tierRepository = tierRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.userRepository = new UserRepository();
   }
 
   createTier = async (

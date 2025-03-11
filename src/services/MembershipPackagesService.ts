@@ -1,15 +1,16 @@
 import { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import MembershipPackageRepository, {
-  ReturnDataMembershipPackages,
-} from "../repositories/MembershipPackageRepository";
-import UserRepository from "../repositories/UserRepository";
+// import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import { ReturnDataMembershipPackages } from "../repositories/MembershipPackageRepository";
+// import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IMembershipPackage } from "../interfaces/IMembershipPackage";
 import { IMembershipPackageService } from "../interfaces/services/IMembershipPackagesService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 
 export type PriceType = {
   value: number;
@@ -20,13 +21,16 @@ export type DurationType = {
   unit: "DAY";
 };
 class MembershipPackageService implements IMembershipPackageService {
-  private membershipPackageRepository: MembershipPackageRepository;
-  private userRepository: UserRepository;
+  private membershipPackageRepository: IMembershipPackageRepository;
+  private userRepository: IUserRepository;
   private database: Database;
 
-  constructor() {
-    this.membershipPackageRepository = new MembershipPackageRepository();
-    this.userRepository = new UserRepository();
+  constructor(
+    membershipPackageRepository: IMembershipPackageRepository,
+    userRepository: IUserRepository
+  ) {
+    this.membershipPackageRepository = membershipPackageRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
   }
 

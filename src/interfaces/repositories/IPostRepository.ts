@@ -1,23 +1,18 @@
 import mongoose, { ObjectId } from "mongoose";
 import { IQuery } from "../IQuery";
 import { IPost } from "../IPost";
+import { ReturnDataPosts } from "../../repositories/PostRepository";
 
 export interface IPostRepository {
-  createPost(
-    data: object,
-    session?: mongoose.ClientSession
-  ): Promise<IPost>;
+  createPost(data: object, session?: mongoose.ClientSession): Promise<IPost>;
 
-  getPost(
-    id: ObjectId | string,
-    ignoreDeleted: boolean
-  ): Promise<IPost>;
+  getPost(id: ObjectId | string, ignoreDeleted: boolean): Promise<IPost>;
 
   getPosts(
     query: IQuery,
     ignoreDeleted: boolean,
     status: string
-  ): Promise<object>;
+  ): Promise<ReturnDataPosts>;
 
   updatePost(
     id: string | ObjectId,
@@ -42,5 +37,5 @@ export interface IPostRepository {
     id: string,
     query: IQuery,
     status: string
-  ): Promise<object>;
+  ): Promise<ReturnDataPosts>;
 }

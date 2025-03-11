@@ -2,18 +2,20 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import { IReceipt } from "../interfaces/IReceipt";
 import { IPaymentQueue } from "../interfaces/queue/IPaymentQueue";
-import ReceiptService from "../services/ReceiptService";
-import UserService from "../services/UserService";
+import { IReceiptService } from "../interfaces/services/IReceiptService";
+import { IUserService } from "../interfaces/services/IUserService";
+// import ReceiptService from "../services/ReceiptService";
+// import UserService from "../services/UserService";
 import { closeConnection, createConnection } from "../utils/queueUtils";
 
 const PAYMENT_QUEUE_NAME = "Payment_queue";
 class PaymentQueue implements IPaymentQueue {
-  private receiptService: ReceiptService;
-  private userService: UserService;
+  private receiptService: IReceiptService;
+  private userService: IUserService;
 
-  constructor() {
-    this.receiptService = new ReceiptService();
-    this.userService = new UserService();
+  constructor(receiptService: IReceiptService, userService: IUserService) {
+    this.receiptService = receiptService;
+    this.userService = userService;
   }
 
   sendPaymentData = async (data: object): Promise<void> => {

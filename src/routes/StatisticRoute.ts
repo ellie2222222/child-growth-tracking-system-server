@@ -1,15 +1,20 @@
 import { Router } from "express";
-import StatisticController from "../controllers/StatisticController";
+
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
 import UserEnum from "../enums/UserEnum";
-import StatisticHandler from "../handlers/StatisticHandler";
-import StatisticService from "../services/StatisticService";
 
-const statisticService = new StatisticService();
+import StatisticHandler from "../handlers/StatisticHandler";
+import StatisticController from "../controllers/StatisticController";
+import StatisticService from "../services/StatisticService";
+import ReceiptRepository from "../repositories/ReceiptRepository";
+
+const receiptRepository = new ReceiptRepository();
+const statisticService = new StatisticService(receiptRepository);
 const statisticController = new StatisticController(statisticService);
-const router = Router();
 const statisticHandler = new StatisticHandler();
+
+const router = Router();
 
 router.use(AuthMiddleware);
 

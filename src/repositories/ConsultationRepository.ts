@@ -403,7 +403,9 @@ class ConsultationRepository implements IConsultationRepository {
     }
   }
 
-  async getAllConsultationsByDoctorId(userId: string) {
+  async getAllConsultationsByDoctorId(
+    userId: string
+  ): Promise<IConsultation[]> {
     try {
       const consultations = await ConsultationModel.aggregate([
         {

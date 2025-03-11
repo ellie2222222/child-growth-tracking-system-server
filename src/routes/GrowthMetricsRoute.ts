@@ -1,16 +1,26 @@
 import express from "express";
+
 import { uploadFile } from "../middlewares/storeFile";
+import AuthMiddleware from "../middlewares/AuthMiddleware";
+
 import GrowthMetricsHandler from "../handlers/GrowthMetricsHandler";
 import GrowthMetricsController from "../controllers/GrowthMetricsController";
-import AuthMiddleware from "../middlewares/AuthMiddleware";
 import GrowthMetricsService from "../services/GrowthMetricsService";
+import ConfigRepository from "../repositories/ConfigRepository";
+import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
 
-const growthMetricsRoute = express.Router();
-const growthMetricsHandler = new GrowthMetricsHandler();
-const growthMetricService = new GrowthMetricsService();
+const configRepository = new ConfigRepository();
+const growthMetricsRepository = new GrowthMetricsRepository();
+const growthMetricService = new GrowthMetricsService(
+  growthMetricsRepository,
+  configRepository
+);
 const growthMetricsController = new GrowthMetricsController(
   growthMetricService
 );
+const growthMetricsHandler = new GrowthMetricsHandler();
+
+const growthMetricsRoute = express.Router();
 
 growthMetricsRoute.use(AuthMiddleware);
 

@@ -4,26 +4,32 @@ import CustomException from "../exceptions/CustomException";
 import { ConsultationStatus } from "../interfaces/IConsultation";
 import { IConsultationMessage } from "../interfaces/IConsultationMessage";
 import { IQuery } from "../interfaces/IQuery";
+import { IConsultationMessageRepository } from "../interfaces/repositories/IConsultationMessageRepository";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IConsultationMessageService } from "../interfaces/services/IConsultationMessageService";
-import ConsultationMessageRepository, {
-  ReturnDataConsultationMessages,
-} from "../repositories/ConsultationMessageRepository";
-import ConsultationRepository from "../repositories/ConsultationRepository";
-import UserRepository from "../repositories/UserRepository";
+import { ReturnDataConsultationMessages } from "../repositories/ConsultationMessageRepository";
+// import ConsultationMessageRepository from "../repositories/ConsultationMessageRepository";
+// import ConsultationRepository from "../repositories/ConsultationRepository";
+// import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import { cleanUpFileArray, extractAndReplaceImages } from "../utils/fileUtils";
 
 class ConsultationMessageService implements IConsultationMessageService {
-  private consultationRepository: ConsultationRepository;
+  private consultationRepository: IConsultationRepository;
+  private userRepository: IUserRepository;
+  private consultationMessageRepository: IConsultationMessageRepository;
   private database: Database;
-  private userRepository: UserRepository;
-  private consultationMessageRepository: ConsultationMessageRepository;
 
-  constructor() {
-    this.consultationRepository = new ConsultationRepository();
+  constructor(
+    consultationRepository: IConsultationRepository,
+    userRepository: IUserRepository,
+    consultationMessageRepository: IConsultationMessageRepository
+  ) {
+    this.consultationRepository = consultationRepository;
+    this.userRepository = userRepository;
+    this.consultationMessageRepository = consultationMessageRepository;
     this.database = Database.getInstance();
-    this.userRepository = new UserRepository();
-    this.consultationMessageRepository = new ConsultationMessageRepository();
   }
 
   createConsultationMessage = async (

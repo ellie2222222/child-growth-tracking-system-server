@@ -1,26 +1,33 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import CommentRepository from "../repositories/CommentRepository";
+// import CommentRepository from "../repositories/CommentRepository";
 import Database from "../utils/database";
-import PostRepository from "../repositories/PostRepository";
+// import PostRepository from "../repositories/PostRepository";
 import { ObjectId } from "mongoose";
-import UserRepository from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IComment } from "../interfaces/IComment";
 import { ICommentService } from "../interfaces/services/ICommentService";
+import { ICommentRepository } from "../interfaces/repositories/ICommentRepository";
+import { IPostRepository } from "../interfaces/repositories/IPostRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 class CommentService implements ICommentService {
-  private commentRepository: CommentRepository;
+  private commentRepository: ICommentRepository;
+  private postRepository: IPostRepository;
+  private userRepository: IUserRepository;
   private database: Database;
-  private postRepository: PostRepository;
-  private userRepository: UserRepository;
 
-  constructor() {
-    this.commentRepository = new CommentRepository();
+  constructor(
+    commentRepository: ICommentRepository,
+    postRepository: IPostRepository,
+    userRepository: IUserRepository
+  ) {
+    this.commentRepository = commentRepository;
+    this.postRepository = postRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.postRepository = new PostRepository();
-    this.userRepository = new UserRepository();
   }
 
   createComment = async (

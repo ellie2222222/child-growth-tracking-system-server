@@ -1,15 +1,28 @@
 import { Router } from "express";
-import MembershipPackageController from "../controllers/MembershipPackageController";
+
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
+
 import MembershipPackageHandler from "../handlers/MembershipPackageHandler";
-import AuthMiddleware from "../middlewares/AuthMiddleware";
+import MembershipPackageController from "../controllers/MembershipPackageController";
 import MembershipPackageService from "../services/MembershipPackagesService";
 
-const membershipPackageService = new MembershipPackageService();
+import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import UserRepository from "../repositories/UserRepository";
+
+const membershipPackageRepository = new MembershipPackageRepository();
+const userRepository = new UserRepository();
+
+const membershipPackageService = new MembershipPackageService(
+  membershipPackageRepository,
+  userRepository
+);
+
 const membershipPackageController = new MembershipPackageController(
   membershipPackageService
 );
+
 const membershipPackageHandler = new MembershipPackageHandler();
 const router = Router();
 

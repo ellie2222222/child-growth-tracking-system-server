@@ -1,16 +1,34 @@
 import { Router } from "express";
-import PostController from "../controllers/PostController";
+
 import { uploadFile } from "../middlewares/storeFile";
-import PostHandler from "../handlers/PostHandler";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
-import PostService from "../services/PostService";
 
-const router = Router();
-const postService = new PostService();
+import PostHandler from "../handlers/PostHandler";
+import PostController from "../controllers/PostController";
+import PostService from "../services/PostService";
+import UserRepository from "../repositories/UserRepository";
+import TierRepository from "../repositories/TierRepository";
+import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+import PostRepository from "../repositories/PostRepository";
+
+const userRepository = new UserRepository();
+const tierRepository = new TierRepository();
+const membershipPackageRepository = new MembershipPackageRepository();
+const postRepository = new PostRepository();
+
+const postService = new PostService(
+  postRepository,
+  userRepository,
+  tierRepository,
+  membershipPackageRepository
+);
+
 const postController = new PostController(postService);
 const postHandler = new PostHandler();
+
+const router = Router();
 
 router.use(AuthMiddleware);
 

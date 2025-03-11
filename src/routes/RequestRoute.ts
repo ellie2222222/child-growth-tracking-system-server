@@ -1,16 +1,34 @@
 import { Router } from "express";
+
+import AuthMiddleware from "../middlewares/AuthMiddleware";
 import RoleMiddleware from "../middlewares/RoleMiddleware";
 import UserEnum from "../enums/UserEnum";
+
 import RequestHandler from "../handlers/RequestHandler";
 import RequestController from "../controllers/RequestController";
-import AuthMiddleware from "../middlewares/AuthMiddleware";
 import RequestService from "../services/RequestService";
 
-const requestRouter = Router();
-const requestService = new RequestService();
-const requestHandler = new RequestHandler();
-const requestController = new RequestController(requestService);
+import UserRepository from "../repositories/UserRepository";
+import ConsultationRepository from "../repositories/ConsultationRepository";
+import ChildRepository from "../repositories/ChildRepository";
+import RequestRepository from "../repositories/RequestRepository";
 
+const consultationRepository = new ConsultationRepository();
+const userRepository = new UserRepository();
+const childRepository = new ChildRepository();
+const requestRepository = new RequestRepository();
+
+const requestService = new RequestService(
+  requestRepository,
+  userRepository,
+  childRepository,
+  consultationRepository
+);
+
+const requestController = new RequestController(requestService);
+const requestHandler = new RequestHandler();
+
+const requestRouter = Router();
 requestRouter.use(AuthMiddleware);
 
 requestRouter.put(

@@ -2,24 +2,28 @@ import { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
-import ConsultationRepository, {
-  returnDataConsultation,
-} from "../repositories/ConsultationRepository";
-import UserRepository from "../repositories/UserRepository";
+// import ConsultationRepository from "../repositories/ConsultationRepository";
+import { returnDataConsultation } from "../repositories/ConsultationRepository";
+// import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import { IQuery } from "../interfaces/IQuery";
 import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
 import { IConsultationService } from "../interfaces/services/IConsultationService";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 class ConsultationService implements IConsultationService {
-  private consultationRepository: ConsultationRepository;
+  private consultationRepository: IConsultationRepository;
+  private userRepository: IUserRepository;
   private database: Database;
-  private userRepository: UserRepository;
 
-  constructor() {
-    this.consultationRepository = new ConsultationRepository();
+  constructor(
+    consultationRepository: IConsultationRepository,
+    userRepository: IUserRepository
+  ) {
+    this.consultationRepository = consultationRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.userRepository = new UserRepository();
   }
 
   updateConsultationStatus = async (

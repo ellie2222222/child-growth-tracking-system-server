@@ -1,19 +1,24 @@
 import CustomException from "../exceptions/CustomException";
-import MembershipPackageService from "./MembershipPackagesService";
-import UserService from "./UserService";
+// import MembershipPackageService from "./MembershipPackagesService";
+// import UserService from "./UserService";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
 import { IUser } from "../interfaces/IUser";
 import { ObjectId } from "mongoose";
 import { PaypalPayment, VnpayPayment } from "../utils/payment";
 import { IPaymentService } from "../interfaces/services/IPaymentService";
+import { IMembershipPackageService } from "../interfaces/services/IMembershipPackagesService";
+import { IUserService } from "../interfaces/services/IUserService";
 
 class PaymentService implements IPaymentService {
-  private membershipPackageService: MembershipPackageService;
-  private userService: UserService;
+  private membershipPackageService: IMembershipPackageService;
+  private userService: IUserService;
 
-  constructor() {
-    this.membershipPackageService = new MembershipPackageService();
-    this.userService = new UserService();
+  constructor(
+    membershipPackageService: IMembershipPackageService,
+    userService: IUserService
+  ) {
+    this.membershipPackageService = membershipPackageService;
+    this.userService = userService;
   }
 
   private checkUserPackage = async (userId: string) => {

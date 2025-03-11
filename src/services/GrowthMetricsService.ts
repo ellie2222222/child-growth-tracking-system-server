@@ -1,23 +1,28 @@
 import { UpdateWriteOpResult } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
+// import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
 import Database from "../utils/database";
 import { Request } from "express";
 import { ProgressBar } from "../utils/progressBar";
-import ConfigRepository from "../repositories/ConfigRepository";
+// import ConfigRepository from "../repositories/ConfigRepository";
 import getLogger from "../utils/logger";
 import { IGrowthMetricsService } from "../interfaces/services/IGrowthMetricsService";
+import { IConfigRepository } from "../interfaces/repositories/IConfigRepository";
+import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAgeRepository";
 const logger = getLogger("GROWTH_METRICS_SERVICE");
 
 class GrowthMetricsService implements IGrowthMetricsService {
-  private growthMetricsRepository: GrowthMetricsRepository;
-  private configRepository: ConfigRepository;
+  private growthMetricsRepository: IGrowthMetricsRepository;
+  private configRepository: IConfigRepository;
   private database;
 
-  constructor() {
-    this.growthMetricsRepository = new GrowthMetricsRepository();
-    this.configRepository = new ConfigRepository();
+  constructor(
+    growthMetricsRepository: IGrowthMetricsRepository,
+    configRepository: IConfigRepository
+  ) {
+    this.growthMetricsRepository = growthMetricsRepository;
+    this.configRepository = configRepository;
     this.database = Database.getInstance();
   }
 
@@ -31,7 +36,7 @@ class GrowthMetricsService implements IGrowthMetricsService {
   }> => {
     try {
       // Prepare return data and counters
-      let result: Array<object> = [];
+      const result: Array<object> = [];
       let updatedCount = 0;
       let insertedCount = 0;
 
