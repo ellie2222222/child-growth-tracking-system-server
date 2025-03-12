@@ -59,6 +59,10 @@ const options: swaggerJsdoc.Options = {
         name: "Statistics",
         description: "Operations about statistic performed by admin",
       },
+      {
+        name: "Child",
+        description: "Operations about child and its growth data",
+      },
     ],
     components: {
       securitySchemes: {

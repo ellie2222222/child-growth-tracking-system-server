@@ -18,7 +18,7 @@
  *         - Must have either `ageInDays` or `ageInMonths` as a positive integer.
  *       - **For WFLH Metric**:
  *         - Must include a `height` field with a valid value.
- *       - **For WV and HV Metrics**:
+ *       - **For WV, HV, HCV Metrics**:
  *         - Must include a `delta` field with a valid floating-point number.
  *     tags: [Growth Metrics]
  *     requestBody:
