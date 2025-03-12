@@ -308,6 +308,8 @@ class UserRepository implements IUserRepository {
         },
         {
           $project: {
+            name: 1,
+            subscription: 1,
             email: 1,
             fullName: 1,
             avatar: 1,
