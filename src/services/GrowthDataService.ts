@@ -18,20 +18,13 @@ import { IGrowthResult } from "../interfaces/IGrowthResult";
 import { BmiLevelEnum, LevelEnum } from "../enums/LevelEnum";
 import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
 import { IGrowthVelocityResult } from "../interfaces/IGrowthVelocityResult";
-import {
-  checkUpdateChildrenGrowthLimit,
-  getCheckIntervalBounds,
-  validateUserMembership,
-  checkViewGrowthDataLimit,
-} from "../utils/tierUtils";
-// import TierRepository from "../repositories/TierRepository";
+
 import { IGrowthDataService } from "../interfaces/services/IGrowthDataService";
 import { IGrowthDataRepository } from "../interfaces/repositories/IGrowthDataRepository";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IChildRepository } from "../interfaces/repositories/IChildRepository";
 import { IConfigRepository } from "../interfaces/repositories/IConfigRepository";
 import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAgeRepository";
-import { ITierRepository } from "../interfaces/repositories/ITierRepository";
 
 class GrowthDataService implements IGrowthDataService {
   private growthDataRepository: IGrowthDataRepository;
@@ -39,7 +32,6 @@ class GrowthDataService implements IGrowthDataService {
   private childRepository: IChildRepository;
   private configRepository: IConfigRepository;
   private growthMetricsRepository: IGrowthMetricsRepository;
-  private tierRepository: ITierRepository;
   private database: Database;
 
   constructor(
@@ -47,15 +39,13 @@ class GrowthDataService implements IGrowthDataService {
     userRepository: IUserRepository,
     childRepository: IChildRepository,
     configRepository: IConfigRepository,
-    growthMetricsRepository: IGrowthMetricsRepository,
-    tierRepository: ITierRepository
+    growthMetricsRepository: IGrowthMetricsRepository
   ) {
     this.growthDataRepository = growthDataRepository;
     this.userRepository = userRepository;
     this.childRepository = childRepository;
     this.configRepository = configRepository;
     this.growthMetricsRepository = growthMetricsRepository;
-    this.tierRepository = tierRepository;
     this.database = Database.getInstance();
   }
 
@@ -101,8 +91,6 @@ class GrowthDataService implements IGrowthDataService {
     const session = await this.database.startTransaction();
 
     try {
-      await this.checkTierUpdateGrowthDataLimit(requesterInfo.userId);
-
       const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
 
@@ -1159,94 +1147,6 @@ class GrowthDataService implements IGrowthDataService {
     } catch (error) {
       await this.database.abortTransaction(session);
       if ((error as Error) || (error as CustomException)) {
-        throw error;
-      }
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
-      );
-    }
-  };
-
-  private checkTierUpdateGrowthDataLimit = async (userId: string) => {
-    try {
-      const user = await this.userRepository.getUserById(
-        userId as string,
-        false
-      );
-
-      if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
-      } //check user
-
-      if ([UserEnum.MEMBER].includes(user.role)) {
-        const tierData = await this.tierRepository.getCurrentTierData(
-          user.subscription.tier as number
-        ); //get tier
-
-        const { startDate, interval } = await validateUserMembership(
-          user,
-          tierData,
-          "UPDATE"
-        ); //get interval
-
-        const { start, end } = getCheckIntervalBounds(
-          new Date(),
-          startDate as Date,
-          interval
-        ); //start and end time for current interval
-
-        await checkUpdateChildrenGrowthLimit(userId, start, end, tierData);
-      }
-    } catch (error) {
-      if (error as Error | CustomException) {
-        throw error;
-      }
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
-      );
-    }
-  };
-
-  private checkTierViewGrowthDataLimit = async (userId: string) => {
-    try {
-      const user = await this.userRepository.getUserById(
-        userId as string,
-        false
-      );
-
-      if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
-      } //check user
-
-      if ([UserEnum.MEMBER].includes(user.role)) {
-        const tierData = await this.tierRepository.getCurrentTierData(
-          user.subscription.tier as number
-        ); //get tier
-
-        const { startDate, interval } = await validateUserMembership(
-          user,
-          tierData,
-          "VIEW"
-        );
-
-        const { start, end } = getCheckIntervalBounds(
-          new Date(),
-          startDate as Date,
-          interval
-        );
-
-        await checkViewGrowthDataLimit(userId as string, start, end, tierData);
-      }
-    } catch (error) {
-      if (error as Error | CustomException) {
         throw error;
       }
       throw new CustomException(

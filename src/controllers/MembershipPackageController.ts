@@ -17,7 +17,8 @@ class MembershipPackageController {
   ) => {
     try {
       let { price, duration } = req.body;
-      const { unit, name, description, tier } = req.body;
+      const { unit, name, description, postLimit, updateChildDataLimit } =
+        req.body;
       const formatedPrice = {
         value: parseFloat(price as string),
         unit: unit,
@@ -34,7 +35,8 @@ class MembershipPackageController {
           description,
           price,
           duration,
-          tier
+          parseInt(postLimit),
+          parseInt(updateChildDataLimit)
         );
       res.status(StatusCodeEnum.Created_201).json({
         package: membershipPackage,
@@ -106,7 +108,8 @@ class MembershipPackageController {
     try {
       const { id } = req.params;
       let { price, duration } = req.body;
-      const { unit, name, description, tier } = req.body;
+      const { unit, name, description, postLimit, updateChildDataLimit } =
+        req.body;
 
       const formatedPrice = {
         value: parseFloat(price as string),
@@ -126,7 +129,8 @@ class MembershipPackageController {
           description,
           price,
           duration,
-          tier
+          parseInt(postLimit),
+          parseInt(updateChildDataLimit)
         );
       res.status(StatusCodeEnum.OK_200).json({
         package: membershipPackage,

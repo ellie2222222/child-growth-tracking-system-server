@@ -9,19 +9,17 @@ import PostHandler from "../handlers/PostHandler";
 import PostController from "../controllers/PostController";
 import PostService from "../services/PostService";
 import UserRepository from "../repositories/UserRepository";
-import TierRepository from "../repositories/TierRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import PostRepository from "../repositories/PostRepository";
+import validateMembership from "../middlewares/MembershipMiddleware";
 
 const userRepository = new UserRepository();
-const tierRepository = new TierRepository();
 const membershipPackageRepository = new MembershipPackageRepository();
 const postRepository = new PostRepository();
 
 const postService = new PostService(
   postRepository,
   userRepository,
-  tierRepository,
   membershipPackageRepository
 );
 
@@ -35,6 +33,7 @@ router.use(AuthMiddleware);
 router.post(
   "/",
   RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER]),
+  validateMembership("postLimit"),
   uploadFile.fields([
     { name: "postAttachments" },
     { name: "postThumbnail", maxCount: 1 },

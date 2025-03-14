@@ -3,7 +3,10 @@ import { IComment } from "../IComment";
 import { IQuery } from "../IQuery";
 
 export interface ICommentRepository {
-  createComment(data: object, session?: mongoose.ClientSession): Promise<IComment>;
+  createComment(
+    data: object,
+    session?: mongoose.ClientSession
+  ): Promise<IComment>;
 
   getComment(id: string | ObjectId, ignoreDeleted: boolean): Promise<IComment>;
 
@@ -24,5 +27,8 @@ export interface ICommentRepository {
     session?: mongoose.ClientSession
   ): Promise<IComment>;
 
-  deleteComment(id: string | ObjectId, session?: mongoose.ClientSession): Promise<IComment | null>;
+  deleteComment(
+    id: string | ObjectId,
+    session?: mongoose.ClientSession
+  ): Promise<IComment | null>;
 }

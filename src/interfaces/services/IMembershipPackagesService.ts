@@ -13,7 +13,8 @@ export interface IMembershipPackageService {
     description: string,
     price: PriceType,
     duration: DurationType,
-    tier: number
+    postLimit: number,
+    updateChildDataLimit: number
   ) => Promise<IMembershipPackage>;
 
   getMembershipPackage: (
@@ -31,7 +32,8 @@ export interface IMembershipPackageService {
     description: string,
     price: PriceType,
     duration: DurationType,
-    tier: number
+    postLimit: number,
+    updateChildDataLimit: number
   ) => Promise<IMembershipPackage>;
   deleteMembershipPackage: (id: string | ObjectId) => Promise<boolean>;
 }

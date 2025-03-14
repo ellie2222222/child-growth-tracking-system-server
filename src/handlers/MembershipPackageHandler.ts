@@ -10,7 +10,15 @@ class MembershipPackageHandler {
   ) => {
     const validationErrors: { field: string; error: string }[] = [];
 
-    const { price, duration, unit, name, description, tier } = req.body;
+    const {
+      price,
+      duration,
+      unit,
+      name,
+      description,
+      postLimit,
+      updateChildDataLimit,
+    } = req.body;
 
     if (
       !price ||
@@ -56,11 +64,16 @@ class MembershipPackageHandler {
       });
     }
 
-    if (!tier || ![1, 2].includes(tier)) {
-      validationErrors.push({
-        field: "Tier",
-        error: "Invalid tier: premium tier must be 1 or 2",
-      });
+    if (!postLimit || isNaN(parseInt(postLimit)) || parseInt(postLimit) < 0) {
+      throw new Error("Invalid post limit");
+    }
+
+    if (
+      !updateChildDataLimit ||
+      isNaN(parseInt(updateChildDataLimit)) ||
+      parseInt(updateChildDataLimit) < 0
+    ) {
+      throw new Error("Invalid post limit");
     }
 
     if (validationErrors.length > 0) {
@@ -82,7 +95,8 @@ class MembershipPackageHandler {
     const validationErrors: { field: string; error: string }[] = [];
 
     const { id } = req.params;
-    const { price, duration, unit, name, tier } = req.body;
+    const { price, duration, unit, name, postLimit, updateChildDataLimit } =
+      req.body;
 
     try {
       validateMongooseObjectId(id as string);
@@ -130,13 +144,16 @@ class MembershipPackageHandler {
       });
     }
 
-    if (tier && ![1, 2].includes(tier)) {
-      validationErrors.push({
-        field: "Tier",
-        error: "Invalid tier: premium tier must be 1 or 2",
-      });
+    if ((postLimit && isNaN(parseInt(postLimit))) || parseInt(postLimit) < 0) {
+      throw new Error("Invalid post limit");
     }
 
+    if (
+      (updateChildDataLimit && isNaN(parseInt(updateChildDataLimit))) ||
+      parseInt(updateChildDataLimit) < 0
+    ) {
+      throw new Error("Invalid post limit");
+    }
     if (validationErrors.length > 0) {
       res.status(StatusCodeEnum.BadRequest_400).json({
         message: "Validation failed",

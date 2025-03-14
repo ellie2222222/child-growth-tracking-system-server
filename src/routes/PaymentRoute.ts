@@ -12,7 +12,6 @@ import PaymentQueue from "../queue/PaymentQueue";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import UserRepository from "../repositories/UserRepository";
 import ConsultationRepository from "../repositories/ConsultationRepository";
-import TierRepository from "../repositories/TierRepository";
 import SessionRepository from "../repositories/SessionRepository";
 import MembershipPackageService from "../services/MembershipPackagesService";
 import SessionService from "../services/SessionService";
@@ -22,7 +21,6 @@ import ReceiptService from "../services/ReceiptService";
 
 const sessionRepository = new SessionRepository();
 const userRepository = new UserRepository();
-const tierRepository = new TierRepository();
 const membershipPackageRepository = new MembershipPackageRepository();
 const consultationRepository = new ConsultationRepository();
 const receiptRepository = new ReceiptRepository();
@@ -37,7 +35,6 @@ const userService = new UserService(
   userRepository,
   sessionService,
   membershipPackageRepository,
-  tierRepository,
   consultationRepository
 );
 

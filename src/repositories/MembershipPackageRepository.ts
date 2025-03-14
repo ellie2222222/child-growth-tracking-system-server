@@ -149,14 +149,9 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
       const totalMembershipPackages = await MembershipModel.countDocuments(
         searchQuery
       );
-      if (membershipPackages.length === 0) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Membership Packages not found"
-        );
-      }
+
       return {
-        packages: membershipPackages,
+        packages: membershipPackages || [],
         page,
         totalPackages: totalMembershipPackages,
         totalPages: Math.ceil(totalMembershipPackages / size),
