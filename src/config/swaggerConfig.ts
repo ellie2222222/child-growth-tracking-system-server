@@ -27,7 +27,7 @@ const options: swaggerJsdoc.Options = {
         description: "Development server",
       },
       {
-        url: `https://child-growth-tracking-system-server-u452.onrender.com`,
+        url: `https://child-growth-tracking-system-server.onrender.com`,
         description: "Production server",
       },
     ],
