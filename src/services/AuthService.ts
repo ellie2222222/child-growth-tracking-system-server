@@ -1,11 +1,11 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import UserRepository from "../repositories/UserRepository";
+// import UserRepository from "../repositories/UserRepository";
 import bcrypt from "bcrypt";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import Database from "../utils/database";
-import SessionService from "./SessionService";
+// import SessionService from "./SessionService";
 import { ISession } from "../interfaces/ISession";
 import { IUser } from "../interfaces/IUser";
 import { Schema } from "mongoose";
@@ -557,13 +557,13 @@ class AuthService implements IAuthService {
    * @returns A void promise.
    */
   confirmResetPasswordPin = async (
-    userId: string,
+    email: string,
     pin: string
   ): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
       // Validate user ID
-      const user = await this.userRepository.getUserById(userId, false);
+      const user = await this.userRepository.getUserByEmail(email);
 
       if (!user) {
         throw new CustomException(
@@ -604,7 +604,11 @@ class AuthService implements IAuthService {
           isVerified: true,
         },
       };
-      await this.userRepository.updateUserById(userId, updatePinData, session);
+      await this.userRepository.updateUserById(
+        user?._id as string,
+        updatePinData,
+        session
+      );
 
       await this.database.commitTransaction(session);
     } catch (error) {
@@ -627,14 +631,11 @@ class AuthService implements IAuthService {
    * @param newPassword - The user's new password.
    * @returns A void promise.
    */
-  resetPassword = async (
-    userId: string,
-    newPassword: string
-  ): Promise<void> => {
+  resetPassword = async (email: string, newPassword: string): Promise<void> => {
     const session = await this.database.startTransaction();
     try {
       // Validate user ID
-      const user = await this.userRepository.getUserById(userId, false);
+      const user = await this.userRepository.getUserByEmail(email);
 
       if (!user) {
         throw new CustomException(
@@ -664,9 +665,13 @@ class AuthService implements IAuthService {
           expiresAt: null,
         },
       };
-      await this.userRepository.updateUserById(userId, updatePinData, session);
+      await this.userRepository.updateUserById(
+        user._id as string,
+        updatePinData,
+        session
+      );
 
-      await this.sessionService.deleteSessionsByUserId(userId);
+      await this.sessionService.deleteSessionsByUserId(user._id as string);
 
       await this.database.commitTransaction(session);
     } catch (error) {

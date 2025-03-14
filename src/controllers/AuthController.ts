@@ -245,10 +245,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { pin } = req.body;
-      const { userId } = req.userInfo;
+      const { pin, email } = req.body;
 
-      await this.authService.confirmResetPasswordPin(userId, pin);
+      await this.authService.confirmResetPasswordPin(email, pin);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
@@ -267,10 +266,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { newPassword } = req.body;
-      const { userId } = req.userInfo;
+      const { newPassword, email } = req.body;
 
-      await this.authService.resetPassword(userId, newPassword);
+      await this.authService.resetPassword(email, newPassword);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",

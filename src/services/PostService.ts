@@ -101,22 +101,36 @@ class PostService implements IPostService {
   ): Promise<IPost> => {
     try {
       let ignoreDeleted = false;
-      const checkRequester = await this.userRepository.getUserById(
-        requesterId,
-        ignoreDeleted
-      );
+      const checkPost = await this.postRepository.getPost(id, ignoreDeleted);
+      let isOwner = false;
+      let isAdmin = false;
+      if (requesterId && requesterId !== "") {
+        const checkRequester = await this.userRepository.getUserById(
+          requesterId,
+          ignoreDeleted
+        );
 
-      if ([UserEnum.ADMIN].includes(checkRequester?.role || UserEnum.MEMBER)) {
-        ignoreDeleted = true;
+        if (
+          [UserEnum.ADMIN].includes(checkRequester?.role || UserEnum.MEMBER)
+        ) {
+          ignoreDeleted = true;
+          isAdmin = true;
+        }
+
+        if (!checkRequester) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Requester not found"
+          );
+        }
+        if (checkRequester._id === checkPost.userId) {
+          isOwner = true;
+        }
       }
 
       const post = await this.postRepository.getPost(id, ignoreDeleted);
 
-      if (
-        (![UserEnum.ADMIN].includes(checkRequester?.role || UserEnum.MEMBER) ||
-          requesterId.toString() !== post.userId.toString()) &&
-        post.status !== PostStatus.PUBLISHED
-      ) {
+      if ((!isAdmin || !isOwner) && post.status !== PostStatus.PUBLISHED) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Post not found"
@@ -377,6 +391,7 @@ class PostService implements IPostService {
       if (requesterId !== userId) {
         status = PostStatus.PUBLISHED;
       }
+
       const posts = await this.postRepository.getPostsByUserId(
         userId,
         query,

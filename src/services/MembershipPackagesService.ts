@@ -87,23 +87,23 @@ class MembershipPackageService implements IMembershipPackageService {
   ): Promise<IMembershipPackage> => {
     try {
       let ignoreDeleted = false;
-
-      const checkRequester = await this.userRepository.getUserById(
-        requesterId,
-        ignoreDeleted
-      );
-
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
+      if (requesterId !== "") {
+        const checkRequester = await this.userRepository.getUserById(
+          requesterId,
+          ignoreDeleted
         );
-      }
 
-      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
-        ignoreDeleted = true;
-      }
+        if (!checkRequester) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Requester not found"
+          );
+        }
 
+        if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
+          ignoreDeleted = true;
+        }
+      }
       const membershipPackage =
         await this.membershipPackageRepository.getMembershipPackage(
           id,
@@ -135,22 +135,23 @@ class MembershipPackageService implements IMembershipPackageService {
     try {
       let ignoreDeleted = false;
 
-      const checkRequester = await this.userRepository.getUserById(
-        requesterId,
-        ignoreDeleted
-      );
-
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
+      if (requesterId !== "") {
+        const checkRequester = await this.userRepository.getUserById(
+          requesterId,
+          ignoreDeleted
         );
-      }
 
-      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
-        ignoreDeleted = true;
-      }
+        if (!checkRequester) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Requester not found"
+          );
+        }
 
+        if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
+          ignoreDeleted = true;
+        }
+      }
       const memberships =
         await this.membershipPackageRepository.getMembershipPackages(
           query,

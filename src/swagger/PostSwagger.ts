@@ -90,7 +90,7 @@
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [date]
+ *           enum: [date,name]
  *         description: Field to sort posts by
  *       - in: query
  *         name: order
@@ -168,7 +168,7 @@
  *           enum: [ascending, descending]
  *         description: Sorting order
  *       - in: path
- *         name: userId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string

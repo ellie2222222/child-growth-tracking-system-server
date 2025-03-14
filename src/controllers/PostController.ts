@@ -132,6 +132,7 @@ class PostController {
       const { id } = req.params;
       const { page, size, search, order, sortBy } = req.query;
 
+      console.log(id);
       const posts = await this.postService.getPostsByUserId(
         requesterId,
         id as string,

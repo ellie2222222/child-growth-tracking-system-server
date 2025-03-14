@@ -53,7 +53,10 @@ class ChildRepository implements IChildRepository {
     isDeleted: boolean
   ): Promise<IChild | null> {
     try {
-      const child = await ChildModel.findOne({ _id: childId, isDeleted });
+      const child = await ChildModel.findOne({
+        _id: childId,
+        isDeleted,
+      });
       return child;
     } catch (error) {
       if (error as Error) {
@@ -168,7 +171,7 @@ class ChildRepository implements IChildRepository {
         { $set: updateData },
         { new: true, session, runValidators: true }
       ).exec();
-      
+
       return updatedChild;
     } catch (error) {
       if (error as Error) {

@@ -91,7 +91,7 @@ const storage = multer.diskStorage({
             ""
           );
         }
-        dir = path.join(`assets/images/users/${userId}`);
+        dir = path.join(`assets/images/${userId}/avatar/`);
         break;
 
       case "postAttachments":
@@ -196,7 +196,7 @@ const storage = multer.diskStorage({
           );
         }
         fileName = `${baseName}${ext}`;
-        dirPath = path.join(`assets/images/users/${userId}`);
+        dirPath = path.join(`assets/images/${userId}/avatar/`);
         break;
 
       case "postAttachments":
@@ -274,6 +274,11 @@ const allowedFormats = {
     message: "Allowed formats: mp4, avi, flv, wmv",
   },
   img: {
+    regex: /\.(jpeg|jpg|png|gif)$/i,
+    mime: ["image/jpeg", "image/png", "image/gif"],
+    message: "Allowed formats: jpeg, jpg, png, gif",
+  },
+  avatar: {
     regex: /\.(jpeg|jpg|png|gif)$/i,
     mime: ["image/jpeg", "image/png", "image/gif"],
     message: "Allowed formats: jpeg, jpg, png, gif",

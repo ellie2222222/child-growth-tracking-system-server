@@ -95,7 +95,16 @@ class PostRepository implements IPostRepository {
       }
 
       let sortField = "createdAt";
-      if (sortBy === "date") sortField = "createdAt";
+      switch (sortBy) {
+        case "date":
+          sortField = "createdAt";
+          break;
+        case "name":
+          sortField = "title";
+          break;
+        default:
+          break;
+      }
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
       const skip = (page - 1) * size;
 

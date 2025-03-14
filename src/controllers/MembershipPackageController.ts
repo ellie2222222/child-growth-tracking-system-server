@@ -58,7 +58,7 @@ class MembershipPackageController {
       const membershipPackage =
         await this.membershipPackageService.getMembershipPackage(
           id,
-          requesterId
+          requesterId || ""
         );
       res.status(StatusCodeEnum.OK_200).json({
         package: membershipPackage,
@@ -87,7 +87,7 @@ class MembershipPackageController {
             order: order ? (order as "ascending" | "descending") : "ascending",
             sortBy: sortBy ? (sortBy as "date") : "date",
           },
-          requesterId
+          requesterId || ""
         );
       res.status(StatusCodeEnum.OK_200).json({
         ...membershipPackages,

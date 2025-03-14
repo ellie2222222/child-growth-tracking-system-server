@@ -1,7 +1,9 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { IUser } from "../interfaces/IUser";
 import { IUserService } from "../interfaces/services/IUserService";
 // import UserService from "../services/UserService";
 import { Request, Response, NextFunction } from "express";
+import { cleanUpFile } from "../utils/fileUtils";
 
 class UserController {
   private userService: IUserService;
@@ -13,25 +15,6 @@ class UserController {
   /**
    * Handle update role
    */
-  updateRole = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const requesterRole = req.userInfo.role;
-      const { userId } = req.params;
-      const { role } = req.body;
-
-      await this.userService.updateRole(userId, role, requesterRole);
-      res.status(StatusCodeEnum.OK_200).json({
-        message: "Update role successfully",
-      });
-    } catch (error) {
-      next(error);
-    }
-  };
-
   createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const requesterId = req.userInfo.userId;
@@ -100,15 +83,35 @@ class UserController {
   updateUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      const { name } = req.body;
+      const { name, role, phoneNumber } = req.body;
       const requesterId = req.userInfo.userId;
-
-      const user = await this.userService.updateUser(id, requesterId, { name });
+      let user: IUser | null;
+      if (req.file) {
+        user = await this.userService.updateUser(
+          id,
+          requesterId,
+          name,
+          role,
+          phoneNumber,
+          `${process.env.SERVER_URL}/${req.file.path}`
+        );
+      } else {
+        user = await this.userService.updateUser(
+          id,
+          requesterId,
+          name,
+          role,
+          phoneNumber
+        );
+      }
 
       res
         .status(StatusCodeEnum.OK_200)
         .json({ user: user, message: "User updated successfully" });
     } catch (error) {
+      if (req.file) {
+        cleanUpFile(req.file.path, "create");
+      }
       next(error);
     }
   };
