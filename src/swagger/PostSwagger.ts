@@ -90,7 +90,7 @@
  *         name: sortBy
  *         schema:
  *           type: string
- *           enum: [date]
+ *           enum: [date,name]
  *         description: Field to sort posts by
  *       - in: query
  *         name: order

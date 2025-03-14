@@ -98,6 +98,21 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
     }
 
     let sortField = "createdAt";
+    switch (sortBy) {
+      case "date":
+        sortField = "createdAt";
+        break;
+
+      case "name":
+        sortField = "name";
+        break;
+
+      case "price":
+        sortField = "convertedPrice";
+        break;
+      default:
+        break;
+    }
     if (sortBy === "date") sortField = "createdAt";
     const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
     const skip = (page - 1) * size;
@@ -107,9 +122,28 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
         {
           $match: searchQuery,
         },
+        {
+          $addFields: {
+            convertedPrice: {
+              $switch: {
+                branches: [
+                  {
+                    case: { $eq: ["$price.unit", "USD"] }, // Changed 'currency' to 'unit'
+                    then: { $multiply: ["$price.value", 25000] },
+                  },
+                  {
+                    case: { $eq: ["$price.unit", "VND"] }, // Changed 'currency' to 'unit'
+                    then: "$price.value",
+                  },
+                ],
+                default: 0,
+              },
+            },
+          },
+        },
+        { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: size },
-        { $sort: { [sortField]: sortOrder } },
       ]);
 
       const totalMembershipPackages = await MembershipModel.countDocuments(
