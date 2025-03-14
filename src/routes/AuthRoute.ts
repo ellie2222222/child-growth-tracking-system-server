@@ -22,19 +22,24 @@ const authRoutes = express.Router();
 authRoutes.use(AuthMiddleware);
 
 authRoutes.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  "/google/",
+  passport.authenticate("google-web", { scope: ["profile", "email"] })
 );
 
 authRoutes.get(
   "/google/redirect",
-  passport.authenticate("google"),
+  passport.authenticate("google-web"),
   authController.loginGoogle
 );
 
 authRoutes.get(
+  "/google/mobile",
+  passport.authenticate("google-mobile", { scope: ["profile", "email"] })
+);
+
+authRoutes.get(
   "/google/mobile/redirect",
-  passport.authenticate("google"),
+  passport.authenticate("google-mobile"),
   authController.loginGoogleMobile
 );
 
