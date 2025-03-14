@@ -300,27 +300,58 @@ class UserRepository implements IUserRepository {
       const skip = (page - 1) * size;
       const users = await UserModel.aggregate([
         { $match: searchQuery },
-        {
-          $skip: skip,
+        { $skip: skip },
+        { $limit: size },
+        { 
+          $sort: { [sortField]: sortOrder }
         },
         {
-          $limit: size,
+          $lookup: {
+            from: "membershippackages", // The name of the collection in MongoDB
+            localField: "subscription.currentPlan",
+            foreignField: "_id",
+            as: "subscription.currentPlan",
+          },
+        },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "subscription.futurePlan",
+            foreignField: "_id",
+            as: "subscription.futurePlan",
+          },
+        },
+        {
+          $unwind: {
+            path: "$subscription.currentPlan",
+            preserveNullAndEmptyArrays: true, // Allow null values if no match
+          },
+        },
+        {
+          $unwind: {
+            path: "$subscription.futurePlan",
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $project: {
             name: 1,
-            subscription: 1,
             email: 1,
-            fullName: 1,
             avatar: 1,
+            googleId: 1,
             phoneNumber: 1,
             createdAt: 1,
             updatedAt: 1,
             role: 1,
+            "subscription.startDate": 1,
+            "subscription.endDate": 1,
+            "subscription.tier": 1,
+            "subscription.viewChart": 1,
+            "subscription.currentPlan": 1,
+            "subscription.futurePlan": 1, 
           },
         },
-        { $sort: { [sortField]: sortOrder } },
-      ]);
+      ]);      
 
       const totalUsers = await UserModel.countDocuments(searchQuery);
 
