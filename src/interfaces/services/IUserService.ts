@@ -6,12 +6,6 @@ import CustomException from "../../exceptions/CustomException";
 import { IQuery } from "../IQuery";
 
 export interface IUserService {
-  updateRole: (
-    userId: string,
-    role: number,
-    requesterRole: number
-  ) => Promise<void>;
-
   createUser: (
     name: string,
     password: string,
@@ -34,9 +28,10 @@ export interface IUserService {
   updateUser: (
     id: string | ObjectId,
     requesterId: string | ObjectId,
-    data: {
-      name: string;
-    }
+    name?: string,
+    role?: number,
+    phoneNumber?: string,
+    avatar?: string
   ) => Promise<IUser | null>;
 
   deleteUser: (
