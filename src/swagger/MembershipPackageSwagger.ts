@@ -84,13 +84,12 @@
  *       404:
  *         description: Package not found
  */
-
 /**
  * @swagger
  * /api/membership-packages/:
  *   get:
  *     summary: Get all membership packages
- *     description: Retrieve a paginated list of membership packages.
+ *     description: Retrieve a paginated list of membership packages with optional filtering and sorting.
  *     tags: [Membership Packages]
  *     security:
  *       - bearerAuth: []
@@ -100,16 +99,112 @@
  *         schema:
  *           type: integer
  *           default: 1
+ *         description: The page number to retrieve.
  *         example: 1
  *       - in: query
  *         name: size
  *         schema:
  *           type: integer
  *           default: 10
+ *         description: Number of results per page.
  *         example: 10
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search keyword for filtering membership packages by name.
+ *         example: "Gold Membership"
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [date, name, price]
+ *           default: date
+ *         description: Sort field for results.
+ *         example: price
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [ascending, descending]
+ *           default: descending
+ *         description: Sort order (ascending or descending).
+ *         example: ascending
  *     responses:
  *       200:
- *         description: Get membership packages successfully
+ *         description: Get membership packages successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 packages:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         example: "67b1f25e8baf3dab53b92a28"
+ *                       name:
+ *                         type: string
+ *                         example: "Gold Membership"
+ *                       description:
+ *                         type: string
+ *                         example: "Access to premium features"
+ *                       price:
+ *                         type: object
+ *                         properties:
+ *                           value:
+ *                             type: number
+ *                             example: 100
+ *                           unit:
+ *                             type: string
+ *                             example: "USD"
+ *                       convertedPrice:
+ *                         type: number
+ *                         example: 2500000
+ *                       duration:
+ *                         type: object
+ *                         properties:
+ *                           value:
+ *                             type: integer
+ *                             example: 30
+ *                           unit:
+ *                             type: string
+ *                             example: "DAY"
+ *                       tier:
+ *                         type: integer
+ *                         example: 2
+ *                       isDeleted:
+ *                         type: boolean
+ *                         example: false
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-02-16T14:12:46.466Z"
+ *                       updatedAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-02-16T14:12:46.466Z"
+ *                 page:
+ *                   type: integer
+ *                   example: 1
+ *                 totalPackages:
+ *                   type: integer
+ *                   example: 22
+ *                 totalPages:
+ *                   type: integer
+ *                   example: 3
+ *                 message:
+ *                   type: string
+ *                   example: "Get membership packages successfully"
+ *       400:
+ *         description: Bad request, invalid query parameters.
+ *       404:
+ *         description: No membership packages found.
+ *       500:
+ *         description: Internal Server Error.
  */
 
 /**

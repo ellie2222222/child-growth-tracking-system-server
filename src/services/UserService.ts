@@ -373,12 +373,19 @@ class UserService implements IUserService {
   updateUser = async (
     id: string | ObjectId,
     requesterId: string | ObjectId,
-    data: {
-      name: string;
-    }
+    name?: string,
+    role?: number,
+    phoneNumber?: string,
+    avatar?: string
   ): Promise<IUser | null> => {
     const session = await this.database.startTransaction();
     const ignoreDeleted = false;
+    type Data = {
+      name?: string;
+      role?: number;
+      phoneNumber?: string;
+      avatar?: string;
+    };
     try {
       const checkRequester = await this.userRepository.getUserById(
         requesterId as string,
@@ -403,37 +410,51 @@ class UserService implements IUserService {
         );
       }
 
-      if (checkUser.id === requesterId) {
-        const user = await this.userRepository.updateUserById(
-          id as string,
-          data
+      const isAdmin = checkRequester.role === UserEnum.ADMIN;
+      const isSelf = id === requesterId;
+
+      if (isAdmin && isSelf && role && role !== checkRequester.role) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "You can not update your own role"
         );
-        await this.database.commitTransaction(session);
-        return user;
       }
-
-      switch (checkRequester?.role) {
-        case UserEnum.ADMIN:
-          if (checkUser?.role === UserEnum.DOCTOR) {
-            const user = await this.userRepository.updateUserById(
-              id as string,
-              data,
-              session
-            );
-            await this.database.commitTransaction(session);
-            return user;
-          }
+      const data: Data = {};
+      if (role && role !== checkUser.role) {
+        if (!isAdmin) {
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,
-            "Admin can only update doctor"
+            "You do not have the authority to perform this action"
           );
-
-        default:
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "You do not have the authorization to perform this action"
-          );
+        }
+        data.role = role;
       }
+
+      if (name && name !== checkUser.name) {
+        data.name = name;
+      }
+
+      if (phoneNumber && checkUser.phoneNumber !== phoneNumber) {
+        data.phoneNumber = phoneNumber;
+      }
+
+      if (avatar && checkUser.avatar !== avatar) {
+        data.avatar = avatar;
+      }
+      if (!isAdmin && !isSelf) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You do not have the authority to perform this action"
+        );
+      }
+
+      const user = await this.userRepository.updateUserById(
+        id as string,
+        data,
+        session
+      );
+      await this.database.commitTransaction(session);
+      return user;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

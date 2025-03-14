@@ -192,21 +192,22 @@ class TierService implements ITierService {
     requesterId: string
   ): Promise<ITier | null> => {
     try {
-      const checkRequester = await this.userRepository.getUserById(
-        requesterId,
-        false
-      );
-
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
+      let shouldIgnoreDeleted = false;
+      if (requesterId && requesterId !== "") {
+        const checkRequester = await this.userRepository.getUserById(
+          requesterId,
+          false
         );
-      }
 
-      const shouldIgnoreDeleted = [UserEnum.ADMIN].includes(
-        checkRequester?.role
-      );
+        if (!checkRequester) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Requester not found"
+          );
+        }
+
+        shouldIgnoreDeleted = [UserEnum.ADMIN].includes(checkRequester?.role);
+      }
 
       const tierInfo = await this.tierRepository.getTier(
         id,
@@ -231,22 +232,24 @@ class TierService implements ITierService {
     ignoreDeleted: boolean
   ): Promise<ReturnDataTiers> => {
     try {
-      const checkRequester = await this.userRepository.getUserById(
-        requesterId,
-        false
-      );
-
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
+      let shouldIgnoreDeleted = false;
+      if (requesterId && requesterId !== "") {
+        const checkRequester = await this.userRepository.getUserById(
+          requesterId,
+          false
         );
+
+        if (!checkRequester) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Requester not found"
+          );
+        }
+
+        shouldIgnoreDeleted =
+          [UserEnum.ADMIN].includes(checkRequester?.role) &&
+          Boolean(ignoreDeleted);
       }
-
-      const shouldIgnoreDeleted =
-        [UserEnum.ADMIN].includes(checkRequester?.role) &&
-        Boolean(ignoreDeleted);
-
       const TiersInfo = await this.tierRepository.getTiers(
         query,
         shouldIgnoreDeleted

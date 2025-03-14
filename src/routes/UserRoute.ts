@@ -15,6 +15,7 @@ import UserRepository from "../repositories/UserRepository";
 import SessionRepository from "../repositories/SessionRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import ConsultationRepository from "../repositories/ConsultationRepository";
+import { uploadFile } from "../middlewares/storeFile";
 
 const userRepository = new UserRepository();
 const sessionRepository = new SessionRepository();
@@ -51,12 +52,6 @@ userRoutes.get(
 );
 
 userRoutes.get(
-  "/:userId/role",
-  RoleMiddleware([UserEnum.ADMIN]),
-  userController.updateRole
-);
-
-userRoutes.get(
   "/:id",
   RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   userHandler.getUserById,
@@ -65,6 +60,7 @@ userRoutes.get(
 
 userRoutes.patch(
   "/:id",
+  uploadFile.single("avatar"),
   RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   userHandler.updateUser,
   userController.updateUser

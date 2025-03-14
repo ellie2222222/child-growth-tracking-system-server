@@ -235,7 +235,7 @@ class MembershipPackageHandler {
       validationErrors.push({ field: "order", error: "Invalid order" });
     }
 
-    if (sortBy && !["date"].includes(sortBy as string)) {
+    if (sortBy && !["date", "price", "name"].includes(sortBy as string)) {
       validationErrors.push({ field: "sortBy", error: "Invalid sort by" });
     }
 

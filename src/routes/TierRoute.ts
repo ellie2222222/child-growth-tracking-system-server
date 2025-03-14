@@ -37,14 +37,14 @@ router.put(
 
 router.get(
   "/",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
+  // RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   tierHandler.getTiers,
   tierController.getTiers
 );
 
 router.get(
   "/:id",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
+  // RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   tierController.getTier
 );
 

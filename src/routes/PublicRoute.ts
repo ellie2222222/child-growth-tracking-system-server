@@ -17,6 +17,9 @@ const publicRoutes: PublicRoutes[] = [
   { path: "/", method: "GET" },
   { path: "/api/auth/google", method: "GET" },
   { path: "/api/auth/google/redirect", method: "GET" },
+  { path: "/api/auth/send-reset-password-pin", method: "POST" },
+  { path: "/api/auth/confirm-reset-password-pin", method: "POST" },
+  { path: "/api/auth/reset-password", method: "PUT" },
 
   // User
   { path: "/api/users", method: "GET" },
@@ -32,11 +35,15 @@ const publicRoutes: PublicRoutes[] = [
   //Post
   { path: "/api/posts", method: "GET" },
   { path: "/api/posts/:id", method: "GET" },
-  { path: "/api/posts/user/:id", method: "GET" },
+  { path: "/api/posts/users/:id", method: "GET" },
 
   //Membership packages
   { path: "/api/membership-packages", method: "GET" },
   { path: "/api/membership-packages/:id", method: "GET" },
+
+  //Comments
+  { path: "/api/comments", method: "GET" },
+  { path: "/api/comments/:id", method: "GET" },
 
   //tiers
   { path: "/api/tiers", method: "GET" },

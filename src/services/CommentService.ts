@@ -81,20 +81,21 @@ class CommentService implements ICommentService {
   ): Promise<IComment> => {
     try {
       let ignoreDeleted = false;
-
-      const checkRequester = await this.userRepository.getUserById(
-        requesterId,
-        ignoreDeleted
-      );
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
+      if (requesterId && requesterId !== "") {
+        const checkRequester = await this.userRepository.getUserById(
+          requesterId,
+          ignoreDeleted
         );
-      }
+        if (!checkRequester) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "User not found"
+          );
+        }
 
-      if ([UserEnum.ADMIN].includes(checkRequester.role)) {
-        ignoreDeleted = true;
+        if ([UserEnum.ADMIN].includes(checkRequester.role)) {
+          ignoreDeleted = true;
+        }
       }
 
       const comment = await this.commentRepository.getComment(
@@ -136,22 +137,22 @@ class CommentService implements ICommentService {
   }> => {
     try {
       let ignoreDeleted = false;
-
-      const checkRequester = await this.userRepository.getUserById(
-        requesterId,
-        ignoreDeleted
-      );
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
+      if (requesterId && requesterId !== "") {
+        const checkRequester = await this.userRepository.getUserById(
+          requesterId,
+          ignoreDeleted
         );
-      }
+        if (!checkRequester) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "User not found"
+          );
+        }
 
-      if ([UserEnum.ADMIN].includes(checkRequester.role)) {
-        ignoreDeleted = true;
+        if ([UserEnum.ADMIN].includes(checkRequester.role)) {
+          ignoreDeleted = true;
+        }
       }
-
       const checkPost = await this.postRepository.getPost(
         postId as string,
         ignoreDeleted
