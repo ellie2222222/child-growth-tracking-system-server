@@ -34,12 +34,12 @@ export interface IAuthService {
 
   sendResetPasswordPin: (email: string) => Promise<void>;
 
-  confirmResetPasswordPin: (userId: string, pin: string) => Promise<void>;
+  confirmResetPasswordPin: (email: string, pin: string) => Promise<void>;
 
   resetPassword: (userId: string, newPassword: string) => Promise<void>;
 
   changePassword: (
-    userId: string,
+    email: string,
     oldPassword: string,
     newPassword: string
   ) => Promise<void>;

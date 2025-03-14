@@ -48,14 +48,14 @@ router.put(
 
 router.get(
   "/",
-  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
+  // RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.getComments,
   commentController.getCommentsByPostId
 );
 
 router.get(
   "/:id",
-  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
+  // RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.getComment,
   commentController.getComment
 );

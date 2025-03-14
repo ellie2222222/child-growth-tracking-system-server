@@ -168,7 +168,7 @@
  *           enum: [ascending, descending]
  *         description: Sorting order
  *       - in: path
- *         name: userId
+ *         name: id
  *         required: true
  *         schema:
  *           type: string
