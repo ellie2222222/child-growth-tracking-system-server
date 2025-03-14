@@ -130,19 +130,12 @@ class ConsultationRepository implements IConsultationRepository {
         { $limit: size },
       ]);
 
-      if (consultations.length === 0) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "No consultation found"
-        );
-      }
-
       const totalConsultation = await ConsultationModel.countDocuments(
         searchQuery
       );
 
       return {
-        consultations: consultations,
+        consultations: consultations || [],
         page: page,
         totalConsultation: totalConsultation,
         totalPages: Math.ceil(totalConsultation / size),

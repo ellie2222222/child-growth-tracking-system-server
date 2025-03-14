@@ -286,16 +286,9 @@ class PostRepository implements IPostRepository {
         { $skip: skip },
       ]);
 
-      if (!Posts) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "No posts found for this user"
-        );
-      }
-
       const totalPosts = await PostModel.countDocuments(searchQuery);
       return {
-        posts: Posts,
+        posts: Posts || [],
         page,
         total: totalPosts,
         totalPage: Math.ceil(totalPosts / size),

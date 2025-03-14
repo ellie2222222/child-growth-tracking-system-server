@@ -57,14 +57,10 @@ class ReceiptRepository implements IReceiptRepository {
         { $sort: { [sortField]: sortOrder } },
       ]);
 
-      if (receipts.length === 0) {
-        throw new CustomException(404, "No receipts found");
-      }
-
       const countReceipts = await ReceiptModel.countDocuments(searchQuery);
 
       return {
-        receipts: receipts,
+        receipts: receipts || [],
         page,
         totalReceipts: countReceipts,
         totalPages: Math.ceil(countReceipts / size),
