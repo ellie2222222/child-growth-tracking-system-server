@@ -35,7 +35,9 @@
  *               - description
  *               - price
  *               - duration
- *               - tier
+ *               - unit
+ *               - postLimit
+ *               - updateChildDataLimit
  *             properties:
  *               name:
  *                 type: string
@@ -50,11 +52,14 @@
  *                 type: string
  *                 example: "VND"
  *               duration:
- *                  type: integer
- *                  example: 30
- *               tier:
- *                 type: number
- *                 example: 2
+ *                 type: integer
+ *                 example: 30
+ *               postLimit:
+ *                 type: integer
+ *                 example: 10
+ *               updateChildDataLimit:
+ *                 type: integer
+ *                 example: 5
  *     responses:
  *       201:
  *         description: Membership package created successfully
@@ -81,9 +86,65 @@
  *     responses:
  *       200:
  *         description: Get membership package successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 package:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: "67b1f25e8baf3dab53b92a28"
+ *                     name:
+ *                       type: string
+ *                       example: "Gold Membership"
+ *                     description:
+ *                       type: string
+ *                       example: "Access to premium features"
+ *                     price:
+ *                       type: object
+ *                       properties:
+ *                         value:
+ *                           type: number
+ *                           example: 100
+ *                         unit:
+ *                           type: string
+ *                           example: "USD"
+ *                     convertedPrice:
+ *                       type: number
+ *                       example: 2500000
+ *                     duration:
+ *                       type: object
+ *                       properties:
+ *                         value:
+ *                           type: integer
+ *                           example: 30
+ *                         unit:
+ *                           type: string
+ *                           example: "DAY"
+ *                     postLimit:
+ *                       type: integer
+ *                       example: 10
+ *                     updateChildDataLimit:
+ *                       type: integer
+ *                       example: 5
+ *                     isDeleted:
+ *                       type: boolean
+ *                       example: false
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-02-16T14:12:46.466Z"
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-02-16T14:12:46.466Z"
  *       404:
  *         description: Package not found
  */
+
 /**
  * @swagger
  * /api/membership-packages/:
@@ -173,9 +234,12 @@
  *                           unit:
  *                             type: string
  *                             example: "DAY"
- *                       tier:
+ *                       postLimit:
  *                         type: integer
- *                         example: 2
+ *                         example: 10
+ *                       updateChildDataLimit:
+ *                         type: integer
+ *                         example: 5
  *                       isDeleted:
  *                         type: boolean
  *                         example: false
@@ -205,56 +269,6 @@
  *         description: No membership packages found.
  *       500:
  *         description: Internal Server Error.
- */
-
-/**
- * @swagger
- * /api/membership-packages/{id}:
- *   put:
- *     summary: Update an existing membership package
- *     description: Admins and Super Admins can update a membership package.
- *     tags: [Membership Packages]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         example: "123e4567-e89b-12d3-a456-426614174000"
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: "Gold Membership"
- *               description:
- *                 type: string
- *                 example: "Access to premium features"
- *               price:
- *                 type: number
- *                 example: 499.99
- *               unit:
- *                 type: string
- *                 example: "VND"
- *               duration:
- *                  type: integer
- *                  example: 30
- *               tier:
- *                 type: number
- *                 example: 2
- *     responses:
- *       200:
- *         description: Membership package updated successfully
- *       400:
- *         description: Validation failed
- *       404:
- *         description: Package not found
  */
 
 /**

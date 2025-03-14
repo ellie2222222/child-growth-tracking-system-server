@@ -10,7 +10,6 @@ import UserController from "../controllers/UserController";
 import UserService from "../services/UserService";
 import SessionService from "../services/SessionService";
 
-import TierRepository from "../repositories/TierRepository";
 import UserRepository from "../repositories/UserRepository";
 import SessionRepository from "../repositories/SessionRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
@@ -19,7 +18,6 @@ import { uploadFile } from "../middlewares/storeFile";
 
 const userRepository = new UserRepository();
 const sessionRepository = new SessionRepository();
-const tierRepository = new TierRepository();
 const membershipPackageRepository = new MembershipPackageRepository();
 const consultationRepository = new ConsultationRepository();
 
@@ -28,7 +26,6 @@ const userService = new UserService(
   userRepository,
   sessionService,
   membershipPackageRepository,
-  tierRepository,
   consultationRepository
 );
 const userController: UserController = new UserController(userService);
@@ -37,12 +34,12 @@ const userRoutes = express.Router();
 
 userRoutes.use(AuthMiddleware);
 
-userRoutes.post(
-  "/",
-  RoleMiddleware([UserEnum.ADMIN]),
-  userHandler.createUser,
-  userController.createUser
-);
+// userRoutes.post(
+//   "/",
+//   RoleMiddleware([UserEnum.ADMIN]),
+//   userHandler.createUser,
+//   userController.createUser
+// );
 
 userRoutes.get(
   "/",

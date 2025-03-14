@@ -51,10 +51,6 @@ const userModelSchema = new Schema<IUser>(
         ref: "MembershipPackage",
         default: null,
       },
-      tier: {
-        type: Number,
-        default: 0,
-      },
       futurePlan: {
         type: Schema.Types.ObjectId,
         ref: "MembershipPackage",

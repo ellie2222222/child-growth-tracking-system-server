@@ -7,7 +7,10 @@ import { ICommentRepository } from "../interfaces/repositories/ICommentRepositor
 import { IComment } from "../interfaces/IComment";
 
 class CommentRepository implements ICommentRepository {
-  async createComment(data: object, session?: mongoose.ClientSession): Promise<IComment> {
+  async createComment(
+    data: object,
+    session?: mongoose.ClientSession
+  ): Promise<IComment> {
     try {
       const comment = await CommentModel.create([data], { session });
       return comment[0];
@@ -22,7 +25,10 @@ class CommentRepository implements ICommentRepository {
     }
   }
 
-  async getComment(id: string | ObjectId, ignoreDeleted: boolean): Promise<IComment> {
+  async getComment(
+    id: string | ObjectId,
+    ignoreDeleted: boolean
+  ): Promise<IComment> {
     try {
       type searchQuery = {
         _id: mongoose.Types.ObjectId;
@@ -86,15 +92,10 @@ class CommentRepository implements ICommentRepository {
         { $skip: (query.page - 1) * query.size },
         { $limit: query.size },
       ]);
-      if (comments.length === 0) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "No comment found for this post"
-        );
-      }
+
       const totalComment = await CommentModel.countDocuments(searchQuery);
       return {
-        comments,
+        comments: comments || [],
         page: query.page || 1,
         total: totalComment,
         totalPages: Math.ceil(totalComment / query.size),
@@ -138,7 +139,10 @@ class CommentRepository implements ICommentRepository {
       );
     }
   }
-  async deleteComment(id: string | ObjectId, session?: ClientSession): Promise<IComment | null> {
+  async deleteComment(
+    id: string | ObjectId,
+    session?: ClientSession
+  ): Promise<IComment | null> {
     try {
       const comment = await CommentModel.findOneAndUpdate(
         {
@@ -148,6 +152,13 @@ class CommentRepository implements ICommentRepository {
         { $set: { isDeleted: true } },
         { session, new: true }
       );
+
+      if (!comment) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Comment not found"
+        );
+      }
       return comment;
     } catch (error) {
       if (error as Error | CustomException) {

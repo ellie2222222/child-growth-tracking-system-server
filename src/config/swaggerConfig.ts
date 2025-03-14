@@ -1,4 +1,4 @@
-import { Application, Express, Request, Response } from "express";
+import { Application, Request, Response } from "express";
 import swaggerJsdoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import dotenv from "dotenv";
@@ -42,7 +42,6 @@ const options: swaggerJsdoc.Options = {
       { name: "Comments", description: "Operations about comments in posts" },
       { name: "Payments", description: "Operations about handling payment" },
       { name: "Receipts", description: "Operations about receipts" },
-      { name: "Tiers", description: "Operations about membership tiers" },
       {
         name: "Requests",
         description: "Operation about requests for consultations",

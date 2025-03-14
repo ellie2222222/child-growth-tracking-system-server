@@ -80,13 +80,6 @@ class ConsultationMessageRepository implements IConsultationMessageRepository {
           { $limit: page * size },
         ]);
 
-      if (!consultationId) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "This consultation has no messages"
-        );
-      }
-
       const messageCount = await ConsultationMessageModel.countDocuments(
         searchQuery
       );

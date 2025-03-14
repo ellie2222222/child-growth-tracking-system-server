@@ -17,7 +17,6 @@ export interface IUser extends Document {
     startDate: Date | null;
     endDate: Date | null;
     currentPlan: Types.ObjectId | null;
-    tier: number | null;
     futurePlan: Types.ObjectId | null;
     viewChart: {
       counter: number;

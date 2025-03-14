@@ -261,6 +261,42 @@ class GrowthDataRepository implements IGrowthDataRepository {
       );
     }
   }
+
+  async countUserUpdateGrowthDataByCreatedAt(
+    userId: string,
+    start: Date,
+    end: Date
+  ) {
+    try {
+      const children = await ChildModel.find({
+        "relationships.memberId": new mongoose.Types.ObjectId(userId),
+      }).select("_id");
+
+      if (!children.length) return 0;
+
+      const childIds = children.map((child) => child._id);
+
+      const count = await GrowthDataModel.countDocuments({
+        childId: { $in: childIds },
+        createdAt: { $gte: start, $lte: end },
+      });
+
+      return count;
+    } catch (error) {
+      if (error as Error) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to count user's times of updating growth data: ${
+            (error as Error).message
+          }`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
 }
 
 export default GrowthDataRepository;

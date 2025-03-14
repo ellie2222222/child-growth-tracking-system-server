@@ -44,10 +44,6 @@ const publicRoutes: PublicRoutes[] = [
   //Comments
   { path: "/api/comments", method: "GET" },
   { path: "/api/comments/:id", method: "GET" },
-
-  //tiers
-  { path: "/api/tiers", method: "GET" },
-  { path: "/api/tiers/:id", method: "GET" },
 ];
 
 export default publicRoutes;

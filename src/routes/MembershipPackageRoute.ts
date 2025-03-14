@@ -42,12 +42,12 @@ router.get(
   membershipPackageController.getMembershipPackages
 );
 
-router.put(
-  "/:id",
-  RoleMiddleware([UserEnum.ADMIN]),
-  membershipPackageHandler.updateMembershipPackage,
-  membershipPackageController.updateMembershipPackage
-);
+// router.put(
+//   "/:id",
+//   RoleMiddleware([UserEnum.ADMIN]),
+//   membershipPackageHandler.updateMembershipPackage,
+//   membershipPackageController.updateMembershipPackage
+// );
 
 router.delete(
   "/:id",

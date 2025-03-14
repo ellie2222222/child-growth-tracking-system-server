@@ -4,19 +4,17 @@ import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
 import { IUser } from "../interfaces/IUser";
 import { IDoctor } from "../repositories/UserRepository";
-// import UserRepository from "../repositories/UserRepository";
+
 import Database from "../utils/database";
-// import SessionService from "./SessionService";
+
 import { IQuery } from "../interfaces/IQuery";
 import { returnData } from "../repositories/UserRepository";
-// import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
-// import TierRepository from "../repositories/TierRepository";
-// import ConsultationRepository from "../repositories/ConsultationRepository";
+
 import bcrypt from "bcrypt";
 import { IConsultation } from "../interfaces/IConsultation";
 import { IUserService } from "../interfaces/services/IUserService";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
-import { ITierRepository } from "../interfaces/repositories/ITierRepository";
+
 import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 import { ISessionService } from "../interfaces/services/ISessionService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
@@ -25,7 +23,6 @@ class UserService implements IUserService {
   private userRepository: IUserRepository;
   private sessionService: ISessionService;
   private membershipPackageRepository: IMembershipPackageRepository;
-  private tierRepository: ITierRepository;
   private consultationRepository: IConsultationRepository;
   private database: Database;
 
@@ -33,13 +30,11 @@ class UserService implements IUserService {
     userRepository: IUserRepository,
     sessionService: ISessionService,
     membershipPackageRepository: IMembershipPackageRepository,
-    tierRepository: ITierRepository,
     consultationRepository: IConsultationRepository
   ) {
     this.userRepository = userRepository;
     this.sessionService = sessionService;
     this.membershipPackageRepository = membershipPackageRepository;
-    this.tierRepository = tierRepository;
     this.consultationRepository = consultationRepository;
     this.database = Database.getInstance();
   }
@@ -566,7 +561,6 @@ class UserService implements IUserService {
         subscription.futurePlan = membershipPackageObjectId;
       } else {
         subscription.currentPlan = membershipPackageObjectId;
-        subscription.tier = checkMembershipPackage.tier;
         subscription.startDate = new Date();
         subscription.endDate = new Date(
           Date.now() + 3600 * 24 * checkMembershipPackage.duration.value * 1000
@@ -647,10 +641,8 @@ class UserService implements IUserService {
         subscription.endDate = new Date(
           Date.now() + 3600 * 24 * checkMembershipPackage.duration.value * 1000
         );
-        subscription.tier = checkMembershipPackage.tier;
         subscription.futurePlan = null;
       } else {
-        subscription.tier = 0;
         subscription.endDate = null;
         subscription.startDate = null;
         subscription.currentPlan = null;

@@ -27,15 +27,17 @@ const MembershipPackageSchema = new Schema<IMembershipPackage>(
       value: { type: Number, require: true },
       unit: { type: String, required: true, enum: ["DAY"] },
     },
-    tier: {
-      type: Number,
-      required: true,
-      default: 0,
-      enum: [0, 1, 2],
-    },
     isDeleted: {
       type: Boolean,
       default: false,
+    },
+    postLimit: {
+      type: Number,
+      default: 0,
+    },
+    updateChildDataLimit: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true, strict: true }

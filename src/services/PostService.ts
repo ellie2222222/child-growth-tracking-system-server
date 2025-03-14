@@ -10,18 +10,10 @@ import {
   cleanUpFileArray,
   extractAndReplaceImages,
 } from "../utils/fileUtils";
-// import UserRepository from "../repositories/UserRepository";
+
 import UserEnum from "../enums/UserEnum";
-// import TierRepository from "../repositories/TierRepository";
-// import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import { IPost, PostStatus } from "../interfaces/IPost";
-import {
-  checkPostLimit,
-  getCheckIntervalBounds,
-  validateUserMembership,
-} from "../utils/tierUtils";
 import { IPostService } from "../interfaces/services/IPostService";
-import { ITierRepository } from "../interfaces/repositories/ITierRepository";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IPostRepository } from "../interfaces/repositories/IPostRepository";
 import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
@@ -29,19 +21,16 @@ import { IMembershipPackageRepository } from "../interfaces/repositories/IMember
 class PostService implements IPostService {
   private postRepository: IPostRepository;
   private userRepository: IUserRepository;
-  private tierRepository: ITierRepository;
   private membershipPackageRepository: IMembershipPackageRepository;
   private database: Database;
 
   constructor(
     postRepository: IPostRepository,
     userRepository: IUserRepository,
-    tierRepository: ITierRepository,
     membershipPackageRepository: IMembershipPackageRepository
   ) {
     this.postRepository = postRepository;
     this.userRepository = userRepository;
-    this.tierRepository = tierRepository;
     this.membershipPackageRepository = membershipPackageRepository;
     this.database = Database.getInstance();
   }
@@ -55,8 +44,6 @@ class PostService implements IPostService {
     const session = await this.database.startTransaction();
 
     try {
-      await this.checkTierPostLimit(userId);
-
       const checkPost = await this.postRepository.getPostByTitle(title);
 
       if (checkPost) {
@@ -399,50 +386,6 @@ class PostService implements IPostService {
       );
 
       return posts;
-    } catch (error) {
-      if (error as Error | CustomException) {
-        throw error;
-      }
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
-      );
-    }
-  };
-
-  checkTierPostLimit = async (userId: string | ObjectId) => {
-    try {
-      const user = await this.userRepository.getUserById(
-        userId as string,
-        false
-      );
-
-      if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
-      } //check user
-
-      if ([UserEnum.MEMBER].includes(user.role)) {
-        const tierData = await this.tierRepository.getCurrentTierData(
-          user.subscription.tier as number
-        ); //get tier
-
-        const { startDate, interval } = await validateUserMembership(
-          user,
-          tierData,
-          "POST"
-        );
-
-        const { start, end } = getCheckIntervalBounds(
-          new Date(),
-          startDate as Date,
-          interval
-        );
-
-        await checkPostLimit(userId as string, start, end, tierData);
-      }
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

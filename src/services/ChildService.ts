@@ -8,32 +8,27 @@ import { IQuery } from "../interfaces/IQuery";
 // import UserRepository from "../repositories/UserRepository";
 import { Request } from "express";
 import UserEnum from "../enums/UserEnum";
-// import TierRepository from "../repositories/TierRepository";
 import mongoose from "mongoose";
 // import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import { IChildService } from "../interfaces/services/IChildService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IChildRepository } from "../interfaces/repositories/IChildRepository";
-import { ITierRepository } from "../interfaces/repositories/ITierRepository";
 import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 
 class ChildService implements IChildService {
   private childRepository: IChildRepository;
   private userRepository: IUserRepository;
-  private tierRepository: ITierRepository;
   private membershipPackageRepository: IMembershipPackageRepository;
   private database: Database;
 
   constructor(
     childRepository: IChildRepository,
     userRepository: IUserRepository,
-    tierRepository: ITierRepository,
     membershipPackageRepository: IMembershipPackageRepository
   ) {
     this.childRepository = childRepository;
     this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.tierRepository = tierRepository;
     this.membershipPackageRepository = membershipPackageRepository;
   }
 

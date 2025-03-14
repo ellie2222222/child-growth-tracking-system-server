@@ -7,9 +7,7 @@ import CustomException from "../exceptions/CustomException";
 import getLogger from "../utils/logger";
 import MembershipModel from "../models/MembershipPackageModel";
 import ChildModel from "../models/ChildModel";
-import TierModel from "../models/TierModel";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
-import ConsultationModel from "../models/ConsultationModel";
 
 export interface IDoctor extends IUser {
   rating?: number;
@@ -302,8 +300,8 @@ class UserRepository implements IUserRepository {
         { $match: searchQuery },
         { $skip: skip },
         { $limit: size },
-        { 
-          $sort: { [sortField]: sortOrder }
+        {
+          $sort: { [sortField]: sortOrder },
         },
         {
           $lookup: {
@@ -345,13 +343,12 @@ class UserRepository implements IUserRepository {
             role: 1,
             "subscription.startDate": 1,
             "subscription.endDate": 1,
-            "subscription.tier": 1,
             "subscription.viewChart": 1,
             "subscription.currentPlan": 1,
-            "subscription.futurePlan": 1, 
+            "subscription.futurePlan": 1,
           },
         },
-      ]);      
+      ]);
 
       const totalUsers = await UserModel.countDocuments(searchQuery);
 
@@ -471,18 +468,6 @@ class UserRepository implements IUserRepository {
         const nextMembershipId = user.subscription.futurePlan;
 
         if (!nextMembershipId) {
-          const tier = await TierModel.findOne({
-            tier: 0,
-            isDeleted: false,
-          });
-
-          if (!tier) {
-            throw new CustomException(
-              StatusCodeEnum.NotFound_404,
-              "Tier info not found"
-            );
-          }
-
           // No future memberships, clear subscription
           await UserModel.updateOne(
             { _id: userId },
@@ -491,7 +476,6 @@ class UserRepository implements IUserRepository {
                 "subscription.endDate": null,
                 "subscription.startDate": null,
                 "subscription.currentPlan": null,
-                "subscription.tier": 0,
               },
             }
           );
@@ -518,7 +502,6 @@ class UserRepository implements IUserRepository {
         // Update user's subscription and remove the used membership from futurePlan
         await UserModel.findByIdAndUpdate(userId, {
           $set: {
-            "subscription.tier": membershipPackage.tier,
             "subscription.currentPlan": nextMembershipId,
             "subscription.startDate": new Date(),
             "subscription.endDate": newEndDate,

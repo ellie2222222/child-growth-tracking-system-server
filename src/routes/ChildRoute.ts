@@ -15,24 +15,22 @@ import GrowthDataService from "../services/GrowthDataService";
 
 import ChildRepository from "../repositories/ChildRepository";
 import UserRepository from "../repositories/UserRepository";
-import TierRepository from "../repositories/TierRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import GrowthDataRepository from "../repositories/GrowthDataRepository";
 import ConfigRepository from "../repositories/ConfigRepository";
 import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
+import validateMembership from "../middlewares/MembershipMiddleware";
 
 const growthMetricsRepository = new GrowthMetricsRepository();
 const configRepository = new ConfigRepository();
 const growthDataRepository = new GrowthDataRepository();
 const childRepository = new ChildRepository();
 const userRepository = new UserRepository();
-const tierRepository = new TierRepository();
 const membershipPackageRepository = new MembershipPackageRepository();
 
 const childService = new ChildService(
   childRepository,
   userRepository,
-  tierRepository,
   membershipPackageRepository
 );
 const growthDataService = new GrowthDataService(
@@ -40,8 +38,7 @@ const growthDataService = new GrowthDataService(
   userRepository,
   childRepository,
   configRepository,
-  growthMetricsRepository,
-  tierRepository
+  growthMetricsRepository
 );
 
 const childController = new ChildController(childService);
@@ -105,6 +102,7 @@ childRoutes.get(
 
 childRoutes.post(
   "/:childId/growth-data",
+  validateMembership("updateChildDataLimit"),
   growthDataHandler.createGrowthData,
   RoleMiddleware([UserEnum.MEMBER]),
   growthDataController.createGrowthData

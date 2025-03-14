@@ -1,51 +1,6 @@
 /**
  * @swagger
  * /api/users:
- *   post:
- *     summary: Create a new user
- *     description: |
- *       Creates a new user. Only accessible by admins .
- *       Role currently has 3 values:
- *       - User: 0
- *       - Admin: 1
- *       - Doctor: 2
- *     tags: [Users]
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *                 example: "John Doe"
- *               email:
- *                 type: string
- *                 example: "john@example.com"
- *               phoneNumber:
- *                 type: string
- *                 example: "+1234567890"
- *               password:
- *                 type: string
- *                 example: "password123"
- *               role:
- *                 type: integer
- *                 enum: [0, 1, 2]
- *     responses:
- *       201:
- *         description: User created successfully
- *       400:
- *         description: Invalid input
- *       500:
- *         description: Internal server error
- */
-
-/**
- * @swagger
- * /api/users:
  *   get:
  *     summary: Get list of users
  *     description: Retrieves a list of users with optional pagination and filters.
