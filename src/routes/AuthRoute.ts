@@ -32,6 +32,12 @@ authRoutes.get(
   authController.loginGoogle
 );
 
+authRoutes.get(
+  "/google/mobile/redirect",
+  passport.authenticate("google"),
+  authController.loginGoogleMobile
+);
+
 authRoutes.post("/login", authHandler.login, authController.login);
 
 authRoutes.post("/signup", authHandler.signup, authController.signup);

@@ -144,6 +144,52 @@ class AuthController {
       next(error);
     }
   };
+  /**
+   * Handle Google login
+   */
+
+  loginGoogleMobile = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const googleUser = req.user;
+      const sessionData: Partial<ISession> = req.userInfo;
+
+      const { accessToken, refreshToken, sessionId } =
+        await this.authService.loginGoogle(googleUser, sessionData);
+
+      // Set Refresh Token and session ID in cookies
+      const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
+      const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
+      // Set session ID in cookies
+      res.cookie("sessionId", sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge, // 30 days
+      });
+
+      res.redirect(`${process.env.MOBILE_GOOGLE_REDIRECT_URL}`);
+    } catch (error) {
+      next(error);
+    }
+  };
 
   /**
    * Handles user signup.
