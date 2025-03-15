@@ -7,33 +7,17 @@ dotenv.config();
 type User = Profile;
 
 passport.use(
-  "google-web",
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       callbackURL: process.env.GOOGLE_CLIENT_URL!,
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async (accessToken: string, refreshToken: string, profile: Profile, done: (error: any, user?: User | false) => void) => {
       done(null, profile);
     }
   )
 );
-
-passport.use(
-  "google-mobile",
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: process.env.MOBILE_GOOGLE_CLIENT_URL!,
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      done(null, profile);
-    }
-  )
-);
-
 
 passport.serializeUser((user, done) => {
   done(null, user);

@@ -12,15 +12,18 @@ const growthVelocityResultSchema = new Schema<IGrowthVelocityResult>(
     startDate: { type: Date },
     endDate: { type: Date },
     weight: {
-      weightVelocity: { type: Number, default: null },
+      percentile: { type: Number },
+      weightVelocity: { type: Number },
       description: { type: String },
     },
     height: {
-      heightVelocity: { type: Number, default: null },
+      percentile: { type: Number },
+      heightVelocity: { type: Number },
       description: { type: String },
     },
     headCircumference: {
-      headCircumferenceVelocity: { type: Number, default: null },
+      percentile: { type: Number },
+      headCircumferenceVelocity: { type: Number },
       description: { type: String },
     },
   },
