@@ -10,7 +10,7 @@ export type ReturnDataConsultationMessages = {
   consultationMessages: IConsultationMessage[];
   page: number;
   totalMessages: number;
-  totalPage: number;
+  totalPages: number;
 };
 class ConsultationMessageRepository implements IConsultationMessageRepository {
   async createConsultationMessage(
@@ -87,7 +87,7 @@ class ConsultationMessageRepository implements IConsultationMessageRepository {
         consultationMessages: consultationMessages,
         page: page,
         totalMessages: messageCount,
-        totalPage: Math.ceil(messageCount / size),
+        totalPages: Math.ceil(messageCount / size),
       };
     } catch (error) {
       if (error as Error | CustomException) {
