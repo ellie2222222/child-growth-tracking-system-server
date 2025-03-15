@@ -195,6 +195,45 @@ class GrowthDataController {
       next(error);
     }
   };
+
+  publicGenerateGrowthData = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const {
+        inputDate,
+        height,
+        weight,
+        headCircumference,
+        armCircumference,
+        birthDate,
+        gender,
+      } = req.body;
+
+      const growthData = await this.growthDataService.publicGenerateGrowthData(
+        {
+          inputDate,
+          height,
+          weight,
+          headCircumference,
+          armCircumference,
+        },
+        birthDate,
+        gender
+      );
+
+      res
+        .status(StatusCodeEnum.OK_200)
+        .json({
+          result: growthData,
+          message: "Get growth result successfully",
+        });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default GrowthDataController;

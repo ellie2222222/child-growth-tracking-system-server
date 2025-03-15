@@ -3,6 +3,7 @@ import { GrowthData } from "../../repositories/GrowthDataRepository";
 import { IGrowthData } from "../IGrowthData";
 import { IQuery } from "../IQuery";
 import { IGrowthVelocityResult } from "../IGrowthVelocityResult";
+import { IGrowthResult } from "../IGrowthResult";
 
 export interface IGrowthDataService {
   createGrowthData: (
@@ -37,4 +38,10 @@ export interface IGrowthDataService {
     requesterInfo: Request["userInfo"],
     updateData: Partial<IGrowthData>
   ) => Promise<IGrowthData | null>;
+
+  publicGenerateGrowthData: (
+    growthData: Partial<IGrowthData>,
+    birthDate: Date,
+    gender: number
+  ) => Promise<Partial<IGrowthResult>>;
 }

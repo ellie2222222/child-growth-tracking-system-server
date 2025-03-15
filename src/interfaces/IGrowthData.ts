@@ -8,8 +8,8 @@ export interface IGrowthData extends Document {
   height: number;
   headCircumference: number;
   armCircumference: number;
-  growthResult: IGrowthResult | Partial<IGrowthResult>,
-  bmi?: number,
+  growthResult: IGrowthResult | Partial<IGrowthResult>;
+  bmi?: number;
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

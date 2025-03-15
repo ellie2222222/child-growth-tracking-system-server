@@ -3,7 +3,7 @@
  * /api/statistics/revenue:
  *   get:
  *     tags: [Statistics]
- *     summary: Get revenue statistics
+ *     summary: Get revenue statistics(Admin)
  *     description: Retrieve revenue statistics based on time, unit, and value.>
  *          `DAY` and  `WEEK` will get the current date/week revenue based on receipts. <br> <br>
  *          Only `MONTH` and `YEAR` use value query, if not provided then it'll get current month/year. <br> <br>

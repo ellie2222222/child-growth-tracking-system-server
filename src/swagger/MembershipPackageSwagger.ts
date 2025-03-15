@@ -19,8 +19,8 @@
  * @swagger
  * /api/membership-packages/:
  *   post:
- *     summary: Create a new membership package
- *     description: Admins and Super Admins can create a membership package.
+ *     summary: Create a new membership package(Admin)
+ *     description: Admins  can create a membership package.
  *     tags: [Membership Packages]
  *     security:
  *       - bearerAuth: []
@@ -275,8 +275,8 @@
  * @swagger
  * /api/membership-packages/{id}:
  *   delete:
- *     summary: Delete a membership package
- *     description: Admins and Super Admins can delete a membership package.
+ *     summary: Delete a membership package(Admin)
+ *     description: Admins  can delete a membership package.
  *     tags: [Membership Packages]
  *     security:
  *       - bearerAuth: []

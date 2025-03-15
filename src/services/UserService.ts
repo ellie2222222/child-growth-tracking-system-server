@@ -231,7 +231,11 @@ class UserService implements IUserService {
       switch (checkRequester?.role) {
         //user cant get indivitual user, can get other role
         case UserEnum.MEMBER:
-          if (checkUser?.role === UserEnum.MEMBER) {
+          if (
+            [UserEnum.MEMBER, UserEnum.ADMIN].includes(
+              checkUser?.role as number
+            )
+          ) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,
               "User can not get other users' info"
@@ -239,13 +243,24 @@ class UserService implements IUserService {
           }
           return checkUser as IUser | IDoctor;
 
-        //everyone can get doctor
         case UserEnum.DOCTOR: {
+          if ([UserEnum.ADMIN].includes(checkUser?.role as number)) {
+            throw new CustomException(
+              StatusCodeEnum.Forbidden_403,
+              "Doctor can't view admin info"
+            );
+          }
           return checkUser as IUser | IDoctor;
         }
 
         //admin can get admins and super admin
         case UserEnum.ADMIN:
+          if ([UserEnum.ADMIN].includes(checkUser?.role as number)) {
+            throw new CustomException(
+              StatusCodeEnum.Forbidden_403,
+              "Admin can't view other admin info"
+            );
+          }
           return checkUser as IUser | IDoctor;
 
         default:

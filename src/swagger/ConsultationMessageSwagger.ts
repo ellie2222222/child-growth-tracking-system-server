@@ -35,7 +35,7 @@
  *   get:
  *     summary: Get consultation messages by consultation ID
  *     description: >
- *       Retrieves all messages associated with a specific consultation. Accessible to admins, super admins, doctors, and members.
+ *       Retrieves all messages associated with a specific consultation. Accessible to admins, doctors, and members.
  *     tags: [Consultation Messages]
  *     parameters:
  *       - name: id
@@ -82,7 +82,8 @@
  * /api/consultation-messages/{id}:
  *   get:
  *     summary: Get a consultation message by ID
- *     description: Retrieves a specific consultation message. Accessible to admins, super admins, doctors, and members.
+ *     description: Retrieves a specific consultation message. Accessible to admins, doctors, and members.<br> `Admin` can get other. <br>
+ *          `User` & `Doctor` can get `theirs`
  *     tags: [Consultation Messages]
  *     parameters:
  *       - name: id

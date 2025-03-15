@@ -3,7 +3,9 @@
  * /api/users:
  *   get:
  *     summary: Get list of users
- *     description: Retrieves a list of users with optional pagination and filters.
+ *     description: Retrieves a list of users with optional pagination and filters. <br>
+ *              `Admins` & `doctors` can view other `members` & `doctors`. <br>
+ *              `Member` can only view `doctors`. <br>
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
@@ -47,7 +49,9 @@
  * /api/users/{id}:
  *   get:
  *     summary: Get user by ID
- *     description: Retrieves user details based on user ID.
+ *     description: Retrieves user details based on user ID. <br>
+ *              `Admins` & `doctors` can view other `members` & `doctors`. <br>
+ *              `Member` can only view `doctors`. <br>
  *     tags: [Users]
  *     security:
  *       - BearerAuth: []
@@ -114,7 +118,7 @@
  * @swagger
  * /api/users/{id}:
  *   delete:
- *     summary: Delete a user
+ *     summary: Delete a user(Admin)
  *     description: Deletes a user by ID. Only accessible by admins .
  *     tags: [Users]
  *     security:
