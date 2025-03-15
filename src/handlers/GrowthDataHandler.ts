@@ -22,7 +22,10 @@ class GrowthDataHandler {
     for (const [field, value] of Object.entries(requiredFields)) {
       const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
       if (value === undefined || value === null || value === "") {
-        validationErrors.push({ field, error: `${capitalizedField} is required` });
+        validationErrors.push({
+          field,
+          error: `${capitalizedField} is required`,
+        });
       } else if (typeof value !== "number" || isNaN(value)) {
         validationErrors.push({
           field,
@@ -173,7 +176,11 @@ class GrowthDataHandler {
   /**
    * Validate input for getting a single growthData.
    */
-  getGrowthDataById = (req: Request, res: Response, next: NextFunction): void => {
+  getGrowthDataById = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
     const { growthDataId } = req.params;
 
     const validationErrors: { field: string; error: string }[] = [];
@@ -192,7 +199,11 @@ class GrowthDataHandler {
   /**
    * Validate input for getting all growthData.
    */
-  getGrowthDataByChildId = (req: Request, res: Response, next: NextFunction): void => {
+  getGrowthDataByChildId = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
     const { page, size, order } = req.query;
 
     const validationErrors: { field: string; error: string }[] = [];
@@ -235,6 +246,58 @@ class GrowthDataHandler {
       req.query.size = size ? parsedSize.toString() : "10";
 
       next();
+    }
+  };
+
+  publicGenerateGrowthData = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
+    const { inputDate, height, weight, headCircumference, armCircumference } =
+      req.body;
+
+    const validationErrors: { field: string; error: string }[] = [];
+
+    // Validate required fields (height, weight)
+    const requiredFields = { height, weight };
+    for (const [field, value] of Object.entries(requiredFields)) {
+      const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
+      if (value === undefined || value === null || value === "") {
+        validationErrors.push({
+          field,
+          error: `${capitalizedField} is required`,
+        });
+      } else if (typeof value !== "number" || isNaN(value)) {
+        validationErrors.push({
+          field,
+          error: `${capitalizedField} must be a valid number`,
+        });
+      } else if (value <= 0) {
+        validationErrors.push({
+          field,
+          error: `${capitalizedField} must be greater than zero`,
+        });
+      }
+    }
+
+    // Validate optional fields if provided (headCircumference, armCircumference)
+    const optionalFields = { headCircumference, armCircumference };
+    for (const [field, value] of Object.entries(optionalFields)) {
+      const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value !== "number" || isNaN(value)) {
+          validationErrors.push({
+            field,
+            error: `${capitalizedField} must be a valid number`,
+          });
+        } else if (value <= 0) {
+          validationErrors.push({
+            field,
+            error: `${capitalizedField} must be greater than zero`,
+          });
+        }
+      }
     }
   };
 }

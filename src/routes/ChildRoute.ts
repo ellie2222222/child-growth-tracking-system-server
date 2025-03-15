@@ -53,6 +53,7 @@ childRoutes.use(AuthMiddleware);
 
 childRoutes.post(
   "/growth-data/public",
+  growthDataHandler.publicGenerateGrowthData,
   growthDataController.publicGenerateGrowthData
 );
 
