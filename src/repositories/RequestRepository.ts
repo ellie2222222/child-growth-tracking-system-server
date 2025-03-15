@@ -45,16 +45,46 @@ class RequestRepository implements IRequestRepository {
             isDeleted: false,
           };
 
-      const request = await RequestModel.findOne(searchQuery);
+      const request = await RequestModel.aggregate([
+        { $match: searchQuery },
+        {
+          $lookup: {
+            from: "users",
+            localField: "memberId",
+            foreignField: "_id",
+            as: "member",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$member" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "doctorId",
+            foreignField: "_id",
+            as: "doctor",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$doctor" },
+        {
+          $lookup: {
+            from: "children",
+            localField: "childIds",
+            foreignField: "_id",
+            as: "children",
+          },
+        },
+      ]);
 
-      if (!request) {
+      if (!request[0]) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Request not found"
         );
       }
 
-      return request;
+      return request[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -103,9 +133,38 @@ class RequestRepository implements IRequestRepository {
         {
           $match: searchQuery,
         },
+        { $sort: { [sortField]: sortOrder } },
+
         { $skip: skip },
         { $limit: size },
-        { $sort: { [sortField]: sortOrder } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "memberId",
+            foreignField: "_id",
+            as: "member",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$member" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "doctorId",
+            foreignField: "_id",
+            as: "doctor",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$doctor" },
+        {
+          $lookup: {
+            from: "children",
+            localField: "childIds",
+            foreignField: "_id",
+            as: "children",
+          },
+        },
       ]);
 
       if (!requests) {
@@ -176,9 +235,38 @@ class RequestRepository implements IRequestRepository {
         {
           $match: searchQuery,
         },
+        { $sort: { [sortField]: sortOrder } },
+
         { $skip: skip },
         { $limit: size },
-        { $sort: { [sortField]: sortOrder } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "memberId",
+            foreignField: "_id",
+            as: "member",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$member" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "doctorId",
+            foreignField: "_id",
+            as: "doctor",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$doctor" },
+        {
+          $lookup: {
+            from: "children",
+            localField: "childIds",
+            foreignField: "_id",
+            as: "children",
+          },
+        },
       ]);
 
       if (!requests) {

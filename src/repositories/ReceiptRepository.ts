@@ -55,6 +55,24 @@ class ReceiptRepository implements IReceiptRepository {
         { $skip: skip },
         { $limit: size },
         { $sort: { [sortField]: sortOrder } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "packageId",
+            foreignField: "_id",
+            as: "membershippackage",
+          },
+        },
+        { $unwind: "$membershippackage" },
       ]);
 
       const countReceipts = await ReceiptModel.countDocuments(searchQuery);
@@ -105,9 +123,27 @@ class ReceiptRepository implements IReceiptRepository {
         {
           $match: searchQuery,
         },
+        { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: size },
-        { $sort: { [sortField]: sortOrder } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "packageId",
+            foreignField: "_id",
+            as: "membershippackage",
+          },
+        },
+        { $unwind: "$membershippackage" },
       ]);
       if (receipts.length === 0) {
         throw new CustomException(404, "No receipts found");
@@ -144,13 +180,35 @@ class ReceiptRepository implements IReceiptRepository {
         ? { _id: new mongoose.Types.ObjectId(id) }
         : { _id: new mongoose.Types.ObjectId(id), isDeleted: false };
 
-      const receipt = await ReceiptModel.findOne(query, null, { session });
+      const receipt = await ReceiptModel.aggregate([
+        {
+          $match: query,
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "packageId",
+            foreignField: "_id",
+            as: "membershippackage",
+          },
+        },
+        { $unwind: "$membershippackage" },
+      ]);
 
-      if (!receipt) {
+      if (!receipt[0]) {
         throw new CustomException(404, "Receipt not found");
       }
 
-      return receipt;
+      return receipt[0];
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw error;
