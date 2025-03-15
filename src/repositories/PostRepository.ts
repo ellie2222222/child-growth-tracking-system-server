@@ -10,7 +10,7 @@ export type ReturnDataPosts = {
   posts: IPost[];
   page: number;
   total: number;
-  totalPage: number;
+  totalPages: number;
 };
 
 class PostRepository implements IPostRepository {
@@ -45,16 +45,35 @@ class PostRepository implements IPostRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      const post = await PostModel.findOne(searchQuery);
+      const post = await PostModel.aggregate([
+        {
+          $match: searchQuery,
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+            pipeline: [{ $project: { name: 1, avatar: 1, _id: 1 } }],
+          },
+        },
+        {
+          $unwind: {
+            path: "$user",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ]);
 
-      if (!post) {
+      if (!post[0]) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Post not found"
         );
       }
 
-      return post;
+      return post[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -112,17 +131,34 @@ class PostRepository implements IPostRepository {
         {
           $match: searchQuery,
         },
+        { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: size },
-        { $sort: { [sortField]: sortOrder } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+            pipeline: [{ $project: { name: 1, avatar: 1, _id: 1 } }],
+          },
+        },
+        {
+          $unwind: {
+            path: "$user",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
       ]);
+
+      console.log(Posts);
       const totalPost = await PostModel.countDocuments(searchQuery);
 
       return {
         posts: Posts,
         page,
         total: totalPost,
-        totalPage: Math.ceil(totalPost / size),
+        totalPages: Math.ceil(totalPost / size),
       };
     } catch (error) {
       if (error as Error | CustomException) {
@@ -284,6 +320,21 @@ class PostRepository implements IPostRepository {
         { $match: searchQuery },
         { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+            pipeline: [{ $project: { name: 1, avatar: 1, _id: 1 } }],
+          },
+        },
+        {
+          $unwind: {
+            path: "$user",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
       ]);
 
       const totalPosts = await PostModel.countDocuments(searchQuery);
@@ -291,7 +342,7 @@ class PostRepository implements IPostRepository {
         posts: Posts || [],
         page,
         total: totalPosts,
-        totalPage: Math.ceil(totalPosts / size),
+        totalPages: Math.ceil(totalPosts / size),
       };
     } catch (error) {
       if (error as Error | CustomException) {
