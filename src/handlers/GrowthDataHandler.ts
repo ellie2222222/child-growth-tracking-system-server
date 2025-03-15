@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import validator from "validator";
 import { validateMongooseObjectId } from "../utils/validator";
+import GenderEnum from "../enums/GenderEnum";
 
 class GrowthDataHandler {
   /**
@@ -254,8 +255,15 @@ class GrowthDataHandler {
     res: Response,
     next: NextFunction
   ): void => {
-    const { inputDate, height, weight, headCircumference, armCircumference } =
-      req.body;
+    const {
+      inputDate,
+      height,
+      weight,
+      headCircumference,
+      armCircumference,
+      birthDate,
+      gender,
+    } = req.body;
 
     const validationErrors: { field: string; error: string }[] = [];
 
@@ -298,6 +306,48 @@ class GrowthDataHandler {
           });
         }
       }
+    }
+
+    // Validate inputDate
+    if (!inputDate || !validator.isISO8601(inputDate)) {
+      validationErrors.push({
+        field: "inputDate",
+        error: "Input date must be a valid ISO 8601 date",
+      });
+    } else if (new Date(inputDate) > new Date()) {
+      validationErrors.push({
+        field: "inputDate",
+        error: "Input date must be a valid past or present date",
+      });
+    }
+
+    if (!birthDate || !validator.isISO8601(birthDate)) {
+      validationErrors.push({
+        field: "birthDate",
+        error: "Birth date must be a valid ISO 8601 date",
+      });
+    } else if (new Date(inputDate) > new Date()) {
+      validationErrors.push({
+        field: "birthDate",
+        error: "Birth date must be a valid past or present date",
+      });
+    }
+
+    // Validate gender (0 or 1 expected)
+    if (gender !== GenderEnum.BOY && gender !== GenderEnum.GIRL) {
+      validationErrors.push({
+        field: "gender",
+        error: "Gender must be 0 (Boy) or 1 (Girl)",
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
+      next();
     }
   };
 }
