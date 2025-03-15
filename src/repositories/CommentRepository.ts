@@ -42,7 +42,18 @@ class CommentRepository implements ICommentRepository {
         searchQuery.isDeleted = false;
       }
 
-      const comment = await CommentModel.findOne(searchQuery);
+      const comment = await CommentModel.aggregate([
+        { $match: searchQuery },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+      ]);
 
       if (!comment) {
         throw new CustomException(
@@ -50,7 +61,7 @@ class CommentRepository implements ICommentRepository {
           "Comment not found"
         );
       }
-      return comment;
+      return comment[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

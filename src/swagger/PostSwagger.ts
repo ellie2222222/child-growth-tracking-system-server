@@ -10,7 +10,7 @@
  * /api/posts:
  *   post:
  *     summary: Create a new post
- *     description: Allows authenticated users (ADMIN, MEMBER) to create a blog post with optional attachments and a thumbnail.
+ *     description: Allows authenticated users  to create a blog post with optional attachments and a thumbnail.
  *     tags: [Posts]
  *     security:
  *       - bearerAuth: []
@@ -315,7 +315,7 @@
  * @swagger
  * /api/posts/status/{id}:
  *   put:
- *     summary: Update post status
+ *     summary: Update post status(Admin)
  *     description:
  *       Allows authenticated users (ADMIN, MEMBER) to update the status of a post. <br> <br>
  *       - Members can only update status to `PENDING` or `DELETED`.<br> <br>

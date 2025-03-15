@@ -81,9 +81,9 @@
  * @swagger
  * /api/requests:
  *   get:
- *     summary: Get all requests
+ *     summary: Get all requests(Admin)
  *     tags: [Requests]
- *     description: Allows admin and super admin to retrieve all requests.
+ *     description: Allows admin to retrieve all requests.
  *     parameters:
  *       - in: query
  *         name: page
@@ -125,9 +125,11 @@
  * @swagger
  * /api/requests/users/{id}:
  *   get:
- *     summary: Get requests by user ID
+ *     summary: Get requests by user ID.
  *     tags: [Requests]
- *     description: Allows various roles to get requests associated with a specific user.
+ *     description: Allows various roles to get requests associated with a specific user. <br>
+ *          `Admin` can get other. <br>
+ *          `User` & `Doctor` can get `theirs`
  *     parameters:
  *       - in: path
  *         name: id
@@ -183,7 +185,8 @@
  *   get:
  *     summary: Get a request by ID
  *     tags: [Requests]
- *     description: Allows authorized users to retrieve a specific request.
+ *     description: Allows authorized users to retrieve a specific request. <br> `Admin` can get other. <br>
+ *          `User` & `Doctor` can get `theirs`
  *     parameters:
  *       - in: path
  *         name: id

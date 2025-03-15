@@ -46,6 +46,9 @@ const publicRoutes: PublicRoutes[] = [
   //Comments
   { path: "/api/comments", method: "GET" },
   { path: "/api/comments/:id", method: "GET" },
+
+  //GrowthData
+  { path: "/api/children/growth-data/public", method: "POST" },
 ];
 
 export default publicRoutes;

@@ -4,7 +4,7 @@
  *   put:
  *     summary: Update consultation status
  *     description: >
- *       Updates the status of a consultation. Only members, admins, and super admins can perform this action.
+ *       Updates the status of a consultation. Only members, admins can perform this action.
  *     tags: [Consultations]
  *     parameters:
  *       - name: id
@@ -32,9 +32,9 @@
  * @swagger
  * /api/consultations:
  *   get:
- *     summary: Get all consultations
+ *     summary: Get all consultations(Admin only)
  *     description: >
- *       Retrieves all consultations. Only admins and super admins can access this endpoint.
+ *       Retrieves all consultations. Only admins can access this endpoint.
  *     tags: [Consultations]
  *     parameters:
  *       - name: page
@@ -77,7 +77,9 @@
  *   get:
  *     summary: Get consultations by user ID
  *     description: >
- *       Retrieves consultations associated with a specific user. Accessible to admins, super admins, doctors, and members.
+ *       Retrieves consultations associated with a specific user. Accessible to admins, doctors, and members.<br>
+ *          `Admin` can get other. <br>
+ *          `User` & `Doctor` can get `theirs`
  *     tags: [Consultations]
  *     parameters:
  *       - name: id
@@ -135,7 +137,9 @@
  * /api/consultations/{id}:
  *   get:
  *     summary: Get consultation by ID
- *     description: Retrieves a specific consultation. Accessible to admins, super admins, doctors, and members.
+ *     description: Retrieves a specific consultation. Accessible to admins, doctors, and members.<br>
+ *          `Admin` can get other. <br>
+ *          `User` & `Doctor` can get `theirs`
  *     tags: [Consultations]
  *     parameters:
  *       - name: id
@@ -155,7 +159,7 @@
  * /api/consultations/{id}:
  *   delete:
  *     summary: Delete a consultation
- *     description: Deletes a consultation. Only members, admins, and super admins can perform this action.
+ *     description: Deletes a consultation. Only members, admins can perform this action.
  *     tags: [Consultations]
  *     parameters:
  *       - name: id

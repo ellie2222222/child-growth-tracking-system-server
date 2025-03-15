@@ -61,6 +61,34 @@ class ConsultationRepository implements IConsultationRepository {
           },
         },
         { $unwind: "$requestDetails" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "requestDetails.memberId",
+            foreignField: "_id",
+            as: "requestDetails.member",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$requestDetails.member" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "requestDetails.doctorId",
+            foreignField: "_id",
+            as: "requestDetails.doctor",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$requestDetails.doctor" },
+        {
+          $lookup: {
+            from: "children",
+            localField: "requestDetails.childIds",
+            foreignField: "_id",
+            as: "requestDetails.children",
+          },
+        },
       ]);
 
       if (consultation.length === 0) {
@@ -128,6 +156,34 @@ class ConsultationRepository implements IConsultationRepository {
         { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: size },
+        {
+          $lookup: {
+            from: "users",
+            localField: "requestDetails.memberId",
+            foreignField: "_id",
+            as: "requestDetails.member",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$requestDetails.member" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "requestDetails.doctorId",
+            foreignField: "_id",
+            as: "requestDetails.doctor",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$requestDetails.doctor" },
+        {
+          $lookup: {
+            from: "children",
+            localField: "requestDetails.childIds",
+            foreignField: "_id",
+            as: "requestDetails.children",
+          },
+        },
       ]);
 
       const totalConsultation = await ConsultationModel.countDocuments(
@@ -219,6 +275,34 @@ class ConsultationRepository implements IConsultationRepository {
         { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: size },
+        {
+          $lookup: {
+            from: "users",
+            localField: "requestDetails.memberId",
+            foreignField: "_id",
+            as: "requestDetails.member",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$requestDetails.member" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "requestDetails.doctorId",
+            foreignField: "_id",
+            as: "requestDetails.doctor",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$requestDetails.doctor" },
+        {
+          $lookup: {
+            from: "children",
+            localField: "requestDetails.childIds",
+            foreignField: "_id",
+            as: "requestDetails.children",
+          },
+        },
       ]);
 
       if (consultations.length === 0) {

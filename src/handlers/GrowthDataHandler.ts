@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import validator from "validator";
 import { validateMongooseObjectId } from "../utils/validator";
+import GenderEnum from "../enums/GenderEnum";
 
 class GrowthDataHandler {
   /**
@@ -22,7 +23,10 @@ class GrowthDataHandler {
     for (const [field, value] of Object.entries(requiredFields)) {
       const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
       if (value === undefined || value === null || value === "") {
-        validationErrors.push({ field, error: `${capitalizedField} is required` });
+        validationErrors.push({
+          field,
+          error: `${capitalizedField} is required`,
+        });
       } else if (typeof value !== "number" || isNaN(value)) {
         validationErrors.push({
           field,
@@ -173,7 +177,11 @@ class GrowthDataHandler {
   /**
    * Validate input for getting a single growthData.
    */
-  getGrowthDataById = (req: Request, res: Response, next: NextFunction): void => {
+  getGrowthDataById = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
     const { growthDataId } = req.params;
 
     const validationErrors: { field: string; error: string }[] = [];
@@ -192,7 +200,11 @@ class GrowthDataHandler {
   /**
    * Validate input for getting all growthData.
    */
-  getGrowthDataByChildId = (req: Request, res: Response, next: NextFunction): void => {
+  getGrowthDataByChildId = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
     const { page, size, order } = req.query;
 
     const validationErrors: { field: string; error: string }[] = [];
@@ -234,6 +246,107 @@ class GrowthDataHandler {
       req.query.page = page ? parsedPage.toString() : "1";
       req.query.size = size ? parsedSize.toString() : "10";
 
+      next();
+    }
+  };
+
+  publicGenerateGrowthData = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): void => {
+    const {
+      inputDate,
+      height,
+      weight,
+      headCircumference,
+      armCircumference,
+      birthDate,
+      gender,
+    } = req.body;
+
+    const validationErrors: { field: string; error: string }[] = [];
+
+    // Validate required fields (height, weight)
+    const requiredFields = { height, weight };
+    for (const [field, value] of Object.entries(requiredFields)) {
+      const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
+      if (value === undefined || value === null || value === "") {
+        validationErrors.push({
+          field,
+          error: `${capitalizedField} is required`,
+        });
+      } else if (typeof value !== "number" || isNaN(value)) {
+        validationErrors.push({
+          field,
+          error: `${capitalizedField} must be a valid number`,
+        });
+      } else if (value <= 0) {
+        validationErrors.push({
+          field,
+          error: `${capitalizedField} must be greater than zero`,
+        });
+      }
+    }
+
+    // Validate optional fields if provided (headCircumference, armCircumference)
+    const optionalFields = { headCircumference, armCircumference };
+    for (const [field, value] of Object.entries(optionalFields)) {
+      const capitalizedField = field.charAt(0).toUpperCase() + field.slice(1);
+      if (value !== undefined && value !== null && value !== "") {
+        if (typeof value !== "number" || isNaN(value)) {
+          validationErrors.push({
+            field,
+            error: `${capitalizedField} must be a valid number`,
+          });
+        } else if (value <= 0) {
+          validationErrors.push({
+            field,
+            error: `${capitalizedField} must be greater than zero`,
+          });
+        }
+      }
+    }
+
+    // Validate inputDate
+    if (!inputDate || !validator.isISO8601(inputDate)) {
+      validationErrors.push({
+        field: "inputDate",
+        error: "Input date must be a valid ISO 8601 date",
+      });
+    } else if (new Date(inputDate) > new Date()) {
+      validationErrors.push({
+        field: "inputDate",
+        error: "Input date must be a valid past or present date",
+      });
+    }
+
+    if (!birthDate || !validator.isISO8601(birthDate)) {
+      validationErrors.push({
+        field: "birthDate",
+        error: "Birth date must be a valid ISO 8601 date",
+      });
+    } else if (new Date(inputDate) > new Date()) {
+      validationErrors.push({
+        field: "birthDate",
+        error: "Birth date must be a valid past or present date",
+      });
+    }
+
+    // Validate gender (0 or 1 expected)
+    if (gender !== GenderEnum.BOY && gender !== GenderEnum.GIRL) {
+      validationErrors.push({
+        field: "gender",
+        error: "Gender must be 0 (Boy) or 1 (Girl)",
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
       next();
     }
   };

@@ -143,7 +143,7 @@
  *         description: Child updated successfully.
  *       '400':
  *         description: Validation failed. Check the validationErrors for details.
- * 
+ *
  *   delete:
  *     summary: Delete a child
  *     description: Delete a specific child by ID.
@@ -163,7 +163,7 @@
  *         description: Child deleted successfully.
  *       '400':
  *         description: Invalid child ID.
- * 
+ *
  *   get:
  *     summary: Get a child by ID
  *     description: Retrieve details of a specific child by ID.
@@ -204,7 +204,7 @@
  *         description: Growth data retrieved successfully.
  *       '400':
  *         description: Invalid child ID.
- * 
+ *
  *   post:
  *     summary: Add growth data for a child
  *     description: Add new growth data for a specific child.
@@ -335,4 +335,84 @@
  *         description: Growth data retrieved successfully.
  *       '400':
  *         description: Invalid growth data ID.
+ */
+
+/**
+ * @swagger
+ * /api/children/{childId}/growth-velocity:
+ *   get:
+ *     summary: Get growth velocity for a child
+ *     description: Retrieve growth velocity data for a specific child.
+ *     tags:
+ *       - Child
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: childId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the child to retrieve growth velocity for.
+ *     responses:
+ *       '200':
+ *         description: Growth velocity data retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 growthVelocity:
+ *                   type: object
+ *       '400':
+ *         description: Invalid child ID.
+
+ * /api/children/growth-data/public:
+ *   post:
+ *     summary: Generate growth data publicly
+ *     description: Generate growth data analysis without authentication. <br>
+ *          This method does not required authentication, does not child's data into the system
+ *     tags:
+ *       - Child
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               inputDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Date of the measurement.
+ *               height:
+ *                 type: number
+ *                 description: Height in centimeters.
+ *               weight:
+ *                 type: number
+ *                 description: Weight in kilograms.
+ *               birthDate:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Child's birth date.
+ *               gender:
+ *                 type: integer
+ *                 enum: [0, 1]
+ *                 description: 0 for Male, 1 for Female.
+ *     responses:
+ *       '200':
+ *         description: Growth analysis generated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: object
+ *                 message:
+ *                   type: string
+ *       '400':
+ *         description: Invalid input parameters.
  */

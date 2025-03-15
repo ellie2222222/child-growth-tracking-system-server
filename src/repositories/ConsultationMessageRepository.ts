@@ -78,6 +78,62 @@ class ConsultationMessageRepository implements IConsultationMessageRepository {
           { $match: searchQuery },
           { $sort: { [sortField]: sortOrder } },
           { $limit: page * size },
+          {
+            $lookup: {
+              from: "consultations",
+              localField: "consultationId",
+              foreignField: "_id",
+              as: "consultation",
+            },
+          },
+          { $unwind: "$consultation" },
+          {
+            $lookup: {
+              from: "requests",
+              localField: "consultation.requestId",
+              foreignField: "_id",
+              as: "consultation.requestDetails",
+            },
+          },
+          { $unwind: "$consultation.requestDetails" },
+          {
+            $lookup: {
+              from: "users",
+              localField: "consultation.requestDetails.memberId",
+              foreignField: "_id",
+              as: "consultation.requestDetails.member",
+              pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+            },
+          },
+          { $unwind: "$consultation.requestDetails.member" },
+          {
+            $lookup: {
+              from: "users",
+              localField: "consultation.requestDetails.doctorId",
+              foreignField: "_id",
+              as: "consultation.requestDetails.doctor",
+              pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+            },
+          },
+          { $unwind: "$consultation.requestDetails.doctor" },
+          {
+            $lookup: {
+              from: "children",
+              localField: "consultation.requestDetails.childIds",
+              foreignField: "_id",
+              as: "consultation.requestDetails.children",
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "sender",
+              foreignField: "_id",
+              as: "senderInfo",
+              pipeline: [{ $project: { _id: 1, name: 1, avatar: 1, role: 1 } }],
+            },
+          },
+          { $unwind: "$senderInfo" },
         ]);
 
       const messageCount = await ConsultationMessageModel.countDocuments(
@@ -113,16 +169,74 @@ class ConsultationMessageRepository implements IConsultationMessageRepository {
             isDeleted: false,
           };
 
-      const message = await ConsultationMessageModel.findOne(searchQuery);
+      const message = await ConsultationMessageModel.aggregate([
+        { $match: searchQuery },
+        {
+          $lookup: {
+            from: "consultations",
+            localField: "consultationId",
+            foreignField: "_id",
+            as: "consultation",
+          },
+        },
+        { $unwind: "$consultation" },
+        {
+          $lookup: {
+            from: "requests",
+            localField: "consultation.requestId",
+            foreignField: "_id",
+            as: "consultation.requestDetails",
+          },
+        },
+        { $unwind: "$consultation.requestDetails" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "consultation.requestDetails.memberId",
+            foreignField: "_id",
+            as: "consultation.requestDetails.member",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$consultation.requestDetails.member" },
+        {
+          $lookup: {
+            from: "users",
+            localField: "consultation.requestDetails.doctorId",
+            foreignField: "_id",
+            as: "consultation.requestDetails.doctor",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$consultation.requestDetails.doctor" },
+        {
+          $lookup: {
+            from: "children",
+            localField: "consultation.requestDetails.childIds",
+            foreignField: "_id",
+            as: "consultation.requestDetails.children",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "sender",
+            foreignField: "_id",
+            as: "senderInfo",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1, role: 1 } }],
+          },
+        },
+        { $unwind: "$senderInfo" },
+      ]);
 
-      if (!message) {
+      if (!message[0]) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Message not found"
         );
       }
 
-      return message;
+      return message[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

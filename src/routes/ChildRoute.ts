@@ -52,6 +52,12 @@ const childRoutes = express.Router();
 childRoutes.use(AuthMiddleware);
 
 childRoutes.post(
+  "/growth-data/public",
+  growthDataHandler.publicGenerateGrowthData,
+  growthDataController.publicGenerateGrowthData
+);
+
+childRoutes.post(
   "/",
   RoleMiddleware([UserEnum.MEMBER]),
   childHandler.createChild,
