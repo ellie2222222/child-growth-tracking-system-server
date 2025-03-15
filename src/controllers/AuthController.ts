@@ -185,7 +185,7 @@ class AuthController {
         maxAge: refreshTokenMaxAge, // 30 days
       });
 
-      res.redirect(`${process.env.MOBILE_GOOGLE_REDIRECT_URL}`);
+      res.redirect(`${process.env.MOBILE_REDIRECT_URL}`);
     } catch (error) {
       next(error);
     }
