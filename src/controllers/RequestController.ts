@@ -24,7 +24,7 @@ class RequestController {
 
       res
         .status(StatusCodeEnum.Created_201)
-        .json({ Request: request, message: "Request has been created" });
+        .json({ request, message: "Request has been created" });
     } catch (error) {
       next(error);
     }
@@ -49,7 +49,7 @@ class RequestController {
     try {
       const { page, size, search, order, sortBy, status } = req.query;
 
-      const request = await this.requestService.getAllRequests(
+      const requests = await this.requestService.getAllRequests(
         {
           page: parseInt(page as string) || 1,
           size: parseInt(size as string) || 10,
@@ -62,7 +62,7 @@ class RequestController {
 
       res
         .status(StatusCodeEnum.OK_200)
-        .json({ request: request, message: "Get all request successfully" });
+        .json({ requests, message: "Get all request successfully" });
     } catch (error) {
       next(error);
     }
