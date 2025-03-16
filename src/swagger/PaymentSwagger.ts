@@ -13,7 +13,7 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             properties:
@@ -25,6 +25,10 @@
  *               packageId:
  *                 type: string
  *                 description: The ID of the package being purchased
+ *               purchaseType:
+ *                 type: string
+ *                 enum: [CURRENT, FUTURE]
+ *                 description: Specifies whether the purchase is for current or future use.
  *     responses:
  *       201:
  *         description: Payment created successfully
@@ -46,12 +50,12 @@
  *       The currency for VNPay is in `VND`.<br> <br>
  *       If the package price is in `USD`, please **multiply** the price by `25000(25,000)`.<br> <br>
  *       Example: `price = 150` (in USD) -> `price = 3750000` (in VND). <br> <br>
- *       Sandbox account can be find here: `https://sandbox.vnpayment.vn/apis/vnpay-demo/`.
+ *       Sandbox account can be found here: `https://sandbox.vnpayment.vn/apis/vnpay-demo/`.
  *     tags: [Payments]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             properties:
@@ -63,6 +67,10 @@
  *               packageId:
  *                 type: string
  *                 description: The ID of the package being purchased
+ *               purchaseType:
+ *                 type: string
+ *                 enum: [CURRENT, FUTURE]
+ *                 description: Specifies whether the purchase is for current or future use.
  *     responses:
  *       201:
  *         description: Payment created successfully
