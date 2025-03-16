@@ -4,6 +4,7 @@ import { IReceipt } from "../interfaces/IReceipt";
 import { IPaymentQueue } from "../interfaces/queue/IPaymentQueue";
 import { IReceiptService } from "../interfaces/services/IReceiptService";
 import { IUserService } from "../interfaces/services/IUserService";
+import Database from "../utils/database";
 // import ReceiptService from "../services/ReceiptService";
 // import UserService from "../services/UserService";
 import { closeConnection, createConnection } from "../utils/queueUtils";
@@ -43,6 +44,7 @@ class PaymentQueue implements IPaymentQueue {
   consumePaymentData = async (): Promise<IReceipt> => {
     const { connection, channel } = await createConnection();
     let receipt = {};
+    const database = Database.getInstance();
     try {
       await channel.assertQueue(PAYMENT_QUEUE_NAME, { durable: true });
 
@@ -51,6 +53,7 @@ class PaymentQueue implements IPaymentQueue {
           PAYMENT_QUEUE_NAME,
           async (msg) => {
             if (msg) {
+              const session = await database.startTransaction();
               try {
                 const data = JSON.parse(msg.content.toString());
 
@@ -70,9 +73,11 @@ class PaymentQueue implements IPaymentQueue {
                   data.membershipPackageId
                 );
 
+                await database.commitTransaction(session);
                 channel.ack(msg);
                 resolve();
               } catch (processingError) {
+                await database.abortTransaction(session);
                 console.error("Error processing message:", processingError);
                 // Optionally, you can move the message to a DLQ here
                 channel.nack(msg, false, false); // Do not re-queue the message

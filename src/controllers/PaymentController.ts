@@ -192,7 +192,6 @@ class PaymentController {
   
         await this.paymentQueue.sendPaymentData(data);
         const receipt = await this.paymentQueue.consumePaymentData();
-        console.log(receipt)
   
         // Render EJS page
         return res.render("PaymentReturn", {
