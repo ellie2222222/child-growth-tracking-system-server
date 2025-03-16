@@ -389,92 +389,37 @@ class UserService implements IUserService {
     avatar?: string
   ): Promise<IUser | null> => {
     const session = await this.database.startTransaction();
-    const ignoreDeleted = false;
-    type Data = {
-      name?: string;
-      role?: number;
-      phoneNumber?: string;
-      avatar?: string;
-    };
     try {
-      const checkRequester = await this.userRepository.getUserById(
-        requesterId as string,
-        ignoreDeleted
-      );
-
-      if (!checkRequester) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
-        );
-      }
-
-      const checkUser = await this.userRepository.getUserById(
-        id as string,
-        ignoreDeleted
-      );
-      if (!checkUser) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
-      }
-
-      const isAdmin = checkRequester.role === UserEnum.ADMIN;
+      const [requester, user] = await Promise.all([
+        this.userRepository.getUserById(requesterId as string, false),
+        this.userRepository.getUserById(id as string, false),
+      ]);
+  
+      if (!requester) throw new CustomException(StatusCodeEnum.NotFound_404, "Requester not found");
+      if (!user) throw new CustomException(StatusCodeEnum.NotFound_404, "User not found");
+  
+      const isAdmin = requester.role === UserEnum.ADMIN;
       const isSelf = id === requesterId;
-
-      if (isAdmin && isSelf && role && role !== checkRequester.role) {
-        throw new CustomException(
-          StatusCodeEnum.BadRequest_400,
-          "You can not update your own role"
-        );
+      const updateData: Partial<IUser> = {};
+  
+      if (isAdmin && isSelf) {
+        Object.assign(updateData, { name, role, phoneNumber, avatar });
+      } else if (isAdmin && !isSelf) {
+        if (role !== undefined) updateData.role = role;
+      } else if (!isAdmin && isSelf) {
+        Object.assign(updateData, { name, phoneNumber, avatar });
+      } else {
+        throw new CustomException(StatusCodeEnum.Forbidden_403, "You do not have the authority to perform this action");
       }
-      const data: Data = {};
-      if (role && role !== checkUser.role) {
-        if (!isAdmin) {
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "You do not have the authority to perform this action"
-          );
-        }
-        data.role = role;
-      }
-
-      if (name && name !== checkUser.name) {
-        data.name = name;
-      }
-
-      if (phoneNumber && checkUser.phoneNumber !== phoneNumber) {
-        data.phoneNumber = phoneNumber;
-      }
-
-      if (avatar && checkUser.avatar !== avatar) {
-        data.avatar = avatar;
-      }
-      if (!isAdmin && !isSelf) {
-        throw new CustomException(
-          StatusCodeEnum.Forbidden_403,
-          "You do not have the authority to perform this action"
-        );
-      }
-
-      const user = await this.userRepository.updateUserById(
-        id as string,
-        data,
-        session
-      );
+  
+      const updatedUser = await this.userRepository.updateUserById(id as string, updateData, session);
       await this.database.commitTransaction(session);
-      return user;
+      return updatedUser;
     } catch (error) {
-      if (error as Error | CustomException) {
-        throw error;
-      }
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
-      );
+      await this.database.abortTransaction(session);
+      throw error instanceof CustomException ? error : new CustomException(StatusCodeEnum.InternalServerError_500, "Internal Server Error");
     }
-  };
+  };  
 
   deleteUser = async (
     id: string | ObjectId,

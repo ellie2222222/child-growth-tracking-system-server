@@ -43,14 +43,14 @@ consultationMessageRouter.post(
 
 consultationMessageRouter.get(
   "/consultations/:id",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   consultationMessageHandler.getConsultationMessages,
   consultationMessageController.getConsultationMessages
 );
 
 consultationMessageRouter.get(
   "/:id",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   consultationMessageHandler.getConsultationMessage,
   consultationMessageController.getConsultationMessage
 );

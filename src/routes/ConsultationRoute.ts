@@ -49,7 +49,7 @@ consultationRouter.get(
 
 consultationRouter.get(
   "/:id",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   consultationHandler.getConsultation,
   consultationController.getConsultation
 );

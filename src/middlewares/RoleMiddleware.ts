@@ -30,9 +30,9 @@ const RoleMiddleware = (roles: Array<number>) => {
         return;
       }
 
-      if (user.role === UserEnum.ADMIN) {
-        return next();
-      }
+      // if (user.role === UserEnum.ADMIN) {
+      //   return next();
+      // }
 
       if (!roles.includes(user?.role)) {
         res

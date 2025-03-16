@@ -58,7 +58,7 @@ route.use(AuthMiddleware);
 
 route.post(
   "/paypal/create",
-  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.MEMBER]),
   handler.createPaypalPayment,
   paymentController.createPaypalPayment
 );
@@ -67,7 +67,7 @@ route.get("/paypal/failed", paymentController.canceledPaypalPayment);
 
 route.post(
   "/vnpay/create",
-  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.MEMBER]),
   handler.createVnpayPayment,
   paymentController.createVnpayPayment
 );

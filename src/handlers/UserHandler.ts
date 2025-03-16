@@ -65,7 +65,7 @@ class UserHandler {
     }
 
     try {
-      await validateName(name);
+      validateName(name);
     } catch (error) {
       validationErrors.push({
         field: "Invalid doctor field",
@@ -74,7 +74,7 @@ class UserHandler {
     }
 
     try {
-      await validateEmail(email);
+      validateEmail(email);
     } catch (error) {
       validationErrors.push({
         field: "Invalid doctor field",
@@ -83,7 +83,7 @@ class UserHandler {
     }
 
     try {
-      await validatePassword(password);
+      validatePassword(password);
     } catch (error) {
       validationErrors.push({
         field: "Invalid doctor field",
@@ -92,7 +92,7 @@ class UserHandler {
     }
 
     try {
-      await validatePhoneNumber(phoneNumber);
+      validatePhoneNumber(phoneNumber);
     } catch (error) {
       validationErrors.push({
         field: "Invalid doctor field",
@@ -118,7 +118,7 @@ class UserHandler {
     const validationErrors: { field: string; error: string }[] = [];
     try {
       const { id } = req.params;
-      await validateMongooseObjectId(id);
+      validateMongooseObjectId(id);
     } catch (error) {
       validationErrors.push({
         field: "Invalid userId ",
@@ -195,7 +195,7 @@ class UserHandler {
     const { name, role, phoneNumber } = req.body;
     // Validate user ID
     try {
-      await validateMongooseObjectId(id);
+      validateMongooseObjectId(id);
     } catch (error) {
       validationErrors.push({
         field: "id",
@@ -217,7 +217,7 @@ class UserHandler {
     // Validate name
     if (name) {
       try {
-        await validateName(name);
+        validateName(name);
       } catch (error) {
         validationErrors.push({
           field: "name",
@@ -229,7 +229,7 @@ class UserHandler {
     // Validate phone number
     if (phoneNumber) {
       try {
-        await validatePhoneNumber(phoneNumber);
+        validatePhoneNumber(phoneNumber);
       } catch (error) {
         validationErrors.push({
           field: "phoneNumber",
@@ -253,7 +253,7 @@ class UserHandler {
     const { id } = req.params;
 
     try {
-      await validateMongooseObjectId(id);
+      validateMongooseObjectId(id);
     } catch (error) {
       validationErrors.push({
         field: "Invalid params field",
@@ -281,7 +281,7 @@ class UserHandler {
     const { id } = req.params;
 
     try {
-      await validateMongooseObjectId(id);
+      validateMongooseObjectId(id);
     } catch (error) {
       validationErrors.push({
         field: "Invalid userId",

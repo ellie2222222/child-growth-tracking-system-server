@@ -37,7 +37,6 @@ router.post(
 
 router.get(
   "/",
-  // RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]),
   membershipPackageHandler.getMembershipPackages,
   membershipPackageController.getMembershipPackages
 );
@@ -58,7 +57,6 @@ router.delete(
 
 router.get(
   "/:id",
-  // RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]),
   membershipPackageHandler.getMembershipPackage,
   membershipPackageController.getMembershipPackage
 );

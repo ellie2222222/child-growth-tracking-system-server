@@ -33,7 +33,7 @@ requestRouter.use(AuthMiddleware);
 
 requestRouter.put(
   "/status/:id",
-  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   requestHandler.updateRequestStatus,
   requestController.updateRequestStatus
 );

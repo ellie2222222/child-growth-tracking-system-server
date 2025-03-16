@@ -32,7 +32,7 @@ router.use(AuthMiddleware);
 
 router.post(
   "/",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   validateMembership("postLimit"),
   uploadFile.fields([
     { name: "postAttachments" },
@@ -44,7 +44,7 @@ router.post(
 
 router.put(
   "/:id",
-  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
   uploadFile.fields([
     { name: "postAttachments" },
     { name: "postThumbnail", maxCount: 1 },

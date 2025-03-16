@@ -107,46 +107,4 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ReceiptResponse'
- *   delete:
- *     tags: [Receipts]
- *     summary: Delete receipt by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Receipt deleted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 receipt:
- *                   $ref: '#/components/schemas/Receipt'
- *                 message:
- *                   type: string
- */
-
-/**
- * @swagger
- * /api/receipts/{id}:
- *   delete:
- *     tags: [Receipts]
- *     summary: Delete receipt by ID
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Successful operation
- *       404:
- *         description: No receipt found
- *       500:
- *         description: Internal Server Error
  */

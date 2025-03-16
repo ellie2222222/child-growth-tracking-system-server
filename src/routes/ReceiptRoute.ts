@@ -51,12 +51,4 @@ router.get(
   receiptController.getReceiptById
 );
 
-//can be commented?
-router.delete(
-  "/:id",
-  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
-  receiptHandler.deleteReceiptById,
-  receiptController.deleteReceiptById
-);
-
 export default router;

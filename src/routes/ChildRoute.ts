@@ -87,7 +87,7 @@ childRoutes.delete(
 
 childRoutes.get(
   "/:childId",
-  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]),
   childHandler.getChildById,
   childController.getChildById
 );
@@ -102,7 +102,7 @@ childRoutes.get(
 childRoutes.get(
   "/:childId/growth-data",
   growthDataHandler.getGrowthDataByChildId,
-  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]),
   growthDataController.getGrowthDataByChildId
 );
 
@@ -131,7 +131,7 @@ childRoutes.delete(
 childRoutes.get(
   "/:childId/growth-data/:growthDataId",
   growthDataHandler.getGrowthDataById,
-  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR]),
+  RoleMiddleware([UserEnum.MEMBER, UserEnum.DOCTOR, UserEnum.ADMIN]),
   growthDataController.getGrowthDataById
 );
 

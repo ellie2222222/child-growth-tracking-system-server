@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import validator from "validator";
+import { validateName } from "../utils/validator";
+import CustomException from "../exceptions/CustomException";
 
 class AuthHandler {
   /**
@@ -38,11 +40,15 @@ class AuthHandler {
     const validationErrors: { field: string; error: string }[] = [];
 
     // Validate name
-    if (!name || !validator.isLength(name, { min: 1 })) {
-      validationErrors.push({
-        field: "name",
-        error: "Name must be at least 1 characters long",
-      });
+    if (name) {
+      try {
+        validateName(name);
+      } catch (error) {
+        validationErrors.push({
+          field: "name",
+          error: (error as Error | CustomException).message,
+        });
+      }
     }
 
     // Validate email

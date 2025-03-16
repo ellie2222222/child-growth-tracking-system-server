@@ -19,17 +19,17 @@ const validateMongooseObjectId = (id: string): boolean => {
 };
 
 // Validates the name length and character requirements
-const validateName = async (name: string): Promise<void> => {
+const validateName = (name: string): void => {
   if (!name) {
     throw new CustomException(
       StatusCodeEnum.BadRequest_400,
       "Name is required"
     );
   }
-  if (!validator.isLength(name, { min: 6, max: 50 })) {
+  if (!validator.isLength(name, { min: 2, max: 50 })) {
     throw new CustomException(
       StatusCodeEnum.BadRequest_400,
-      "Name is invalid. It must be between 6 and 50 characters."
+      "Name is invalid. It must be between 2 and 50 characters."
     );
   }
   const regex = /^[a-zA-Z0-9]+$/;
@@ -42,7 +42,7 @@ const validateName = async (name: string): Promise<void> => {
 };
 
 // Validates if the email is correct
-const validateEmail = async (email: string): Promise<void> => {
+const validateEmail = (email: string): void => {
   if (!email) {
     throw new CustomException(
       StatusCodeEnum.BadRequest_400,
@@ -58,7 +58,7 @@ const validateEmail = async (email: string): Promise<void> => {
 };
 
 // Validates the password strength
-const validatePassword = async (password: string): Promise<void> => {
+const validatePassword = (password: string): void => {
   if (!password) {
     throw new CustomException(
       StatusCodeEnum.BadRequest_400,
@@ -82,7 +82,7 @@ const validatePassword = async (password: string): Promise<void> => {
 };
 
 // Validates the phone number
-const validatePhoneNumber = async (phoneNumber: string): Promise<void> => {
+const validatePhoneNumber = (phoneNumber: string): void => {
   if (!phoneNumber) {
     throw new CustomException(
       StatusCodeEnum.BadRequest_400,
@@ -114,12 +114,12 @@ const capitalizeWords = (str: string): string => {
 };
 
 // Validates the length of a string within specified min and max limits
-const validateLength = async (
+const validateLength = (
   min: number,
   max: number,
   string: string,
   type: string
-): Promise<void> => {
+): void => {
   const trimmedString = string.trim();
 
   if (!validator.isLength(trimmedString, { min, max })) {

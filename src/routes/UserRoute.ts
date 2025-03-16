@@ -34,13 +34,6 @@ const userRoutes = express.Router();
 
 userRoutes.use(AuthMiddleware);
 
-// userRoutes.post(
-//   "/",
-//   RoleMiddleware([UserEnum.ADMIN]),
-//   userHandler.createUser,
-//   userController.createUser
-// );
-
 userRoutes.get(
   "/",
   RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),

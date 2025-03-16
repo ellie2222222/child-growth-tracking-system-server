@@ -34,28 +34,26 @@ router.use(AuthMiddleware);
 
 router.post(
   "/",
-  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.createComment,
   commentController.createComment
 );
 
 router.put(
   "/:id",
-  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
+  RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.updateComment,
   commentController.updateComment
 );
 
 router.get(
   "/",
-  // RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.getComments,
   commentController.getCommentsByPostId
 );
 
 router.get(
   "/:id",
-  // RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER, UserEnum.ADMIN]),
   commentHandler.getComment,
   commentController.getComment
 );
