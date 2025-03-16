@@ -67,19 +67,16 @@ class PaymentController {
       next(error);
     }
   };
-  successPaypalPayment = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
+
+  successPaypalPayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const { token } = req.query;
-    // console.log("Token: ", token);
 
     if (!token) {
-      res
-        .status(StatusCodeEnums.BadRequest_400)
-        .json({ message: "Missing payment token." });
-      return;
+      return res.render("PaymentReturn", {
+        success: false,
+        message: "Missing payment token.",
+        frontendUrl: process.env.FRONTEND_URL,
+      });
     }
 
     try {
@@ -88,15 +85,12 @@ class PaymentController {
       const { status, purchase_units } = response.result;
 
       if (status === "COMPLETED") {
-        const capturedPaymentDetails =
-          purchase_units?.[0].payments?.captures?.[0];
+        const capturedPaymentDetails = purchase_units?.[0].payments?.captures?.[0];
         const transactionId = capturedPaymentDetails?.id;
 
         const data = {
           userId: (capturedPaymentDetails?.custom_id as string).split("|")[0],
-          membershipPackageId: (
-            capturedPaymentDetails?.custom_id as string
-          ).split("|")[1],
+          membershipPackageId: (capturedPaymentDetails?.custom_id as string).split("|")[1],
           totalAmount: {
             value: capturedPaymentDetails?.amount?.value,
             currency: capturedPaymentDetails?.amount?.currency_code,
@@ -110,17 +104,19 @@ class PaymentController {
         await this.paymentQueue.sendPaymentData(data);
         const receipt = await this.paymentQueue.consumePaymentData();
 
-        res.status(StatusCodeEnums.OK_200).json({
+        // Render EJS page
+        return res.render("PaymentReturn", {
+          success: true,
           message: "Payment processed successfully.",
-          receipt: receipt,
+          frontendUrl: process.env.FRONTEND_URL,
+          receipt,
         });
-
-        return;
       } else {
-        res
-          .status(StatusCodeEnums.InternalServerError_500)
-          .json({ message: "Failed to process payment.", status });
-        return;
+        return res.render("PaymentReturn", {
+          success: false,
+          message: "Failed to process payment.",
+          frontendUrl: process.env.FRONTEND_URL,
+        });
       }
     } catch (error) {
       next(error);
@@ -129,12 +125,13 @@ class PaymentController {
 
   canceledPaypalPayment = async (
     req: Request,
-    res: Response
-    // next: NextFunction
+    res: Response,
+    next: NextFunction
   ): Promise<void> => {
-    res
-      .status(StatusCodeEnums.BadRequest_400)
-      .json("Payment request was canceled");
+    res.render("PaymentFailedPage", {
+        message: "Your payment request was canceled.",
+        frontendUrl: process.env.FRONTEND_URL,
+    });
   };
 
   createVnpayPayment = async (
@@ -161,36 +158,27 @@ class PaymentController {
     }
   };
 
-  vnpayPaymentReturn = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
+  vnpayPaymentReturn = async (req: Request, res: Response, next: NextFunction) => {
     let vnp_Params = req.query;
-
     const secureHash = vnp_Params["vnp_SecureHash"];
-
+  
     delete vnp_Params["vnp_SecureHash"];
     delete vnp_Params["vnp_SecureHashType"];
-
+  
     vnp_Params = sortObject(vnp_Params);
-
+  
     const secretKey = vnpayConfig.vnp_HashSecret;
-    // Sort the parameters to compare with the signature
     const signData = querystring.stringify(vnp_Params, { encode: false });
     const hmac = crypto.createHmac("sha512", secretKey);
-    const signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
-    // Validate the checksum and payment status
+    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+  
     if (secureHash === signed && vnp_Params["vnp_ResponseCode"] === "00") {
       try {
-        const amount = parseFloat(vnp_Params.vnp_Amount as string) / 100; // Convert back from VND cents
-
-        // console.log(vnp_Params.vnp_OrderInfo);
+        const amount = parseFloat(vnp_Params.vnp_Amount as string) / 100; // Convert from VND cents
+  
         const data = {
           userId: (vnp_Params.vnp_OrderInfo as string).split("%")[0],
-          membershipPackageId: (vnp_Params.vnp_OrderInfo as string).split(
-            "%7C"
-          )[1],
+          membershipPackageId: (vnp_Params.vnp_OrderInfo as string).split("%7C")[1],
           totalAmount: {
             value: amount,
             currency: vnp_Params.vnp_CurrCode || "VND",
@@ -201,26 +189,29 @@ class PaymentController {
           type: "PAYMENT",
           bankCode: vnp_Params.vnp_BankCode,
         };
-
+  
         await this.paymentQueue.sendPaymentData(data);
         const receipt = await this.paymentQueue.consumePaymentData();
-
-        res.status(StatusCodeEnums.OK_200).json({
+        console.log(receipt)
+  
+        // Render EJS page
+        return res.render("PaymentReturn", {
+          success: true,
           message: "Payment processed successfully.",
-          receipt: receipt,
+          frontendUrl: process.env.FRONTEND_URL,
+          receipt,
         });
-
-        return;
       } catch (error) {
         next(error);
       }
     } else {
-      res.status(StatusCodeEnums.InternalServerError_500).json({
+      return res.render("PaymentReturn", {
         success: false,
-        message: "Payment failed or checksum validation failed",
-        vnp_Params: vnp_Params,
+        message: "Payment failed or checksum validation failed.",
+        frontendUrl: process.env.FRONTEND_URL,
       });
     }
   };
+  
 }
 export default PaymentController;

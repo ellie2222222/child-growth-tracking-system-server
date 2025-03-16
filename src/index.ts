@@ -28,6 +28,7 @@ import consultationMessageRouter from "./routes/ConsultationMessageRoute";
 import statisticRouter from "./routes/StatisticRoute";
 import { swaggerDoc } from "./config/swaggerConfig";
 import limiter from "./middlewares/rateLimiter";
+import path from "path";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -49,6 +50,8 @@ app.use(
 
 // Files
 app.use("/", express.static(__dirname));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "templates"));
 
 // Session and passport
 app.use(
@@ -117,10 +120,6 @@ app.use("/api/requests", requestRouter);
 app.use("/api/consultations", consultationRouter);
 app.use("/api/consultation-messages", consultationMessageRouter);
 app.use("/api/statistics", statisticRouter);
-// Google Login
-app.get("/", (req, res) => {
-  res.send("<a href='/api/auth/google'>Login with Google</a><br>");
-});
 
 // Middleware for error logging
 app.use(ErrorLogMiddleware);

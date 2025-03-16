@@ -91,14 +91,7 @@ class ConsultationRepository implements IConsultationRepository {
         },
       ]);
 
-      if (consultation.length === 0) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Consultation not found"
-        );
-      }
-
-      return consultation[0];
+      return consultation[0] ?? null;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -304,13 +297,6 @@ class ConsultationRepository implements IConsultationRepository {
           },
         },
       ]);
-
-      if (consultations.length === 0) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "No consultation found for this user"
-        );
-      }
 
       // Get Total Count After Filtering
       const totalCountResult = await ConsultationModel.aggregate([

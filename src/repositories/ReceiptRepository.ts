@@ -145,9 +145,6 @@ class ReceiptRepository implements IReceiptRepository {
         },
         { $unwind: "$membershippackage" },
       ]);
-      if (receipts.length === 0) {
-        throw new CustomException(404, "No receipts found");
-      }
 
       const countReceipts = await ReceiptModel.countDocuments(searchQuery);
 
