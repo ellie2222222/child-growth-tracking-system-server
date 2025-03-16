@@ -21,6 +21,7 @@ const publicRoutes: PublicRoutes[] = [
   { path: "/api/auth/google/mobile/redirect", method: "GET" },
   { path: "/api/auth/send-reset-password-pin", method: "POST" },
   { path: "/api/auth/confirm-reset-password-pin", method: "POST" },
+  { path: "/api/auth/confirm-email-verification-token", method: "POST" },
   { path: "/api/auth/reset-password", method: "PUT" },
 
   // User

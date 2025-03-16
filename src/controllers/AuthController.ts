@@ -309,9 +309,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { token } = req.body;
+      const { verificationToken } = req.body;
 
-      await this.authService.confirmEmailVerificationToken(token);
+      await this.authService.confirmEmailVerificationToken(verificationToken);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
