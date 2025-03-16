@@ -21,12 +21,31 @@ class PaymentService implements IPaymentService {
     this.userService = userService;
   }
 
-  private checkUserPackage = async (userId: string) => {
+  private checkUserPackage = async (userId: string, purchaseType?: string) => {
     const user = await this.userService.getUserById(userId, userId);
+
     if (!user) {
       throw new CustomException(
         StatusCodeEnums.BadRequest_400,
         "User not found"
+      );
+    }
+    if (
+      (user as IUser).subscription.currentPlan === null &&
+      purchaseType === "FUTURE"
+    ) {
+      throw new CustomException(
+        StatusCodeEnums.Conflict_409,
+        "You need to have current plan before buying future plan"
+      );
+    }
+    if (
+      (user as IUser).subscription.currentPlan !== null &&
+      purchaseType === "CURRENT"
+    ) {
+      throw new CustomException(
+        StatusCodeEnums.Conflict_409,
+        "Current plan has already existed"
       );
     }
     if ((user as IUser).subscription.futurePlan != null) {
@@ -40,10 +59,11 @@ class PaymentService implements IPaymentService {
   createPaypalPayment = async (
     price: number,
     packageId: string | ObjectId,
-    userId: string
+    userId: string,
+    purchaseType?: string
   ): Promise<string> => {
     try {
-      await this.checkUserPackage(userId);
+      await this.checkUserPackage(userId, purchaseType);
       const testPackage =
         await this.membershipPackageService.getMembershipPackage(
           packageId,
@@ -68,7 +88,8 @@ class PaymentService implements IPaymentService {
           break;
 
         case "VND":
-          if (price !== testPackage.price.value * 25000) {
+          if (price * 25000 !== testPackage.price.value) {
+            console.log(price, typeof price, testPackage);
             throw new CustomException(
               StatusCodeEnums.BadRequest_400,
               "Price mismatch, please check the item's price"
@@ -97,10 +118,11 @@ class PaymentService implements IPaymentService {
     userId: string,
     packageId: string,
     ipAddr: string,
-    bankCode?: string
+    bankCode?: string,
+    purchaseType?: string
   ): Promise<string> => {
     try {
-      await this.checkUserPackage(userId);
+      await this.checkUserPackage(userId, purchaseType);
       const testPackage =
         await this.membershipPackageService.getMembershipPackage(
           packageId,

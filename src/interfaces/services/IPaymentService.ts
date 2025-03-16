@@ -4,7 +4,8 @@ export interface IPaymentService {
   createPaypalPayment: (
     price: number,
     packageId: string | ObjectId,
-    userId: string
+    userId: string,
+    purchaseType?: string
   ) => Promise<string>;
 
   createVnpayPayment: (
@@ -12,6 +13,7 @@ export interface IPaymentService {
     userId: string,
     packageId: string,
     ipAddr: string,
-    bankCode?: string
+    bankCode?: string,
+    purchaseType?: string
   ) => Promise<string>;
 }
