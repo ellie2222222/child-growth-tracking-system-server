@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 import baseModelSchema from "./BaseModel";
 import { IChild, Relationship } from "../interfaces/IChild";
 import GenderEnum from "../enums/GenderEnum";
@@ -8,9 +8,9 @@ import { IGrowthVelocityResult } from "../interfaces/IGrowthVelocityResult";
 
 const growthVelocityResultSchema = new Schema<IGrowthVelocityResult>(
   {
-    period: { type: String }, 
-    startDate: { type: Date }, 
-    endDate: { type: Date }, 
+    period: { type: String },
+    startDate: { type: Date },
+    endDate: { type: Date },
     weight: {
       percentile: { type: Number },
       weightVelocity: { type: Number },
@@ -59,7 +59,7 @@ const childModelSchema = new Schema<IChild>(
     allergies: {
       type: String,
       enum: Object.values(AllergyEnum),
-      default: "N/A"
+      default: "N/A",
     },
     relationships: [
       {
