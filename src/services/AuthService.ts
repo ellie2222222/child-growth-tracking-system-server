@@ -224,6 +224,12 @@ class AuthService implements IAuthService {
           "Incorrect email or password"
         );
       }
+      if (user && user.googleId) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Incorrect email or password"
+        );
+      }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
@@ -764,10 +770,16 @@ class AuthService implements IAuthService {
         { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
       );
 
+      const url =
+        process.env.NODE_ENV?.toLowerCase() === "production"
+          ? process.env.PRODUCTION_URL
+          : process.env.SERVER_URL;
+
       const emailHtml = await ejs.renderFile(emailTemplatePath, {
         name: name,
         expiration: process.env.EMAIL_TOKEN_EXPIRATION,
-        verificationLink: `${process.env.FRONTEND_URL}/verify-email?verificationToken=${token}`,
+        verificationToken: token,
+        verificationLink: `${url}/api/auth/confirm-email-verification-token`,
       });
 
       const mailOptions: Mail.Options = {

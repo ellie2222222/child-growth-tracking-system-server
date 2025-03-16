@@ -80,11 +80,10 @@
               Please click the button below to confirm your email address and
               finish setting up your account. This link is valid for <%= expiration %>.
             </p>
-            <a href="<%= verificationLink %>" class="verify-button">
-              <span style="color: inherit; text-decoration: none"
-                >Click here to verify</span
-              >
-            </a>
+            <form id="verifyForm" action="<%= verificationLink %>" method="POST">
+              <input type="hidden" name="verificationToken" value="<%= verificationToken %>" />
+              <button type="submit" class="verify-button">Click here to verify</button>
+            </form>            
             <p style="border-bottom: 1px solid #f5f0e1; padding-bottom: 20px">
               You're receiving this email because you sign up for an account for
               our website. If you are not sure why you're receiving this,
