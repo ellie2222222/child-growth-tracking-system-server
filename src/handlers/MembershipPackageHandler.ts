@@ -65,7 +65,10 @@ class MembershipPackageHandler {
     }
 
     if (!postLimit || isNaN(parseInt(postLimit)) || parseInt(postLimit) < 0) {
-      throw new Error("Invalid post limit");
+      validationErrors.push({
+        field: "post limit",
+        error: "Invalid post limit",
+      });
     }
 
     if (
@@ -73,7 +76,10 @@ class MembershipPackageHandler {
       isNaN(parseInt(updateChildDataLimit)) ||
       parseInt(updateChildDataLimit) < 0
     ) {
-      throw new Error("Invalid post limit");
+      validationErrors.push({
+        field: "updateChildDataLimit",
+        error: "Invalid ChildData limit",
+      });
     }
 
     if (validationErrors.length > 0) {
@@ -144,16 +150,24 @@ class MembershipPackageHandler {
       });
     }
 
-    if ((postLimit && isNaN(parseInt(postLimit))) || parseInt(postLimit) < 0) {
-      throw new Error("Invalid post limit");
+    if (!postLimit || isNaN(parseInt(postLimit)) || parseInt(postLimit) < 0) {
+      validationErrors.push({
+        field: "post limit",
+        error: "Invalid post limit",
+      });
     }
 
     if (
-      (updateChildDataLimit && isNaN(parseInt(updateChildDataLimit))) ||
+      !updateChildDataLimit ||
+      isNaN(parseInt(updateChildDataLimit)) ||
       parseInt(updateChildDataLimit) < 0
     ) {
-      throw new Error("Invalid post limit");
+      validationErrors.push({
+        field: "updateChildDataLimit",
+        error: "Invalid ChildData limit",
+      });
     }
+
     if (validationErrors.length > 0) {
       res.status(StatusCodeEnum.BadRequest_400).json({
         message: "Validation failed",
