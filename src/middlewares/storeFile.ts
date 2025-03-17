@@ -127,7 +127,7 @@ const storage = multer.diskStorage({
         dir = path.join(`assets/growth-metrics`);
         break;
 
-      case "messageAttachements":
+      case "messageAttachments":
         userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
@@ -235,7 +235,7 @@ const storage = multer.diskStorage({
         dirPath = path.join(`assets/growth-metrics`);
         break;
 
-      case "messageAttachements":
+      case "messageAttachments":
         userId = req.userInfo.userId;
         if (!mongoose.Types.ObjectId.isValid(userId)) {
           logger.error(`Invalid user ID: ${userId}`);
@@ -301,7 +301,7 @@ const allowedFormats = {
     mime: ["image/jpeg", "image/png", "image/gif"],
     message: "Allowed formats: jpeg, jpg, png, gif",
   },
-  messageAttachements: {
+  messageAttachments: {
     regex: /\.(jpeg|jpg|png|gif)$/i,
     mime: ["image/jpeg", "image/png", "image/gif"],
     message: "Allowed formats: jpeg, jpg, png, gif",

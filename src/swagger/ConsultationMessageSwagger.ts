@@ -17,7 +17,7 @@
  *                 type: string
  *               message:
  *                 type: string
- *               messageAttachements:
+ *               messageAttachments:
  *                 type: array
  *                 items:
  *                   type: string
@@ -121,7 +121,7 @@
  *             properties:
  *               message:
  *                 type: string
- *               messageAttachements:
+ *               messageAttachments:
  *                 type: array
  *                 items:
  *                   type: string

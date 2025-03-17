@@ -5,7 +5,7 @@ import UserEnum from "../enums/UserEnum";
 import { uploadFile } from "../middlewares/storeFile";
 import AuthMiddleware from "../middlewares/AuthMiddleware";
 
-import ConsultationMessageHandler from "../handlers/ConsultationMessageHander";
+import ConsultationMessageHandler from "../handlers/ConsultationMessageHandler";
 
 import ConsultationMessageController from "../controllers/ConsultationMessageController";
 
@@ -36,7 +36,7 @@ consultationMessageRouter.use(AuthMiddleware);
 consultationMessageRouter.post(
   "/",
   RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
-  uploadFile.array("messageAttachements"),
+  uploadFile.array("messageAttachments"),
   consultationMessageHandler.createConsultationMessage,
   consultationMessageController.createConsultationMessage
 );
@@ -58,7 +58,7 @@ consultationMessageRouter.get(
 consultationMessageRouter.put(
   "/:id",
   RoleMiddleware([UserEnum.DOCTOR, UserEnum.MEMBER]),
-  uploadFile.array("messageAttachements"),
+  uploadFile.array("messageAttachments"),
   consultationMessageHandler.updateConsultationMessage,
   consultationMessageController.updateConsultationMessage
 );
