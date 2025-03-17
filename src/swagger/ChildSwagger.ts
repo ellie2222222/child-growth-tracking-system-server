@@ -232,7 +232,7 @@
  *               weight:
  *                 type: number
  *                 description: Weight of the child in kilograms.
- *               date:
+ *               inputDate:
  *                 type: string
  *                 format: date-time
  *                 description: Date of the growth data in ISO 8601 format.
