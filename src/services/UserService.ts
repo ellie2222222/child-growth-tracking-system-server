@@ -18,6 +18,7 @@ import { IConsultationRepository } from "../interfaces/repositories/IConsultatio
 import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 import { ISessionService } from "../interfaces/services/ISessionService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { cleanUpFile } from "../utils/fileUtils";
 
 class UserService implements IUserService {
   private userRepository: IUserRepository;
@@ -401,11 +402,6 @@ class UserService implements IUserService {
           StatusCodeEnum.NotFound_404,
           "Requester not found"
         );
-      if (!requester)
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Requester not found"
-        );
 
       const user = await this.userRepository.getUserById(id as string, false);
 
@@ -450,6 +446,7 @@ class UserService implements IUserService {
       //Object assign did not work
 
       await this.database.commitTransaction(session);
+      await cleanUpFile(user.avatar, "update");
       return updatedUser;
     } catch (error) {
       await this.database.abortTransaction(session);

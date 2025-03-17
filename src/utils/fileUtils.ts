@@ -78,6 +78,7 @@ const cleanUpFile = async (
         }
         break;
       case "update":
+        console.log(filePath);
         filePath = (file as string)
           .split(`${process.env.SERVER_URL}/`)
           .pop() as string;
@@ -174,6 +175,10 @@ const extractAndReplaceImages = (
   images.forEach((img, index) => {
     if (attachments[index]) {
       img.src = attachments[index]; // Replace Base64 with actual URL
+
+      img.style.width = "100%";
+      img.style.height = "auto";
+      img.style.maxWidth = "600px";
     }
   });
 
