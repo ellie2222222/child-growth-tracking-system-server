@@ -270,10 +270,10 @@ class UserRepository implements IUserRepository {
     type SearchQuery = {
       isDeleted?: boolean;
       role?: number | { $in: Array<number> };
-      name?: { $regex: string; $options: string }; // Optional name property with regex
-    };
+      $or?: Array<{ name?: { $regex: string; $options: string } } | { email?: { $regex: string; $options: string } }>;
+    };    
     try {
-      const { page, size, search, order, sortBy } = query;
+      const { page, size, search, order = "descending", sortBy = "date" } = query;
       const searchQuery: SearchQuery = {};
 
       if (!ignoreDeleted) {
@@ -281,19 +281,29 @@ class UserRepository implements IUserRepository {
       }
 
       if (search) {
-        searchQuery.name = { $regex: search, $options: "i" };
+        searchQuery.$or = [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ];
       }
-      if (role) {
-        if (typeof role === "number") {
-          searchQuery.role = role;
-        } else if (Array.isArray(role)) {
-          searchQuery.role = { $in: role };
+
+      if (role !== undefined && role !== null) {
+        const parsedRole = Array.isArray(role)
+          ? role.map(Number)
+          : Number(role);
+      
+        if (typeof parsedRole === "number" && !isNaN(parsedRole)) {
+          searchQuery.role = parsedRole;
+        } else if (Array.isArray(parsedRole) && parsedRole.length > 0) {
+          searchQuery.role = { $in: parsedRole };
         }
-      }
+      }          
+
       let sortField = "createdAt";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
 
       if (sortBy === "date") sortField = "createdAt";
+      if (sortBy === "name") sortField = "name";
 
       const skip = (page - 1) * size;
       const users = await UserModel.aggregate([
@@ -349,6 +359,10 @@ class UserRepository implements IUserRepository {
           },
         },
       ]);
+
+      if (sortBy === "name") {
+        users.sort((a, b) => sortOrder * a.name.localeCompare(b.name));
+      }
 
       const totalUsers = await UserModel.countDocuments(searchQuery);
 

@@ -60,7 +60,7 @@ class UserController {
 
   getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, size, search, order, sortBy } = req.query;
+      const { page, size, search, order, sortBy, role } = req.query;
       const requesterId = req.userInfo.userId;
 
       const data = await this.userService.getUsers(
@@ -68,6 +68,7 @@ class UserController {
           page: parseInt(page as string) || 1,
           size: parseInt(size as string) || 10,
           search: search as string,
+          role: role as string,
           order: (order as "ascending" | "descending") || "ascending",
           sortBy: (sortBy as "date") || "date",
         },

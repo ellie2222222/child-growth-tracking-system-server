@@ -320,9 +320,9 @@ class UserService implements IUserService {
           users = await this.userRepository.getAllUsersRepository(
             Query,
             ignoreDeleted,
-            [UserEnum.MEMBER, UserEnum.DOCTOR]
+            Query.role === "" ? undefined : Query.role ?? [UserEnum.MEMBER, UserEnum.DOCTOR]
           );
-          break;
+          break;          
 
         default:
           throw new CustomException(
@@ -350,7 +350,7 @@ class UserService implements IUserService {
               });
             } else {
               totalRating = 0;
-              totalRatingCount = 1;
+              totalRatingCount = 0;
             }
 
             return {

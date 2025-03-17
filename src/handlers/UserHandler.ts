@@ -137,7 +137,7 @@ class UserHandler {
 
   getUsers = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
-    const { page, size, order, sortBy } = req.query;
+    const { page, size, order, sortBy, role } = req.query;
     // Validate page (minimum 1)
     const parsedPage = parseInt(page as string, 10);
     if (page && (!Number.isInteger(parsedPage) || parsedPage < 1)) {
@@ -173,6 +173,13 @@ class UserHandler {
         error: `Order must be one of: ${validOrder.join(", ")}`,
       });
     }
+
+    if (role && !Object.values(UserEnum).includes(Number(role))) {
+      validationErrors.push({
+        field: "role",
+        error: `Role must be one of: ${Object.values(UserEnum).join(", ")}`,
+      });
+    }    
 
     if (validationErrors.length > 0) {
       res.status(StatusCodeEnum.BadRequest_400).json({

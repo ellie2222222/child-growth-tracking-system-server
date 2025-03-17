@@ -10,7 +10,7 @@ const ConsultationSchema = new mongoose.Schema<IConsultation>(
     status: {
       type: String,
       enum: ConsultationStatus,
-      default: ConsultationStatus.OnGoing,
+      default: ConsultationStatus.Ongoing,
     },
     rating: {
       type: Number,

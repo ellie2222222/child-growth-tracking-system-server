@@ -67,7 +67,7 @@ class ConsultationHandler {
 
     if (
       status &&
-      ![ConsultationStatus.Ended, ConsultationStatus.OnGoing].includes(
+      ![ConsultationStatus.Ended, ConsultationStatus.Ongoing].includes(
         status as ConsultationStatus
       )
     ) {
@@ -136,7 +136,7 @@ class ConsultationHandler {
 
     if (
       status &&
-      ![ConsultationStatus.Ended, ConsultationStatus.OnGoing].includes(
+      ![ConsultationStatus.Ended, ConsultationStatus.Ongoing].includes(
         status as ConsultationStatus
       )
     ) {

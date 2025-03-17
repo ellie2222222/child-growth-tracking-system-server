@@ -77,7 +77,7 @@ class ConsultationMessageService implements IConsultationMessageService {
         );
       }
 
-      if (checkConsultation.status !== ConsultationStatus.OnGoing) {
+      if (checkConsultation.status !== ConsultationStatus.Ongoing) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
           "Consultation has ended"

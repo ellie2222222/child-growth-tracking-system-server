@@ -104,7 +104,7 @@ class RequestRepository implements IRequestRepository {
     type SearchQuery = {
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
-      status?: string;
+      status?: { $regex: string; $options: string };
     };
     try {
       const { page, size, search, order, sortBy } = query;
@@ -119,7 +119,7 @@ class RequestRepository implements IRequestRepository {
       }
 
       if (status) {
-        searchQuery.status = status;
+        searchQuery.status = { $regex: status, $options: "i" };
       }
 
       let sortField = "createdAt";
@@ -192,7 +192,7 @@ class RequestRepository implements IRequestRepository {
       doctorId?: mongoose.Types.ObjectId;
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
-      status?: string;
+      status?: { $regex: string; $options: string };
     };
 
     try {
@@ -208,7 +208,7 @@ class RequestRepository implements IRequestRepository {
       }
 
       if (status) {
-        searchQuery.status = status;
+        searchQuery.status = { $regex: status, $options: "i" };
       }
 
       if (as === "DOCTOR") {

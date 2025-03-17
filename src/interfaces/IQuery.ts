@@ -4,6 +4,5 @@ export interface IQuery {
   search?: string;
   order?: "ascending" | "descending";
   sortBy?: "date" | "name" | "price";
+  [key: string]: any;
 }
-
-//if change anything in here need change in getUsers in UserController

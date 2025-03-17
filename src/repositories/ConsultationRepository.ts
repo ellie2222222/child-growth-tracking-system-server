@@ -419,7 +419,7 @@ class ConsultationRepository implements IConsultationRepository {
 
       // Step 2: Get all ongoing consultations
       const consultations = await ConsultationModel.find({
-        status: ConsultationStatus.OnGoing,
+        status: ConsultationStatus.Ongoing,
       }).select("_id createdAt");
 
       // Step 3: Determine inactive consultations
