@@ -78,6 +78,7 @@ const cleanUpFile = async (
         }
         break;
       case "update":
+        console.log(filePath);
         filePath = (file as string)
           .split(`${process.env.SERVER_URL}/`)
           .pop() as string;
