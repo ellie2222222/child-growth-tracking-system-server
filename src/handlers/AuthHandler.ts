@@ -149,6 +149,14 @@ class AuthHandler {
       });
     }
 
+    // Validate existing password
+    if (oldPassword === newPassword) {
+      validationErrors.push({
+        field: "newPassword",
+        error: "New password cannot be the same as old password",
+      });
+    }
+
     // Validate new password
     if (
       !newPassword ||
