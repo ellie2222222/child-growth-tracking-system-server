@@ -4,7 +4,7 @@
  *   put:
  *     summary: Update consultation status
  *     description: >
- *       Updates the status of a consultation. Only members, admins can perform this action.
+ *       Updates the status of a consultation. Only members and admins can perform this action.
  *     tags: [Consultations]
  *     parameters:
  *       - name: id
@@ -15,15 +15,19 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               status:
  *                 type: string
+ *                 enum: [Ended]
+ *                 description: The status of the consultation (only 'Ended' is allowed)
  *     responses:
  *       200:
  *         description: Consultation status updated successfully
+ *       400:
+ *         description: Invalid request
  *       500:
  *         description: Internal Server Error
  */
