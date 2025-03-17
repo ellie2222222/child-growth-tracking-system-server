@@ -369,15 +369,18 @@ class GrowthDataService implements IGrowthDataService {
         }
 
         case "HCFA": {
-          if (typeof headCircumference !== "number" || !Number.isFinite(headCircumference)) {
-              growthResult.headCircumference = {
-                  percentile: -1,
-                  description: "N/A",
-                  level: "N/A",
-              };
-              break;
+          if (
+            typeof headCircumference !== "number" ||
+            !Number.isFinite(headCircumference)
+          ) {
+            growthResult.headCircumference = {
+              percentile: -1,
+              description: "N/A",
+              level: "N/A",
+            };
+            break;
           }
-          
+
           const percentile = this.getPercentile(
             headCircumference!,
             data.percentiles.values
@@ -404,15 +407,18 @@ class GrowthDataService implements IGrowthDataService {
         }
 
         case "ACFA": {
-          if (typeof armCircumference !== "number" || !Number.isFinite(armCircumference)) {
-              growthResult.armCircumference = {
-                  percentile: -1,
-                  description: "N/A",
-                  level: "N/A",
-              };
-              break;
+          if (
+            typeof armCircumference !== "number" ||
+            !Number.isFinite(armCircumference)
+          ) {
+            growthResult.armCircumference = {
+              percentile: -1,
+              description: "N/A",
+              level: "N/A",
+            };
+            break;
           }
-          
+
           const percentile = this.getPercentile(
             armCircumference!,
             data.percentiles.values
@@ -632,6 +638,17 @@ class GrowthDataService implements IGrowthDataService {
         }
 
         case "HCFA": {
+          if (
+            typeof headCircumference !== "number" ||
+            !Number.isFinite(headCircumference)
+          ) {
+            growthResult.headCircumference = {
+              percentile: -1,
+              description: "N/A",
+              level: "N/A",
+            };
+            break;
+          }
           const percentile = this.getPercentile(
             headCircumference!,
             data.percentiles.values
@@ -658,6 +675,17 @@ class GrowthDataService implements IGrowthDataService {
         }
 
         case "ACFA": {
+          if (
+            typeof armCircumference !== "number" ||
+            !Number.isFinite(armCircumference)
+          ) {
+            growthResult.armCircumference = {
+              percentile: -1,
+              description: "N/A",
+              level: "N/A",
+            };
+            break;
+          }
           const percentile = this.getPercentile(
             armCircumference!,
             data.percentiles.values
