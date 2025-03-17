@@ -15,17 +15,21 @@
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [Pending, Accepted, Rejected, Canceled]
+ *                 enum: [Rejected, Canceled, Accepted]
  *                 description: The new status of the request
  *     responses:
  *       200:
  *         description: Request status updated successfully
+ *       400:
+ *         description: Invalid status value
+ *       404:
+ *         description: Request not found
  */
 
 /**

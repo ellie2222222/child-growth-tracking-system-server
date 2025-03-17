@@ -335,8 +335,8 @@
  *         required: true
  *         schema:
  *           type: string
- *           enum: [PENDING, PUBLISHED, REJECTED, DELETED]
- *         description: Status of the post (must be one of PENDING, PUBLISHED, REJECTED, DELETED)
+ *           enum: [ PUBLISHED, REJECTED, DELETED]
+ *         description: Status of the post (must be one of PUBLISHED, REJECTED, DELETED)
  *     responses:
  *       200:
  *         description: Post status updated successfully
