@@ -1398,9 +1398,9 @@ class GrowthDataService implements IGrowthDataService {
 
       childGrowthData.forEach((data) => {
         if (
-          growthData.inputDate &&
+          updateData.inputDate &&
           data.inputDate &&
-          new Date(growthData.inputDate).getTime() ===
+          new Date(updateData.inputDate).getTime() ===
             new Date(data.inputDate).getTime()
         ) {
           throw new CustomException(
