@@ -179,7 +179,7 @@ class UserHandler {
         field: "role",
         error: `Role must be one of: ${Object.values(UserEnum).join(", ")}`,
       });
-    }    
+    }
 
     if (validationErrors.length > 0) {
       res.status(StatusCodeEnum.BadRequest_400).json({

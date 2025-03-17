@@ -7,8 +7,6 @@
  *              `Admins` & `doctors` can view other `members` & `doctors`. <br>
  *              `Member` can only view `doctors`. <br>
  *     tags: [Users]
- *     security:
- *       - BearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -53,8 +51,6 @@
  *              `Admins` & `doctors` can view other `members` & `doctors`. <br>
  *              `Member` can only view `doctors`. <br>
  *     tags: [Users]
- *     security:
- *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -121,8 +117,6 @@
  *     summary: Delete a user(Admin)
  *     description: Deletes a user by ID. Only accessible by admins .
  *     tags: [Users]
- *     security:
- *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -146,8 +140,6 @@
  *     summary: Remove user membership
  *     description: Removes the current subscription or membership of a user.
  *     tags: [Users]
- *     security:
- *       - BearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id

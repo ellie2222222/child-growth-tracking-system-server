@@ -270,10 +270,19 @@ class UserRepository implements IUserRepository {
     type SearchQuery = {
       isDeleted?: boolean;
       role?: number | { $in: Array<number> };
-      $or?: Array<{ name?: { $regex: string; $options: string } } | { email?: { $regex: string; $options: string } }>;
-    };    
+      $or?: Array<
+        | { name?: { $regex: string; $options: string } }
+        | { email?: { $regex: string; $options: string } }
+      >;
+    };
     try {
-      const { page, size, search, order = "descending", sortBy = "date" } = query;
+      const {
+        page,
+        size,
+        search,
+        order = "descending",
+        sortBy = "date",
+      } = query;
       const searchQuery: SearchQuery = {};
 
       if (!ignoreDeleted) {
@@ -291,13 +300,13 @@ class UserRepository implements IUserRepository {
         const parsedRole = Array.isArray(role)
           ? role.map(Number)
           : Number(role);
-      
+
         if (typeof parsedRole === "number" && !isNaN(parsedRole)) {
           searchQuery.role = parsedRole;
         } else if (Array.isArray(parsedRole) && parsedRole.length > 0) {
           searchQuery.role = { $in: parsedRole };
         }
-      }          
+      }
 
       let sortField = "createdAt";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
@@ -351,6 +360,7 @@ class UserRepository implements IUserRepository {
             createdAt: 1,
             updatedAt: 1,
             role: 1,
+            isDeleted: 1,
             "subscription.startDate": 1,
             "subscription.endDate": 1,
             "subscription.viewChart": 1,
