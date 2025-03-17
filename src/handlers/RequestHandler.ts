@@ -105,17 +105,16 @@ class RequestHandler {
       });
     }
 
-    if (
-      status &&
-      ![
-        RequestStatus.Accepted,
-        RequestStatus.Canceled,
-        RequestStatus.Pending,
-        RequestStatus.Rejected,
-      ].includes(status as RequestStatus)
-    ) {
+    const validStatuses = [
+      RequestStatus.Accepted.toLowerCase(),
+      RequestStatus.Canceled.toLowerCase(),
+      RequestStatus.Pending.toLowerCase(),
+      RequestStatus.Rejected.toLowerCase(),
+    ];
+
+    if (status && !validStatuses.includes((status as string).toLowerCase())) {
       validationErrors.push({
-        field: "Invalid status",
+        field: "status",
         error: "Invalid status in query",
       });
     }
@@ -177,17 +176,16 @@ class RequestHandler {
       });
     }
 
-    if (
-      status &&
-      ![
-        RequestStatus.Accepted,
-        RequestStatus.Canceled,
-        RequestStatus.Pending,
-        RequestStatus.Rejected,
-      ].includes(status as RequestStatus)
-    ) {
+    const validStatuses = [
+      RequestStatus.Accepted.toLowerCase(),
+      RequestStatus.Canceled.toLowerCase(),
+      RequestStatus.Pending.toLowerCase(),
+      RequestStatus.Rejected.toLowerCase(),
+    ];
+
+    if (status && !validStatuses.includes((status as string).toLowerCase())) {
       validationErrors.push({
-        field: "Invalid status",
+        field: "status",
         error: "Invalid status in query",
       });
     }
@@ -235,17 +233,16 @@ class RequestHandler {
       });
     }
 
-    if (
-      status &&
-      ![
-        RequestStatus.Accepted,
-        RequestStatus.Canceled,
-        RequestStatus.Pending,
-        RequestStatus.Rejected,
-      ].includes(status as RequestStatus)
-    ) {
+    const validStatuses = [
+      RequestStatus.Accepted.toLowerCase(),
+      RequestStatus.Canceled.toLowerCase(),
+      RequestStatus.Pending.toLowerCase(),
+      RequestStatus.Rejected.toLowerCase(),
+    ];
+
+    if (status && !validStatuses.includes((status as string).toLowerCase())) {
       validationErrors.push({
-        field: "Invalid status",
+        field: "status",
         error: "Invalid status in query",
       });
     }

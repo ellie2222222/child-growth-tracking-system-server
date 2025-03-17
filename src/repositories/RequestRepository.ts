@@ -167,13 +167,6 @@ class RequestRepository implements IRequestRepository {
         },
       ]);
 
-      if (!requests) {
-        throw new CustomException(
-          StatusCodeEnum.InternalServerError_500,
-          "No requests found"
-        );
-      }
-
       const total = await RequestModel.countDocuments(searchQuery);
       return { requests, page, total, totalPages: Math.ceil(total / size) };
     } catch (error) {
@@ -268,13 +261,6 @@ class RequestRepository implements IRequestRepository {
           },
         },
       ]);
-
-      if (!requests) {
-        throw new CustomException(
-          StatusCodeEnum.InternalServerError_500,
-          "No requests found"
-        );
-      }
 
       const totalRequest = await RequestModel.countDocuments(searchQuery);
       return {
