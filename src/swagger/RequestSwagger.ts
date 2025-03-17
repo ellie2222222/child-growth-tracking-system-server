@@ -174,6 +174,13 @@
  *           type: string
  *           enum: [Pending, Accepted, Rejected, Canceled]
  *         description: Filter by request status
+ *       - in: query
+ *         name: as
+ *         schema:
+ *           type: string
+ *           enum: [MEMBER, DOCTOR]
+ *           default: MEMBER
+ *         description: Role context for retrieving requests
  *     responses:
  *       200:
  *         description: Requests retrieved successfully
