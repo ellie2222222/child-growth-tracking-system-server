@@ -50,10 +50,10 @@ class MembershipPackageHandler {
       });
     }
 
-    if (!name || !validator.isLength(name, { min: 6, max: 100 })) {
+    if (!name || !validator.isLength(name, { min: 1, max: 100 })) {
       validationErrors.push({
         field: "Name",
-        error: "Invalid name: name must be between 6 and 100 characters",
+        error: "Invalid name: name must be between 1 and 100 characters",
       });
     }
 
@@ -143,10 +143,10 @@ class MembershipPackageHandler {
       });
     }
 
-    if (name && !validator.isLength(name, { min: 6, max: 100 })) {
+    if (name && !validator.isLength(name, { min: 1, max: 100 })) {
       validationErrors.push({
         field: "Name",
-        error: "Invalid name: name must be between 6 and 100 characters",
+        error: "Invalid name: name must be between 1 and 100 characters",
       });
     }
 

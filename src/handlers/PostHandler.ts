@@ -13,7 +13,7 @@ class PostHandler {
 
     const { title, content } = req.body;
 
-    if (!title || !validator.isLength(title, { min: 6, max: 150 })) {
+    if (!title || !validator.isLength(title, { min: 0, max: 150 })) {
       validationErrors.push({
         field: "title",
         error: "Title is required and should be between 6 and 150 characters",

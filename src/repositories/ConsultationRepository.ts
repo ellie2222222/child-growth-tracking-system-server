@@ -6,6 +6,8 @@ import { IQuery } from "../interfaces/IQuery";
 import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
 import ConsultationMessageModel from "../models/ConsultationMessageModel";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
+import ConfigModel from "../models/ConfigModel";
+import { IConfig } from "../interfaces/IConfig";
 
 export type returnDataConsultation = {
   consultations: IConsultation[];
@@ -397,12 +399,11 @@ class ConsultationRepository implements IConsultationRepository {
 
   async getOldConsultation() {
     try {
-      const INACTIVITY_LIMIT =
-        (parseInt(process.env.INACTIVE_CONSULTATION_LIMIT as string) || 14) *
-        24 *
-        60 *
-        60 *
-        1000;
+      const config = await ConfigModel.findOne({
+        key: "REQUEST_MAX_PENDING_TIME",
+      });
+      const maxPendingTime = parseInt((config as IConfig)?.value) || 14;
+      const INACTIVITY_LIMIT = (maxPendingTime || 14) * 24 * 60 * 60 * 1000;
       const inactivityThreshold = new Date(Date.now() - INACTIVITY_LIMIT);
 
       // Step 1: Get the latest message for each consultation

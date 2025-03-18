@@ -17,8 +17,14 @@ class MembershipPackageController {
   ) => {
     try {
       let { price, duration } = req.body;
-      const { unit, name, description, postLimit, updateChildDataLimit } =
-        req.body;
+      const {
+        unit,
+        name,
+        description,
+        postLimit,
+        updateChildDataLimit,
+        downloadChart,
+      } = req.body;
       const formatedPrice = {
         value: parseFloat(price as string),
         unit: unit,
@@ -36,7 +42,8 @@ class MembershipPackageController {
           price,
           duration,
           parseInt(postLimit),
-          parseInt(updateChildDataLimit)
+          parseInt(updateChildDataLimit),
+          parseInt(downloadChart)
         );
       res.status(StatusCodeEnum.Created_201).json({
         package: membershipPackage,
@@ -108,8 +115,14 @@ class MembershipPackageController {
     try {
       const { id } = req.params;
       let { price, duration } = req.body;
-      const { unit, name, description, postLimit, updateChildDataLimit } =
-        req.body;
+      const {
+        unit,
+        name,
+        description,
+        postLimit,
+        updateChildDataLimit,
+        downloadChart,
+      } = req.body;
 
       const formatedPrice = {
         value: parseFloat(price as string),
@@ -130,7 +143,8 @@ class MembershipPackageController {
           price,
           duration,
           parseInt(postLimit),
-          parseInt(updateChildDataLimit)
+          parseInt(updateChildDataLimit),
+          parseInt(downloadChart)
         );
       res.status(StatusCodeEnum.OK_200).json({
         package: membershipPackage,
@@ -157,6 +171,7 @@ class MembershipPackageController {
         res
           .status(StatusCodeEnum.OK_200)
           .json({ message: "Membership package deleted successfully" });
+        return;
       } else {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,

@@ -26,6 +26,16 @@ import { IChildRepository } from "../interfaces/repositories/IChildRepository";
 import { IConfigRepository } from "../interfaces/repositories/IConfigRepository";
 import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAgeRepository";
 
+import sendMail from "../utils/mailer";
+import Mail from "nodemailer/lib/mailer";
+import ejs from "ejs";
+import path from "path";
+import getLogger from "../utils/logger";
+
+const emailTemplatePath = path.resolve(
+  __dirname,
+  "../templates/IrregularStatus.ejs"
+);
 class GrowthDataService implements IGrowthDataService {
   private growthDataRepository: IGrowthDataRepository;
   private userRepository: IUserRepository;
@@ -257,7 +267,7 @@ class GrowthDataService implements IGrowthDataService {
 
     const bmi = (weight! / height! / height!) * 10000;
 
-    let growthResult: Partial<IGrowthResult> = {
+    const growthResult: Partial<IGrowthResult> = {
       height: {
         percentile: -1,
         description: "N/A",
@@ -289,7 +299,7 @@ class GrowthDataService implements IGrowthDataService {
         level: "N/A",
       },
     };
-
+    let irregular = false;
     const formatPercentile = (percentile: number) =>
       percentile % 1 === 0 ? `${percentile}` : percentile.toFixed(2);
 
@@ -306,12 +316,14 @@ class GrowthDataService implements IGrowthDataService {
 
           if (percentile < 5) {
             growthResult!.bmi!.level = BmiLevelEnum[0];
+            irregular = true;
           } else if (percentile >= 5 && percentile < 15) {
             growthResult!.bmi!.level = BmiLevelEnum[1];
           } else if (percentile >= 15 && percentile < 95) {
             growthResult!.bmi!.level = BmiLevelEnum[2];
           } else if (percentile >= 95) {
             growthResult!.bmi!.level = BmiLevelEnum[3];
+            irregular = true;
           }
           break;
         }
@@ -329,6 +341,7 @@ class GrowthDataService implements IGrowthDataService {
           )} percent are taller.`;
 
           if (percentile < 5) {
+            irregular = true;
             growthResult!.height!.level = LevelEnum[0];
           } else if (percentile >= 5 && percentile < 15) {
             growthResult!.height!.level = LevelEnum[1];
@@ -338,6 +351,7 @@ class GrowthDataService implements IGrowthDataService {
             growthResult!.height!.level = LevelEnum[3];
           } else if (percentile >= 95) {
             growthResult!.height!.level = LevelEnum[4];
+            irregular = true;
           }
           break;
         }
@@ -355,6 +369,7 @@ class GrowthDataService implements IGrowthDataService {
           )} percent weigh more.`;
 
           if (percentile < 5) {
+            irregular = true;
             growthResult!.weight!.level = LevelEnum[0];
           } else if (percentile >= 5 && percentile < 15) {
             growthResult!.weight!.level = LevelEnum[1];
@@ -363,6 +378,7 @@ class GrowthDataService implements IGrowthDataService {
           } else if (percentile >= 85 && percentile < 95) {
             growthResult!.weight!.level = LevelEnum[3];
           } else if (percentile >= 95) {
+            irregular = true;
             growthResult!.weight!.level = LevelEnum[4];
           }
           break;
@@ -393,6 +409,7 @@ class GrowthDataService implements IGrowthDataService {
           )} percent have a larger head circumference.`;
 
           if (percentile < 5) {
+            if (percentile !== -1) irregular = true;
             growthResult!.headCircumference!.level = LevelEnum[0];
           } else if (percentile >= 5 && percentile < 15) {
             growthResult!.headCircumference!.level = LevelEnum[1];
@@ -401,6 +418,7 @@ class GrowthDataService implements IGrowthDataService {
           } else if (percentile >= 85 && percentile < 95) {
             growthResult!.headCircumference!.level = LevelEnum[3];
           } else if (percentile >= 95) {
+            if (percentile !== -1) irregular = true;
             growthResult!.headCircumference!.level = LevelEnum[4];
           }
           break;
@@ -431,6 +449,7 @@ class GrowthDataService implements IGrowthDataService {
           )} percent have a larger arm circumference.`;
 
           if (percentile < 5) {
+            if (percentile !== -1) irregular = true;
             growthResult!.armCircumference!.level = LevelEnum[0];
           } else if (percentile >= 5 && percentile < 15) {
             growthResult!.armCircumference!.level = LevelEnum[1];
@@ -439,6 +458,7 @@ class GrowthDataService implements IGrowthDataService {
           } else if (percentile >= 85 && percentile < 95) {
             growthResult!.armCircumference!.level = LevelEnum[3];
           } else if (percentile >= 95) {
+            if (percentile !== -1) irregular = true;
             growthResult!.armCircumference!.level = LevelEnum[4];
           }
           break;
@@ -460,6 +480,7 @@ class GrowthDataService implements IGrowthDataService {
       )} percent have a higher weight for height.`;
 
       if (percentile < 5) {
+        irregular = true;
         growthResult!.weightForLength!.level = LevelEnum[0];
       } else if (percentile >= 5 && percentile < 15) {
         growthResult!.weightForLength!.level = LevelEnum[1];
@@ -468,9 +489,49 @@ class GrowthDataService implements IGrowthDataService {
       } else if (percentile >= 85 && percentile < 95) {
         growthResult!.weightForLength!.level = LevelEnum[3];
       } else if (percentile >= 95) {
+        irregular = true;
         growthResult!.weightForLength!.level = LevelEnum[4];
       }
     });
+
+    if (irregular) {
+      const emailHtml = await ejs.renderFile(emailTemplatePath, {
+        growthResult,
+      });
+
+      const userIds = child.relationships.map(
+        (relationship) => relationship.memberId
+      );
+
+      try {
+        // Fetch users in parallel
+        const users = await Promise.all(
+          userIds.map((userId) =>
+            this.userRepository.getUserById(userId.toString(), false)
+          )
+        );
+
+        // Filter out non-existent users
+        const validUsers = users.filter((user) => user !== null);
+
+        // Prepare emails
+        const emailPromises = validUsers.map((user) => {
+          const mailOptions: Mail.Options = {
+            from: process.env.EMAIL_USER,
+            to: user!.email,
+            subject: `Request Status Update`,
+            html: emailHtml,
+          };
+          return sendMail(mailOptions);
+        });
+
+        // Send all emails concurrently
+        await Promise.all(emailPromises);
+      } catch (error) {
+        const logger = getLogger("ABNORMAL GROWTH RESULT");
+        logger.error((error as Error | CustomException).message);
+      }
+    }
 
     return growthResult;
   };

@@ -6,6 +6,8 @@ import { IQuery } from "../interfaces/IQuery";
 import dotenv from "dotenv";
 import { IRequest, RequestStatus } from "../interfaces/IRequest";
 import { IRequestRepository } from "../interfaces/repositories/IRequestRepository";
+import ConfigModel from "../models/ConfigModel";
+import { IConfig } from "../interfaces/IConfig";
 dotenv.config();
 
 export type ReturnDataRequest = {
@@ -364,9 +366,11 @@ class RequestRepository implements IRequestRepository {
         createdAt: { $gte: today, $lte: tmr },
       });
 
-      if (
-        requestNumber >= (parseInt(process.env.DAILY_REQ_LIM as string) || 3)
-      ) {
+      const config = await ConfigModel.findOne({
+        key: "DAILY_CONSULTAION_REQUEST_LIMIT",
+      });
+      const maxRequest = parseInt((config as IConfig)?.value) || 5;
+      if (requestNumber >= maxRequest) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
           "You have exceeded the daily limit number of request"
@@ -385,7 +389,11 @@ class RequestRepository implements IRequestRepository {
 
   async getOldRequest(): Promise<mongoose.Types.ObjectId[]> {
     try {
-      const daysPending = parseInt(process.env.REQ_PEND as string) || 14;
+      const config = await ConfigModel.findOne({
+        key: "REQUEST_MAX_PENDING_TIME",
+      });
+      const maxPendingTime = parseInt((config as IConfig)?.value) || 14;
+      const daysPending = maxPendingTime;
 
       const requests: mongoose.Types.ObjectId[] = await RequestModel.find(
         {

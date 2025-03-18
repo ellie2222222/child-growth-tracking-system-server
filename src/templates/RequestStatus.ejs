@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Request Status</title>
+  <style>
+    body,
+    table,
+    td {
+      font-family: 'Arial', sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 2rem;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .approved {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .details {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 0;
+      font-size: 14px;
+    }
+
+    .message {
+      color: #555;
+      font-size: 14px;
+      margin-top: 1rem;
+    }
+
+    .button {
+      display: inline-block;
+      padding: 12px 20px;
+      background: #4361ee;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 15px;
+    }
+
+    .button:hover {
+      background: #324ab2;
+    }
+  </style>
+</head>
+
+<body>
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" height="100%">
+    <tr>
+      <td align="center" valign="middle">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 500px;">
+          <tr>
+            <td class="container">
+              <h1>Request Status</h1>
+
+              <div class="status-badge <%= status === 'approved' ? 'approved' : status === 'pending' ? 'pending' : 'rejected' %>">
+                <%= status === 'approved' ? 'Approved' : status === 'pending' ? 'Pending' : 'Rejected' %>
+              </div>
+
+              <div class="details">
+                <div class="detail-row">
+                  <strong>Request Title:</strong> <span><%= requestTitle %></span>
+                </div>
+                <div class="detail-row">
+                  <strong>Doctor:</strong> <span>Dr. <%= doctorName %></span>
+                </div>
+              </div>
+
+              <% if(status === "approved") { %>
+              <p class="message">You can now start messaging the doctor. They will respond as soon as they are available.</p>
+              <% } else if(status === "pending") { %>
+              <p class="message">Your request is being reviewed. We'll notify you once the doctor responds.</p>
+              <% } else { %>
+              <p class="message">Unfortunately, your request has been declined. You may try again or select a different doctor.</p>
+              <% } %>
+
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+
+</html>
