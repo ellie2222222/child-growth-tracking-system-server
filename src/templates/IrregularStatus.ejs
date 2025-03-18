@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Child Growth Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #2c3e50;
+      text-align: center;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .growth-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .growth-table th,
+    .growth-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .growth-table th {
+      background: #2c3e50;
+      color: #fff;
+    }
+
+    .alert {
+      font-weight: bold;
+    }
+
+    .normal {
+      color: #27ae60;
+    }
+
+    /* Green */
+    .above-average {
+      color: #f39c12;
+    }
+
+    /* Orange */
+    .obese {
+      color: #c0392b;
+    }
+
+    /* Red */
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>📊 Child Growth Report</h2>
+    <p>Dear Parent,</p>
+    <p>Here is your child's latest growth assessment:</p>
+
+    <table class="growth-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Percentile</th>
+          <th>Assessment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (growthResult.height.percentile !== -1) { %>
+        <tr>
+          <td><strong>Height</strong></td>
+          <td><%= growthResult.height.percentile %>%</td>
+          <td class="normal"><%= growthResult.height.level %></td>
+        </tr>
+        <% } %>
+
+        <% if (growthResult.weight.percentile !== -1) { %>
+        <tr>
+          <td><strong>Weight</strong></td>
+          <td><%= growthResult.weight.percentile %>%</td>
+          <td class="above-average"><%= growthResult.weight.level %></td>
+        </tr>
+        <% } %>
+
+        <% if (growthResult.bmi.percentile !== -1) { %>
+        <tr>
+          <td><strong>BMI</strong></td>
+          <td><%= growthResult.bmi.percentile %>%</td>
+          <td class="<%= growthResult.bmi.level === 'Obese' ? 'obese' : '' %>"><%= growthResult.bmi.level %></td>
+        </tr>
+        <% } %>
+
+        <% if (growthResult.weightForLength.percentile !== -1) { %>
+        <tr>
+          <td><strong>Weight for Height</strong></td>
+          <td><%= growthResult.weightForLength.percentile %>%</td>
+          <td class="<%= growthResult.weightForLength.level === 'High' ? 'obese' : '' %>"><%= growthResult.weightForLength.level %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+
+    <p>⚠️ If you have any concerns, please consult a pediatrician.</p>
+    <p>Best Regards,</p>
+    <p><strong>Your Child's Health Team</strong></p>
+
+    <div class="footer">
+      <p>📩 This is an automated email, please do not reply.</p>
+    </div>
+  </div>
+</body>
+
+</html>

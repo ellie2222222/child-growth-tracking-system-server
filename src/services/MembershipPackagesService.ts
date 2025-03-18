@@ -40,7 +40,8 @@ class MembershipPackageService implements IMembershipPackageService {
     price: PriceType,
     duration: DurationType,
     postLimit: number,
-    updateChildDataLimit: number
+    updateChildDataLimit: number,
+    downloadChart: number
   ): Promise<IMembershipPackage> => {
     const session = await this.database.startTransaction();
     try {
@@ -63,6 +64,7 @@ class MembershipPackageService implements IMembershipPackageService {
             duration,
             postLimit,
             updateChildDataLimit,
+            downloadChart,
           },
           session
         );
@@ -178,7 +180,8 @@ class MembershipPackageService implements IMembershipPackageService {
     price: PriceType,
     duration: DurationType,
     postLimit: number,
-    updateChildDataLimit: number
+    updateChildDataLimit: number,
+    downloadChart: number
   ): Promise<IMembershipPackage> => {
     const session = await this.database.startTransaction();
     try {
@@ -209,6 +212,7 @@ class MembershipPackageService implements IMembershipPackageService {
         duration?: DurationType;
         postLimit?: number;
         updateChildDataLimit?: number;
+        downloadChart?: number;
       };
 
       const data: data = {};
@@ -242,6 +246,10 @@ class MembershipPackageService implements IMembershipPackageService {
 
       if (updateChildDataLimit && !isNaN(updateChildDataLimit)) {
         data.updateChildDataLimit = updateChildDataLimit;
+      }
+
+      if (downloadChart && !isNaN(downloadChart)) {
+        data.downloadChart = downloadChart;
       }
 
       const membershipPackage =

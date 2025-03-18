@@ -15,13 +15,13 @@
  *     requestBody:
  *       required: true
  *       content:
- *         multipart/form-data:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [Rejected, Canceled, Accepted]
+ *                 enum: [Accepted, Rejected, Canceled]
  *                 description: The new status of the request
  *     responses:
  *       200:

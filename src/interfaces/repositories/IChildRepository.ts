@@ -8,12 +8,12 @@ export interface IChildRepository {
     session?: mongoose.ClientSession
   ): Promise<IChild>;
 
-  getChildById(childId: string, isDeleted: boolean): Promise<IChild | null>;
+  getChildById(childId: string, ignoreDeleted: boolean): Promise<IChild | null>;
 
   getChildrenByUserId(
     memberId: string,
     query: IQuery,
-    isDeleted: boolean
+    ignoreDeleted: boolean
   ): Promise<{
     children: IChild[];
     page: number;

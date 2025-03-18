@@ -82,18 +82,19 @@ class GrowthDataRepository implements IGrowthDataRepository {
   async getGrowthDataByChildId(
     childId: string,
     query: IQuery,
-    isDeleted: boolean
+    ignoreDeleted: boolean
   ): Promise<GrowthData> {
     try {
       type SearchQuery = {
-        isDeleted: boolean;
         childId: mongoose.Types.ObjectId;
+        isDeleted?: boolean;
       };
       const { page, size, order, sortBy } = query;
-      const searchQuery: SearchQuery = {
-        isDeleted,
-        childId: new mongoose.Types.ObjectId(childId),
-      };
+      const searchQuery: SearchQuery = ignoreDeleted
+        ? {
+            childId: new mongoose.Types.ObjectId(childId),
+          }
+        : { childId: new mongoose.Types.ObjectId(childId), isDeleted: false };
 
       let sortField = "createdAt";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
@@ -158,6 +159,9 @@ class GrowthDataRepository implements IGrowthDataRepository {
 
       return growthData;
     } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
