@@ -66,4 +66,6 @@ export interface IUserService {
     requesterId: string,
     rating: number
   ) => Promise<IConsultation>;
+
+  downloadChart: (userId: string) => Promise<void>;
 }

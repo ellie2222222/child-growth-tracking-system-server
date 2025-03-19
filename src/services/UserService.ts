@@ -2,7 +2,7 @@ import mongoose, { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
-import { IUser } from "../interfaces/IUser";
+import { ISubscription, IUser } from "../interfaces/IUser";
 import { IDoctor } from "../repositories/UserRepository";
 
 import Database from "../utils/database";
@@ -864,6 +864,68 @@ class UserService implements IUserService {
 
       await this.database.commitTransaction(session);
       return updatedConsultation;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  downloadChart = async (userId: string): Promise<void> => {
+    const session = await this.database.startTransaction();
+    try {
+      const checkUser = await this.userRepository.getUserById(userId, false);
+      if (!checkUser) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Requester not found"
+        );
+      }
+
+      if (
+        checkUser.subscription.currentPlan === null ||
+        checkUser.subscription.endDate === null
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.Conflict_409,
+          "Invalid subscription info"
+        );
+      }
+
+      const subscription = checkUser.subscription;
+
+      let data: ISubscription;
+      if (new Date().getTime() < (subscription.endDate as Date)?.getTime()) {
+        data = {
+          ...subscription,
+          downloadChart: {
+            counter: subscription.downloadChart.counter + 1,
+            lastCalled: new Date(),
+          },
+        };
+      } else {
+        data = {
+          ...subscription,
+          downloadChart: {
+            counter: 1,
+            lastCalled: new Date(),
+          },
+        };
+      }
+
+      await this.userRepository.updateUserById(
+        userId,
+        { subscription: data },
+        session
+      );
+      await this.database.commitTransaction(session);
     } catch (error) {
       await session.abortTransaction(session);
       if (error as Error | CustomException) {

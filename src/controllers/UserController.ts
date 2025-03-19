@@ -224,6 +224,19 @@ class UserController {
       next(error);
     }
   };
+
+  downloadChart = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.userInfo.userId;
+
+      await this.userService.downloadChart(userId);
+      res
+        .status(200)
+        .json({ message: "downloadChart counter has been updated" });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default UserController;

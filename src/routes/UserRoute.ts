@@ -15,6 +15,7 @@ import SessionRepository from "../repositories/SessionRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import ConsultationRepository from "../repositories/ConsultationRepository";
 import { uploadFile } from "../middlewares/storeFile";
+import validateMembership from "../middlewares/MembershipMiddleware";
 
 const userRepository = new UserRepository();
 const sessionRepository = new SessionRepository();
@@ -61,6 +62,13 @@ userRoutes.delete(
   RoleMiddleware([UserEnum.ADMIN]),
   userHandler.deleteUser,
   userController.deleteUser
+);
+
+//this has no input => no need for handler
+userRoutes.put(
+  "/download-chart",
+  validateMembership("downloadChart"),
+  userController.downloadChart
 );
 
 userRoutes.put(
