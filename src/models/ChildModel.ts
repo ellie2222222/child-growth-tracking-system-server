@@ -57,9 +57,9 @@ const childModelSchema = new Schema<IChild>(
       default: "N/A",
     },
     allergies: {
-      type: String,
+      type: [String],
       enum: Object.values(AllergyEnum),
-      default: "N/A",
+      default: ["N/A"],
     },
     relationships: [
       {

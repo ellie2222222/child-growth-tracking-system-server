@@ -123,6 +123,8 @@ class ChildRepository implements IChildRepository {
             birthDate: 1,
             note: 1,
             relationships: 1,
+            feedingType: 1,
+            allergies: 1,
             createdAt: 1,
             updatedAt: 1,
           },

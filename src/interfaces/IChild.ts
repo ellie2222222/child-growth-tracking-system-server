@@ -20,7 +20,7 @@ export interface IChild extends Document {
   }>;
   growthVelocityResult: IGrowthVelocityResult[],
   feedingType: FeedingTypeEnumType,
-  allergies: AllergyEnumType,
+  allergies: [AllergyEnumType],
   relationship: RelationshipType;
   createdAt?: Date;
   updatedAt?: Date;

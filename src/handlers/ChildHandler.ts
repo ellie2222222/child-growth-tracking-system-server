@@ -17,7 +17,7 @@ class ChildHandler {
 
     const validationErrors: { field: string; error: string }[] = [];
 
-    // Validate name
+    
     if (!name || !validator.isLength(name, { min: 1, max: 100 })) {
       validationErrors.push({
         field: "name",
@@ -25,7 +25,7 @@ class ChildHandler {
       });
     }
 
-    // Validate gender (0 or 1 expected)
+    
     if (gender !== GenderEnum.BOY && gender !== GenderEnum.GIRL) {
       validationErrors.push({
         field: "gender",
@@ -33,7 +33,7 @@ class ChildHandler {
       });
     }
 
-    // Validate birthDate
+    
     if (!birthDate || !validator.isISO8601(birthDate)) {
       validationErrors.push({
         field: "birthDate",
@@ -46,7 +46,7 @@ class ChildHandler {
       });
     }
 
-    // Validate note
+    
     if (note && !validator.isLength(note, { max: 500 })) {
       validationErrors.push({
         field: "note",
@@ -54,8 +54,7 @@ class ChildHandler {
       });
     }
 
-    // Validate feeding type
-    if (!feedingType || !Object.values(FeedingTypeEnum).includes(feedingType)) {
+    if (feedingType && !Object.values(FeedingTypeEnum).includes(feedingType)) {
       validationErrors.push({
         field: "feedingType",
         error: `Feeding type must be one of: ${Object.values(FeedingTypeEnum).join(
@@ -64,19 +63,16 @@ class ChildHandler {
       });
     }
 
-    // Validate allergies
+    
     if (allergies && allergies.length > 0) {
-      // Check if "None" or "N/A" is present
       const hasNoneOrNA =
         allergies.includes(AllergyEnum.NONE) || allergies.includes(AllergyEnum.N_A);
-
-      // Check if there are other allergies besides "None" or "N/A"
+      
       const hasOtherAllergies = allergies.some(
         (allergy: string) =>
           allergy !== AllergyEnum.NONE && allergy !== AllergyEnum.N_A
       );
 
-      // Rule: "None" or "N/A" cannot coexist with other allergies
       if (hasNoneOrNA && hasOtherAllergies) {
         validationErrors.push({
           field: "allergies",
@@ -84,7 +80,7 @@ class ChildHandler {
         });
       }
 
-      // Check for invalid allergies
+      
       const invalidAllergies = allergies.filter(
         (allergy: string) => !Object.values(AllergyEnum).includes(allergy)
       );
@@ -98,8 +94,7 @@ class ChildHandler {
         });
       }
     }
-
-    // Validate relationship
+    
     if (!relationship || !this.validRelationships.includes(relationship)) {
       validationErrors.push({
         field: "relationship",
@@ -124,11 +119,9 @@ class ChildHandler {
    */
   updateChild = (req: Request, res: Response, next: NextFunction): void => {
     const { childId } = req.params;
-    const { name, gender, birthDate, note } = req.body;
-
+    const { name, gender, birthDate, allergies, feedingType, note, relationship } = req.body;
     const validationErrors: { field: string; error: string }[] = [];
-
-    // Validate childId
+    
     if (!validateMongooseObjectId(childId)) {
       validationErrors.push({
         field: "childId",
@@ -136,7 +129,7 @@ class ChildHandler {
       });
     }
 
-    // Validate name
+    
     if (name && !validator.isLength(name, { min: 1, max: 100 })) {
       validationErrors.push({
         field: "name",
@@ -144,7 +137,7 @@ class ChildHandler {
       });
     }
 
-    // Validate gender (0 or 1 expected)
+    
     if (gender !== GenderEnum.BOY && gender !== GenderEnum.GIRL) {
       validationErrors.push({
         field: "gender",
@@ -152,7 +145,47 @@ class ChildHandler {
       });
     }
 
-    // Validate birthDate
+    if (feedingType && !Object.values(FeedingTypeEnum).includes(feedingType)) {
+      validationErrors.push({
+        field: "feedingType",
+        error: `Feeding type must be one of: ${Object.values(FeedingTypeEnum).join(
+          ", "
+        )}`,
+      });
+    }
+
+    
+    if (allergies && allergies.length > 0) {
+      const hasNoneOrNA =
+        allergies.includes(AllergyEnum.NONE) || allergies.includes(AllergyEnum.N_A);
+      
+      const hasOtherAllergies = allergies.some(
+        (allergy: string) =>
+          allergy !== AllergyEnum.NONE && allergy !== AllergyEnum.N_A
+      );
+
+      if (hasNoneOrNA && hasOtherAllergies) {
+        validationErrors.push({
+          field: "allergies",
+          error: `Invalid allergies list, "None" or "N/A" cannot coexist with other allergies.`,
+        });
+      }
+
+      
+      const invalidAllergies = allergies.filter(
+        (allergy: string) => !Object.values(AllergyEnum).includes(allergy)
+      );
+
+      if (invalidAllergies.length > 0) {
+        validationErrors.push({
+          field: "allergies",
+          error: `Invalid allergies found: ${invalidAllergies.join(
+            ", "
+          )}. Allergies must be one of: ${Object.values(AllergyEnum).join(", ")}`,
+        });
+      }
+    }
+    
     if (birthDate && !validator.isISO8601(birthDate)) {
       validationErrors.push({
         field: "birthDate",
@@ -165,11 +198,20 @@ class ChildHandler {
       });
     }
 
-    // Validate note
+    
     if (note && !validator.isLength(note, { max: 500 })) {
       validationErrors.push({
         field: "note",
         error: "Note must not exceed 500 characters",
+      });
+    }
+
+    if (!relationship || !this.validRelationships.includes(relationship)) {
+      validationErrors.push({
+        field: "relationship",
+        error: `Relationship must be one of: ${this.validRelationships.join(
+          ", "
+        )}`,
       });
     }
 
@@ -191,7 +233,7 @@ class ChildHandler {
 
     const validationErrors: { field: string; error: string }[] = [];
 
-    // Validate child ID
+    
     if (!validateMongooseObjectId(childId)) {
       validationErrors.push({
         field: "childId",
@@ -210,7 +252,7 @@ class ChildHandler {
 
     const validationErrors: { field: string; error: string }[] = [];
 
-    // Validate child ID
+    
     if (!validateMongooseObjectId(childId)) {
       validationErrors.push({
         field: "childId",
@@ -229,7 +271,7 @@ class ChildHandler {
 
     const validationErrors: { field: string; error: string }[] = [];
 
-    // Validate sortBy (enum: 'date', 'name')
+    
     const validSortBy = ["date", "name"];
     if (sortBy && !validSortBy.includes(sortBy as string)) {
       validationErrors.push({
@@ -238,7 +280,7 @@ class ChildHandler {
       });
     }
 
-    // Validate order (enum: 'ascending', 'descending')
+    
     const validOrder = ["ascending", "descending"];
     if (order && !validOrder.includes(order as string)) {
       validationErrors.push({
@@ -247,7 +289,7 @@ class ChildHandler {
       });
     }
 
-    // Validate page (minimum 1)
+    
     const parsedPage = parseInt(page as string, 10);
     if (page && (!Number.isInteger(parsedPage) || parsedPage < 1)) {
       validationErrors.push({
@@ -256,7 +298,7 @@ class ChildHandler {
       });
     }
 
-    // Validate size (minimum 1)
+    
     const parsedSize = parseInt(size as string, 10);
     if (size && (!Number.isInteger(parsedSize) || parsedSize < 1)) {
       validationErrors.push({

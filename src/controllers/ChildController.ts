@@ -20,7 +20,7 @@ class ChildController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { name, gender, relationship, birthDate, note } = req.body;
+      const { name, gender, relationship, birthDate, note, allergies, feedingType } = req.body;
       const userInfo = req.userInfo;
       const child = await this.childService.createChild(userInfo, {
         name,
@@ -28,6 +28,8 @@ class ChildController {
         relationship,
         birthDate,
         note,
+        allergies, 
+        feedingType
       });
 
       res.status(StatusCodeEnum.OK_200).json({
@@ -50,7 +52,7 @@ class ChildController {
     try {
       const requesterInfo = req.userInfo;
       const { childId } = req.params;
-      const { name, gender, relationships, birthDate, note } = req.body;
+      const { name, gender, relationship, birthDate, note, allergies, feedingType } = req.body;
 
       const updatedChild = await this.childService.updateChild(
         childId,
@@ -58,9 +60,11 @@ class ChildController {
         {
           name,
           gender,
-          relationships,
+          relationship,
           birthDate,
           note,
+          allergies, 
+          feedingType
         }
       );
 

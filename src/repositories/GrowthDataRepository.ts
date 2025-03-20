@@ -95,10 +95,8 @@ class GrowthDataRepository implements IGrowthDataRepository {
         childId: new mongoose.Types.ObjectId(childId),
       };
 
-      let sortField = "createdAt";
+      let sortField = "inputDate";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
-
-      if (sortBy === "date") sortField = "createdAt";
 
       const skip = (page - 1) * size;
 
@@ -118,6 +116,7 @@ class GrowthDataRepository implements IGrowthDataRepository {
             weight: 1,
             headCircumference: 1,
             armCircumference: 1,
+            growthResult: 1,
             createdAt: 1,
             updatedAt: 1,
           },
