@@ -60,7 +60,7 @@ const userModelSchema = new Schema<IUser>(
         ref: "MembershipPackage",
         default: null,
       },
-      viewChart: {
+      downloadChart: {
         counter: {
           type: Number,
           default: 0,

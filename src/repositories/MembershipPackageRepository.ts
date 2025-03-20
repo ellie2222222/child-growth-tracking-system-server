@@ -141,6 +141,44 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
             },
           },
         },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "subscription.currentPlan",
+            as: "currentUsers",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "subscription.futurePlan",
+            as: "futureUsers",
+          },
+        },
+        {
+          $addFields: {
+            totalUsage: {
+              $add: [{ $size: "$currentUsers" }, { $size: "$futureUsers" }],
+            },
+          },
+        },
+        {
+          $project: {
+            name: 1,
+            description: 1,
+            price: 1,
+            duration: 1,
+            isDeleted: 1,
+            postLimit: 1,
+            updateChildDataLimit: 1,
+            downloadChart: 1,
+            convertedPrice: 1,
+            totalUsage: 1,
+          },
+        },
+
         { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: size },

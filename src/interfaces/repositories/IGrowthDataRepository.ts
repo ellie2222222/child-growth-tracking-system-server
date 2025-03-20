@@ -11,13 +11,13 @@ export interface IGrowthDataRepository {
 
   getGrowthDataById(
     growthDataId: string,
-    isDeleted: boolean
+    ignoreDeleted: boolean
   ): Promise<IGrowthData | null>;
 
   getGrowthDataByChildId(
     childId: string,
     query: IQuery,
-    isDeleted: boolean
+    ignoreDeleted: boolean
   ): Promise<GrowthData>;
 
   getAllGrowthDataByChildId(childId: string): Promise<IGrowthData[]>;
@@ -33,5 +33,9 @@ export interface IGrowthDataRepository {
     session?: mongoose.ClientSession
   ): Promise<IGrowthData | null>;
 
-  countUserUpdateGrowthData(userId: string, start: Date, end: Date): Promise<number>;
+  countUserUpdateGrowthData(
+    userId: string,
+    start: Date,
+    end: Date
+  ): Promise<number>;
 }

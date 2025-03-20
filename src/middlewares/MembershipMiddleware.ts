@@ -6,20 +6,33 @@ import PostRepository from "../repositories/PostRepository";
 import GrowthDataRepository from "../repositories/GrowthDataRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import getLogger from "../utils/logger";
+import CustomException from "../exceptions/CustomException";
 
 const userRepository = new UserRepository();
 const postRepository = new PostRepository();
 const growthDataRepository = new GrowthDataRepository();
 const membershipPackageRepository = new MembershipPackageRepository();
+const logger = getLogger("MEMBERSHIP_MIDDLEWARE");
 
-const validateMembership = (usage: "postLimit" | "updateChildDataLimit") => {
+const validateMembership = (
+  usage: "postLimit" | "updateChildDataLimit" | "downloadChart"
+) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.userInfo.userId;
-    const user = await userRepository.getUserById(userId, false);
-    if (!user) {
+
+    if (!userId) {
       res
         .status(StatusCodeEnum.Unauthorized_401)
         .json({ message: "Unauthorized user" });
+      return;
+    }
+
+    const user = await userRepository.getUserById(userId, false);
+    if (!user) {
+      res
+        .status(StatusCodeEnum.NotFound_404)
+        .json({ message: "User not found" });
       return;
     }
 
@@ -55,41 +68,78 @@ const validateMembership = (usage: "postLimit" | "updateChildDataLimit") => {
 
       switch (usage) {
         case "postLimit": {
-          const posts = await postRepository.countPosts(
-            user._id as string,
-            user.subscription.startDate,
-            user.subscription.endDate
-          );
-          if (posts >= (mempack as IMembershipPackage)?.postLimit) {
+          try {
+            const posts = await postRepository.countPosts(
+              user._id as string,
+              user.subscription.startDate,
+              user.subscription.endDate
+            );
+            if (posts >= (mempack as IMembershipPackage)?.postLimit) {
+              res
+                .status(StatusCodeEnum.BadRequest_400)
+                .json({ message: "You have exceed current pack post limit" });
+              return;
+            }
+          } catch (error) {
             res
-              .status(StatusCodeEnum.BadRequest_400)
-              .json({ message: "You have exceed current pack post limit" });
+              .status(500)
+              .json({ message: (error as Error | CustomException).message });
             return;
           }
           break;
         }
         case "updateChildDataLimit": {
-          const growthDataCount =
-            await growthDataRepository.countUserUpdateGrowthDataByCreatedAt(
-              user._id as string,
-              user.subscription.startDate,
-              user.subscription.endDate
-            );
-          if (
-            growthDataCount >=
-            (mempack as IMembershipPackage)?.updateChildDataLimit
-          ) {
-            res.status(StatusCodeEnum.BadRequest_400).json({
-              message:
-                "You have exceed current pack children growth data update limit",
-            });
+          try {
+            const growthDataCount =
+              await growthDataRepository.countUserUpdateGrowthDataByCreatedAt(
+                user._id as string,
+                user.subscription.startDate,
+                user.subscription.endDate
+              );
+            if (
+              growthDataCount >=
+              (mempack as IMembershipPackage)?.updateChildDataLimit
+            ) {
+              res.status(StatusCodeEnum.BadRequest_400).json({
+                message:
+                  "You have exceed current pack children growth data update limit",
+              });
+              return;
+            }
+          } catch (error) {
+            res
+              .status(500)
+              .json({ message: (error as Error | CustomException).message });
             return;
           }
           break;
         }
-        default:
+        case "downloadChart":
+          try {
+            if (
+              user?.subscription?.downloadChart?.counter >=
+                (mempack as IMembershipPackage).downloadChart &&
+              new Date().getTime() < user.subscription.endDate.getTime()
+            ) {
+              res.status(StatusCodeEnum.BadRequest_400).json({
+                message: "You have exceed current pack download chart limit",
+              });
+              return;
+            }
+          } catch (error) {
+            res
+              .status(500)
+              .json({ message: (error as Error | CustomException).message });
+          }
           break;
+        default:
+          res.status(StatusCodeEnum.BadRequest_400).json({
+            message: "Unsupported case",
+          });
+          return;
       }
+    } else {
+      logger.info("Not member role, no membership validation required");
     }
     next();
   };

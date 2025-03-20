@@ -15,7 +15,15 @@ import { IConsultationRepository } from "../interfaces/repositories/IConsultatio
 import { IChildRepository } from "../interfaces/repositories/IChildRepository";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IRequestRepository } from "../interfaces/repositories/IRequestRepository";
+import sendMail from "../utils/mailer";
+import Mail from "nodemailer/lib/mailer";
+import ejs from "ejs";
+import path from "path";
 
+const emailTemplatePath = path.resolve(
+  __dirname,
+  "../templates/RequestStatus.ejs"
+);
 class RequestService implements IRequestService {
   private requestRepository: IRequestRepository;
   private userRepository: IUserRepository;
@@ -376,12 +384,88 @@ class RequestService implements IRequestService {
       }
 
       if (status === RequestStatus.Accepted) {
+        const checkUser = await this.userRepository.getUserByIdRepository(
+          request.memberId.toString()
+        );
+
+        const checkDoctor = await this.userRepository.getUserByIdRepository(
+          request.doctorId.toString()
+        );
+        if (!checkUser) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "User to notify not found"
+          );
+        }
+
+        if (!checkDoctor) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Doctor not found for user's request"
+          );
+        }
+
+        if (checkUser.email) {
+          const emailHtml = await ejs.renderFile(emailTemplatePath, {
+            status: "approved",
+            doctorName: checkDoctor.name,
+            requestTitle: request.title,
+          });
+
+          const mailOptions: Mail.Options = {
+            from: process.env.EMAIL_USER,
+            to: checkUser.email,
+            subject: `Request Status Update`,
+            html: emailHtml,
+          };
+
+          await sendMail(mailOptions);
+        }
+
         await this.consultationRepository.createConsultation(
           {
             requestId: id,
           },
           session
         );
+      } else if (status === RequestStatus.Rejected) {
+        const checkUser = await this.userRepository.getUserByIdRepository(
+          request.memberId.toString()
+        );
+
+        const checkDoctor = await this.userRepository.getUserByIdRepository(
+          request.doctorId.toString()
+        );
+        if (!checkUser) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "User to notify not found"
+          );
+        }
+
+        if (!checkDoctor) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Doctor not found for user's request"
+          );
+        }
+
+        if (checkUser.email) {
+          const emailHtml = await ejs.renderFile(emailTemplatePath, {
+            status: "rejected",
+            doctorName: checkDoctor.name,
+            requestTitle: request.title,
+          });
+
+          const mailOptions: Mail.Options = {
+            from: process.env.EMAIL_USER,
+            to: checkUser.email,
+            subject: `Request Status Update`,
+            html: emailHtml,
+          };
+
+          await sendMail(mailOptions);
+        }
       }
 
       const UpdatedRequest = await this.requestRepository.updateRequest(

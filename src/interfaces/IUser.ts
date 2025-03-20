@@ -13,18 +13,19 @@ export interface IUser extends Document {
     expiresAt: Date | null;
     isVerified: boolean;
   };
-  subscription: {
-    startDate: Date | null;
-    endDate: Date | null;
-    currentPlan: Types.ObjectId | null;
-    futurePlan: Types.ObjectId | null;
-    viewChart: {
-      counter: number;
-      lastCalled: Date;
-    };
-  };
-
+  subscription: ISubscription;
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export type ISubscription = {
+  startDate: Date | null;
+  endDate: Date | null;
+  currentPlan: Types.ObjectId | null;
+  futurePlan: Types.ObjectId | null;
+  downloadChart: {
+    counter: number;
+    lastCalled: Date;
+  };
+};

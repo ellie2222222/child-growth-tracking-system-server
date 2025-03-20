@@ -50,13 +50,18 @@ class ChildRepository implements IChildRepository {
    */
   async getChildById(
     childId: string,
-    isDeleted: boolean
+    ignoreDeleted: boolean
   ): Promise<IChild | null> {
     try {
-      const child = await ChildModel.findOne({
-        _id: childId,
-        isDeleted,
-      });
+      const query = ignoreDeleted
+        ? {
+            _id: new mongoose.Types.ObjectId(childId),
+          }
+        : {
+            _id: new mongoose.Types.ObjectId(childId),
+            isDeleted: false,
+          };
+      const child = await ChildModel.findOne(query);
       return child;
     } catch (error) {
       if (error as Error) {
@@ -81,21 +86,24 @@ class ChildRepository implements IChildRepository {
   async getChildrenByUserId(
     memberId: string,
     query: IQuery,
-    isDeleted: boolean
+    ignoreDeleted: boolean
   ): Promise<ChildrenData> {
     try {
       type SearchQuery = {
-        isDeleted: boolean;
+        isDeleted?: boolean;
         relationships?: { $elemMatch: { memberId: mongoose.Types.ObjectId } };
         name?: { $regex: string; $options: string };
       };
       const { page, size, search, order, sortBy } = query;
       const searchQuery: SearchQuery = {
-        isDeleted,
         relationships: {
           $elemMatch: { memberId: new mongoose.Types.ObjectId(memberId) },
         },
       };
+
+      if (!ignoreDeleted) {
+        searchQuery.isDeleted = false;
+      }
 
       if (search) {
         searchQuery.name = { $regex: search, $options: "i" };
