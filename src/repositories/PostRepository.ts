@@ -151,7 +151,6 @@ class PostRepository implements IPostRepository {
         },
       ]);
 
-      console.log(Posts);
       const totalPost = await PostModel.countDocuments(searchQuery);
 
       return {
@@ -178,7 +177,6 @@ class PostRepository implements IPostRepository {
     session?: mongoose.ClientSession
   ): Promise<IPost> {
     try {
-      console.log(id);
       const post = await PostModel.findOneAndUpdate(
         {
           _id: new mongoose.Types.ObjectId(id as string),

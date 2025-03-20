@@ -63,24 +63,24 @@ class GrowthDataService implements IGrowthDataService {
     measurement: number,
     percentiles: Array<{ percentile: number; value: number }>
   ): number {
-    // If the measurement is below or equal to the lowest recorded value,
-    // return the lowest percentile.
+   
+   
     if (measurement <= percentiles[0].value) return percentiles[0].percentile;
 
-    // If the measurement is above or equal to the highest recorded value,
-    // return the highest percentile.
+   
+   
     if (measurement >= percentiles[percentiles.length - 1].value)
       return percentiles[percentiles.length - 1].percentile;
 
-    // Otherwise, find the two values between which the measurement falls.
+   
     for (let i = 0; i < percentiles.length - 1; i++) {
       const lower = percentiles[i];
       const upper = percentiles[i + 1];
       if (measurement >= lower.value && measurement <= upper.value) {
-        // Calculate the relative position of the measurement between the two points.
+       
         const fraction =
           (measurement - lower.value) / (upper.value - lower.value);
-        // Interpolate between the two percentiles.
+       
         const result =
           lower.percentile + fraction * (upper.percentile - lower.percentile);
         return Math.round(result * 100) / 100;
@@ -138,7 +138,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Check if user is associated with the child in relationships
+     
       const isRelated = child.relationships.some(
         (relationship) => relationship.memberId.toString() === requesterId
       );
@@ -150,7 +150,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Handle input date collision
+     
       const childGrowthData =
         await this.growthDataRepository.getAllGrowthDataByChildId(
           child._id as string
@@ -173,7 +173,7 @@ class GrowthDataService implements IGrowthDataService {
       const growthResult = await this.generateGrowthResult(growthData, child);
       growthData.growthResult = growthResult;
 
-      // Growth data creation
+     
       growthData.childId = new mongoose.Types.ObjectId(childId);
       const createdGrowthData =
         await this.growthDataRepository.createGrowthData(growthData, session);
@@ -221,7 +221,7 @@ class GrowthDataService implements IGrowthDataService {
     growthData: Partial<IGrowthData>,
     child: IChild
   ): Promise<Partial<IGrowthResult>> => {
-    // Get conversion rate
+   
     const conversionRate = await this.configRepository.getConfig(
       "WHO_MONTH_TO_DAY_CONVERSION_RATE"
     );
@@ -233,7 +233,7 @@ class GrowthDataService implements IGrowthDataService {
     }
     const cvValue = parseFloat(conversionRate.value);
 
-    // Generate growth data result
+   
     const today = new Date(growthData.inputDate as Date).getTime();
     const birth = new Date(child.birthDate).getTime();
 
@@ -504,17 +504,17 @@ class GrowthDataService implements IGrowthDataService {
       );
 
       try {
-        // Fetch users in parallel
+       
         const users = await Promise.all(
           userIds.map((userId) =>
             this.userRepository.getUserById(userId.toString(), false)
           )
         );
 
-        // Filter out non-existent users
+       
         const validUsers = users.filter((user) => user !== null);
 
-        // Prepare emails
+       
         const emailPromises = validUsers.map((user) => {
           const mailOptions: Mail.Options = {
             from: process.env.EMAIL_USER,
@@ -525,7 +525,7 @@ class GrowthDataService implements IGrowthDataService {
           return sendMail(mailOptions);
         });
 
-        // Send all emails concurrently
+       
         await Promise.all(emailPromises);
       } catch (error) {
         const logger = getLogger("ABNORMAL GROWTH RESULT");
@@ -541,7 +541,7 @@ class GrowthDataService implements IGrowthDataService {
     birthDate: Date,
     gender: 0 | 1
   ): Promise<Partial<IGrowthResult>> => {
-    // Get conversion rate
+   
     const conversionRate = await this.configRepository.getConfig(
       "WHO_MONTH_TO_DAY_CONVERSION_RATE"
     );
@@ -553,7 +553,7 @@ class GrowthDataService implements IGrowthDataService {
     }
     const cvValue = parseFloat(conversionRate.value);
 
-    // Generate growth data result
+   
     const today = new Date(growthData.inputDate as Date).getTime();
     const birth = new Date(birthDate).getTime();
 
@@ -814,7 +814,7 @@ class GrowthDataService implements IGrowthDataService {
       const requesterId = requesterInfo.userId;
       const requesterRole = requesterInfo.role;
 
-      // Check user existence
+     
       const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
         throw new CustomException(
@@ -823,7 +823,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Get growth data with conditions
+     
       let growthData: IGrowthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
@@ -854,7 +854,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Get child data
+     
       const child: IChild | null = await this.childRepository.getChildById(
         growthData.childId.toString(),
         false
@@ -866,7 +866,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Check if user is associated with the child in relationships
+     
       const isRelated = child.relationships.some(
         (relationship) => relationship.memberId.toString() === requesterId
       );
@@ -909,7 +909,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Get child data
+     
       const child: IChild | null = await this.childRepository.getChildById(
         childId.toString(),
         false
@@ -921,7 +921,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Check if user is associated with the child in relationships
+     
       const isRelated = child.relationships.some(
         (relationship) => relationship.memberId.toString() === requesterId
       );
@@ -933,7 +933,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Get conversion rate
+     
       const conversionRate = await this.configRepository.getConfig(
         "WHO_MONTH_TO_DAY_CONVERSION_RATE"
       );
@@ -945,7 +945,7 @@ class GrowthDataService implements IGrowthDataService {
       }
       const cvValue = parseFloat(conversionRate.value);
 
-      // Generate growth data result
+     
       const today = new Date().getTime();
       const birth = new Date(child.birthDate).getTime();
 
@@ -954,16 +954,16 @@ class GrowthDataService implements IGrowthDataService {
 
       const ageInDays = Math.round(diffInDays);
 
-      // Generate growth velocity by child ID
+     
       const oneMonthIncrementData: IGrowthVelocity[] = [];
       if (ageInDays >= cvValue) {
-        // Retrieve growth velocity intervals
+       
         const growthVelocityData: IGrowthVelocity[] =
           await this.growthMetricsRepository.getGrowthVelocityData(
             child.gender
           );
 
-        // Filter into 1-month increments
+       
         let counter = 2;
 
         for (const data of growthVelocityData) {
@@ -988,14 +988,14 @@ class GrowthDataService implements IGrowthDataService {
           }
         }
       }
-      // Calculate growth velocity for each interval
+     
       const results = await this.calculateGrowthVelocity(
         child,
         oneMonthIncrementData,
         cvValue
       );
 
-      // Update child
+     
       const updateData: Partial<IChild> = {
         growthVelocityResult: results as IGrowthVelocityResult[],
       };
@@ -1021,11 +1021,11 @@ class GrowthDataService implements IGrowthDataService {
     const results: Partial<IGrowthVelocityResult>[] = [];
 
     for (const interval of oneMonthIncrementData) {
-      // Convert interval to days relative to birth date
+     
       const startDays = interval.firstInterval.inDays;
       const endDays = interval.lastInterval.inDays;
 
-      // Find closest growth data points
+     
       const startData = this.findClosestGrowthData(
         growthData,
         startDays,
@@ -1061,12 +1061,12 @@ class GrowthDataService implements IGrowthDataService {
         continue;
       }
 
-      // Calculate time difference in months
+     
       const timeDiffMonths =
         (endData.inputDate.getTime() - startData.inputDate.getTime()) /
         (conversionRate * 86400000);
 
-      // Calculate velocities
+     
       const heightVelocity = this.calculateMetricVelocity(
         startData.height,
         endData.height,
@@ -1083,7 +1083,7 @@ class GrowthDataService implements IGrowthDataService {
         timeDiffMonths
       );
 
-      // Determine percentiles
+     
       const heightPercentile =
         heightVelocity !== null
           ? this.getPercentile(heightVelocity, interval.percentiles.values)
@@ -1100,7 +1100,7 @@ class GrowthDataService implements IGrowthDataService {
             )
           : null;
 
-      // Construct descriptions
+     
       const formatPercentile = (percentile: number) =>
         percentile % 1 === 0 ? `${percentile}` : percentile.toFixed(2);
 
@@ -1178,7 +1178,7 @@ class GrowthDataService implements IGrowthDataService {
 
     for (const data of growthData) {
       if (!(data.inputDate instanceof Date)) {
-        data.inputDate = new Date(data.inputDate); // Ensure it's a Date object
+        data.inputDate = new Date(data.inputDate);
       }
 
       const dataDays = Math.floor(
@@ -1188,7 +1188,7 @@ class GrowthDataService implements IGrowthDataService {
       const diff = Math.abs(dataDays - targetDays);
 
       if (diff < minDiff) {
-        // Removed diff <= 1 to avoid missing better matches
+       
         closestData = data;
         minDiff = diff;
       }
@@ -1202,7 +1202,7 @@ class GrowthDataService implements IGrowthDataService {
     endValue: number,
     timeDiffMonths: number
   ): number | null => {
-    if (timeDiffMonths <= 0) return null; // Invalid interval
+    if (timeDiffMonths <= 0) return null;
     return (endValue - startValue) / timeDiffMonths;
   };
 
@@ -1241,7 +1241,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Get growthData with conditions
+     
       let growthData: GrowthData;
       switch (requesterRole) {
         case UserEnum.ADMIN:
@@ -1268,7 +1268,7 @@ class GrowthDataService implements IGrowthDataService {
           );
       }
 
-      // Get child data
+     
       const child: IChild | null = await this.childRepository.getChildById(
         childId.toString(),
         false
@@ -1280,7 +1280,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Check if user is associated with the child in relationships
+     
       const isRelated = child.relationships.some(
         (relationship) => relationship.memberId.toString() === requesterId
       );
@@ -1323,7 +1323,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Get growthData with conditions
+     
       let growthData: IGrowthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
@@ -1356,7 +1356,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Get child data
+     
       const child: IChild | null = await this.childRepository.getChildById(
         growthData.childId.toString(),
         false
@@ -1368,7 +1368,7 @@ class GrowthDataService implements IGrowthDataService {
         );
       }
 
-      // Check if user is associated with the child in relationships
+     
       const isRelated = child.relationships.some(
         (relationship) => relationship.memberId.toString() === requesterId
       );
@@ -1416,13 +1416,10 @@ class GrowthDataService implements IGrowthDataService {
       const requesterRole = requesterInfo.role;
       const user = await this.userRepository.getUserById(requesterId, false);
       if (!user) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "User not found"
-        );
+        throw new CustomException(StatusCodeEnum.NotFound_404, "User not found");
       }
-
-      // Get growthData with conditions
+  
+     
       let growthData: IGrowthData | null = null;
       switch (requesterRole) {
         case UserEnum.ADMIN:
@@ -1431,17 +1428,17 @@ class GrowthDataService implements IGrowthDataService {
             true
           );
           break;
-
+  
         case UserEnum.MEMBER:
           growthData = await this.growthDataRepository.getGrowthDataById(
             growthDataId,
             false
           );
           break;
-
+  
         case UserEnum.DOCTOR:
           throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
-
+  
         default:
           throw new CustomException(
             StatusCodeEnum.NotFound_404,
@@ -1454,70 +1451,75 @@ class GrowthDataService implements IGrowthDataService {
           "Growth data not found"
         );
       }
-
-      // Get child data
+  
+     
       const child: IChild | null = await this.childRepository.getChildById(
         growthData.childId.toString(),
         false
       );
       if (!child) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Child not found"
-        );
+        throw new CustomException(StatusCodeEnum.NotFound_404, "Child not found");
       }
-
-      // Check if user is associated with the child in relationships
+  
+     
       const isRelated = child.relationships.some(
         (relationship) => relationship.memberId.toString() === requesterId
       );
-
+  
       if (!isRelated && requesterRole === UserEnum.MEMBER) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Growth data not found"
         );
       }
-
-      // Handle input date collision
-      const childGrowthData =
-        await this.growthDataRepository.getAllGrowthDataByChildId(
-          child._id as string
-        );
-
-      childGrowthData.forEach((data) => {
-        if (
-          updateData.inputDate &&
-          data.inputDate &&
-          new Date(updateData.inputDate).getTime() ===
-            new Date(data.inputDate).getTime()
-        ) {
-          throw new CustomException(
-            StatusCodeEnum.Conflict_409,
-            "Growth data of this date already exists. Try another input date or update existing growth data"
-          );
+  
+     
+      if (updateData.inputDate) {
+        const oldInputDate = growthData.inputDate
+          ? new Date(growthData.inputDate).getTime()
+          : null;
+        const newInputDate = new Date(updateData.inputDate).getTime();
+  
+       
+        if (oldInputDate !== newInputDate) {
+          const childGrowthData =
+            await this.growthDataRepository.getAllGrowthDataByChildId(
+              child._id as string
+            );
+  
+          childGrowthData.forEach((data: IGrowthData) => {
+            if (
+              (data._id as string).toString() !== growthDataId &&
+              data.inputDate &&
+              new Date(data.inputDate).getTime() === newInputDate
+            ) {
+              throw new CustomException(
+                StatusCodeEnum.Conflict_409,
+                "Growth data of this date already exists. Try another input date or update existing growth data"
+              );
+            }
+          });
         }
-      });
-
-      // Generate new result
+      }
+  
+     
       const growthResult = await this.generateGrowthResult(growthData, child);
       growthData.growthResult = growthResult;
-
-      // Update
-      const updatedGrowthData =
-        await this.growthDataRepository.updateGrowthData(
-          growthDataId,
-          updateData,
-          session
-        );
-
+  
+     
+      const updatedGrowthData = await this.growthDataRepository.updateGrowthData(
+        growthDataId,
+        updateData,
+        session
+      );
+  
       if (!updatedGrowthData) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Growth data not found or cannot be updated"
         );
       }
-
+  
       await this.database.commitTransaction(session);
       return updatedGrowthData;
     } catch (error) {
