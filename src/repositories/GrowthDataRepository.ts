@@ -89,7 +89,7 @@ class GrowthDataRepository implements IGrowthDataRepository {
         childId: mongoose.Types.ObjectId;
         isDeleted?: boolean;
       };
-      const { page, size, order, sortBy } = query;
+      const { page, size, order } = query;
       const searchQuery: SearchQuery = ignoreDeleted
         ? {
             childId: new mongoose.Types.ObjectId(childId),
@@ -103,6 +103,7 @@ class GrowthDataRepository implements IGrowthDataRepository {
 
       const growthData = await GrowthDataModel.aggregate([
         { $match: searchQuery },
+        { $sort: { [sortField]: sortOrder } },
         {
           $skip: skip,
         },
@@ -122,7 +123,6 @@ class GrowthDataRepository implements IGrowthDataRepository {
             updatedAt: 1,
           },
         },
-        { $sort: { [sortField]: sortOrder } },
       ]);
 
       const totalGrowthData = await GrowthDataModel.countDocuments(searchQuery);
