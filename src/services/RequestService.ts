@@ -374,6 +374,12 @@ class RequestService implements IRequestService {
                 "You do not have access to perform this action"
               );
             }
+            if ([RequestStatus.Accepted].includes(status)) {
+              throw new CustomException(
+                StatusCodeEnum.Forbidden_403,
+                "You can't cancel an accepted request"
+              );
+            }
             break;
           default:
             throw new CustomException(

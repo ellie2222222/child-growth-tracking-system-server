@@ -7,5 +7,5 @@ export const vnpayConfig = {
   vnp_HashSecret: process.env.VNP_HASHSECRET as string,
   vnp_Url: "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html",
   vnp_Api: "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction",
-  vnp_ReturnUrl: `http://10.0.2.2:4000/api/payments/vnpay/callback`,
+  vnp_ReturnUrl: `http://localhost:4000/api/payments/vnpay/callback`,
 };
