@@ -51,6 +51,48 @@ class StatisticHandler {
       next();
     }
   };
+
+  getNewUsers = async (req: Request, res: Response, next: NextFunction) => {
+    const validationErrors: { field: string; error: string }[] = [];
+
+    const { time, value } = req.query;
+
+    if (!time) {
+      validationErrors.push({ field: "time", error: "time is required" });
+    }
+
+    if (!["DAY", "WEEK", "MONTH", "YEAR"].includes(time as string)) {
+      validationErrors.push({ field: "time", error: "Invalid time" });
+    }
+
+    if (value) {
+      if (isNaN(parseInt(value as string))) {
+        validationErrors.push({ field: "value", error: "Invalid value" });
+      }
+
+      if (
+        time === "YEAR" &&
+        parseInt(value as string) > new Date().getFullYear()
+      ) {
+        validationErrors.push({ field: "value", error: "Invalid year" });
+      }
+
+      if (
+        time === "MONTH" &&
+        (parseInt(value as string) < 1 || parseInt(value as string) > 12)
+      ) {
+        validationErrors.push({ field: "value", error: "Invalid month" });
+      }
+    }
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
+      next();
+    }
+  };
 }
 
 export default StatisticHandler;

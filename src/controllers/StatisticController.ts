@@ -32,6 +32,28 @@ class StatisticController {
       next(error);
     }
   };
+
+  getNewUsers = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { time, value } = req.query;
+
+      const newUsers = await this.statisticService.getNewUsers(
+        time as string,
+        parseInt(value as string)
+      );
+
+      res.status(200).json({
+        NewUsers: newUsers,
+        message: "Get new users successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default StatisticController;

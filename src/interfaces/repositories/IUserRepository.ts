@@ -33,5 +33,6 @@ export interface IUserRepository {
     role?: number | Array<number>
   ): Promise<returnData>;
 
-  getUserChildrenIds: (userId: string) => Promise<Types.ObjectId[]>;
+  getUserChildrenIds(userId: string): Promise<Types.ObjectId[]>;
+  getAllUsersTimeInterval(startDate: Date, endDate: Date): Promise<IUser[]>;
 }

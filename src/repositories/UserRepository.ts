@@ -584,6 +584,26 @@ class UserRepository implements IUserRepository {
       );
     }
   }
+
+  async getAllUsersTimeInterval(
+    startDate: Date,
+    endDate: Date
+  ): Promise<IUser[]> {
+    try {
+      const users = await UserModel.find({
+        createdAt: { $gte: startDate, $lte: endDate },
+      }).lean();
+      return users || [];
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
 }
 
 export default UserRepository;

@@ -1,4 +1,4 @@
-import { IRevenue } from "../../services/StatisticService";
+import { INewUsers, IRevenue } from "../../services/StatisticService";
 
 export interface IStatisticService {
   getRevenue: (
@@ -6,4 +6,6 @@ export interface IStatisticService {
     unit: string,
     value?: number
   ) => Promise<IRevenue[]>;
+
+  getNewUsers: (time: string, value?: number) => Promise<INewUsers[]>;
 }
