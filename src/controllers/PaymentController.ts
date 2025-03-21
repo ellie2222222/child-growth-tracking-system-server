@@ -161,7 +161,7 @@ class PaymentController {
         bankCode,
         purchaseType
       );
-      res.status(200).json({ url: vnpUrl });
+      res.status(200).json({ link: vnpUrl });
     } catch (error) {
       next(error);
     }

@@ -87,15 +87,25 @@ class PaymentService implements IPaymentService {
           }
           break;
 
-        case "VND":
-          if (price * 25000 !== testPackage.price.value) {
-            console.log(price, typeof price, testPackage);
+        case "VND": {
+          const convertedPrice = parseFloat((price * 25000).toFixed(2));
+          const expectedPrice = parseFloat(testPackage.price.value.toFixed(2));
+
+          if (Math.abs(convertedPrice - expectedPrice) > 25000) {
+            // ±25,000 VND
+            console.log(
+              "Converted:",
+              convertedPrice,
+              "Expected:",
+              expectedPrice
+            );
             throw new CustomException(
               StatusCodeEnums.BadRequest_400,
               "Price mismatch, please check the item's price"
             );
           }
           break;
+        }
 
         default:
           break;
@@ -138,7 +148,10 @@ class PaymentService implements IPaymentService {
 
       switch (testPackage.price.unit) {
         case "USD":
-          if (price !== testPackage.price.value * 25000) {
+          if (
+            parseFloat(price.toFixed(2)) !==
+            parseFloat((testPackage.price.value * 25000).toFixed(2))
+          ) {
             throw new CustomException(
               StatusCodeEnums.BadRequest_400,
               "Price mismatch, please check the item's price"
