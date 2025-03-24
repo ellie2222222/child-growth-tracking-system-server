@@ -1,15 +1,30 @@
 import mongoose, { ClientSession, ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import MembershipModel from "../models/MembershipPackage";
+import MembershipModel from "../models/MembershipPackageModel";
 import { IQuery } from "../interfaces/IQuery";
+import UserModel from "../models/UserModel";
+import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 
-class MembershipPackageRepository {
+export type ReturnDataMembershipPackages = {
+  packages: IMembershipPackage[];
+  page: number;
+  totalPackages: number;
+  totalPages: number;
+};
+
+class MembershipPackageRepository implements IMembershipPackageRepository {
   constructor() {}
-  async createMembershipPackage(data: object, session?: ClientSession) {
+  async createMembershipPackage(
+    data: object,
+    session?: ClientSession
+  ): Promise<IMembershipPackage> {
     try {
-      const mempackage = await MembershipModel.create([data], { session });
-      return mempackage;
+      const membershipPackage = await MembershipModel.create([data], {
+        session,
+      });
+      return membershipPackage[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -21,7 +36,10 @@ class MembershipPackageRepository {
     }
   }
 
-  async getMembershipPackage(id: string | ObjectId, ignoreDeleted: boolean) {
+  async getMembershipPackage(
+    id: string | ObjectId,
+    ignoreDeleted: boolean
+  ): Promise<IMembershipPackage | null> {
     try {
       type searchQuery = {
         _id: mongoose.Types.ObjectId;
@@ -38,16 +56,16 @@ class MembershipPackageRepository {
         searchQuery.isDeleted = false;
       }
 
-      const mempackage = await MembershipModel.findOne(searchQuery);
-      // console.log("data:", mempackage);
+      const membershipPackage = await MembershipModel.findOne(searchQuery);
+      // console.log("data:", membershipPackage);
 
-      if (!mempackage) {
+      if (!membershipPackage) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Membership Package not found"
         );
       }
-      return mempackage;
+      return membershipPackage;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -59,7 +77,10 @@ class MembershipPackageRepository {
     }
   }
 
-  async getMembershipPackages(query: IQuery, ignoreDeleted: boolean) {
+  async getMembershipPackages(
+    query: IQuery,
+    ignoreDeleted: boolean
+  ): Promise<ReturnDataMembershipPackages> {
     const { page, size, search, order, sortBy } = query;
 
     type searchQuery = {
@@ -77,6 +98,21 @@ class MembershipPackageRepository {
     }
 
     let sortField = "createdAt";
+    switch (sortBy) {
+      case "date":
+        sortField = "createdAt";
+        break;
+
+      case "name":
+        sortField = "name";
+        break;
+
+      case "price":
+        sortField = "convertedPrice";
+        break;
+      default:
+        break;
+    }
     if (sortBy === "date") sortField = "createdAt";
     const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
     const skip = (page - 1) * size;
@@ -86,22 +122,73 @@ class MembershipPackageRepository {
         {
           $match: searchQuery,
         },
+        {
+          $addFields: {
+            convertedPrice: {
+              $switch: {
+                branches: [
+                  {
+                    case: { $eq: ["$price.unit", "USD"] }, // Changed 'currency' to 'unit'
+                    then: { $multiply: ["$price.value", 25000] },
+                  },
+                  {
+                    case: { $eq: ["$price.unit", "VND"] }, // Changed 'currency' to 'unit'
+                    then: "$price.value",
+                  },
+                ],
+                default: 0,
+              },
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "subscription.currentPlan",
+            as: "currentUsers",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "subscription.futurePlan",
+            as: "futureUsers",
+          },
+        },
+        {
+          $addFields: {
+            totalUsage: {
+              $add: [{ $size: "$currentUsers" }, { $size: "$futureUsers" }],
+            },
+          },
+        },
+        {
+          $project: {
+            name: 1,
+            description: 1,
+            price: 1,
+            duration: 1,
+            isDeleted: 1,
+            postLimit: 1,
+            updateChildDataLimit: 1,
+            convertedPrice: 1,
+            totalUsage: 1,
+          },
+        },
+
+        { $sort: { [sortField]: sortOrder } },
         { $skip: skip },
         { $limit: size },
-        { $sort: { [sortField]: sortOrder } },
       ]);
 
       const totalMembershipPackages = await MembershipModel.countDocuments(
         searchQuery
       );
-      if (membershipPackages.length === 0) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "Membership Packages not found"
-        );
-      }
+
       return {
-        Packages: membershipPackages,
+        packages: membershipPackages || [],
         page,
         totalPackages: totalMembershipPackages,
         totalPages: Math.ceil(totalMembershipPackages / size),
@@ -116,12 +203,15 @@ class MembershipPackageRepository {
       );
     }
   }
+
   async updateMembershipPackage(
     id: string | ObjectId,
     data: object,
     session?: ClientSession
-  ) {
+  ): Promise<IMembershipPackage> {
     try {
+      await this.checkMembershipInUsers(id);
+
       const membershipPackage = await MembershipModel.findOneAndUpdate(
         {
           _id: new mongoose.Types.ObjectId(id as string),
@@ -148,11 +238,13 @@ class MembershipPackageRepository {
       );
     }
   }
+
   async deleteMembershipPackage(
     id: string | ObjectId,
     session?: ClientSession
-  ) {
+  ): Promise<boolean> {
     try {
+      await this.checkMembershipInUsers(id);
       const membershipPackage = await MembershipModel.findOneAndUpdate(
         {
           _id: new mongoose.Types.ObjectId(id as string),
@@ -169,6 +261,60 @@ class MembershipPackageRepository {
         );
       }
       return true;
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async checkMembershipInUsers(membershipId: string | ObjectId): Promise<void> {
+    try {
+      const user = await UserModel.findOne({
+        $or: [
+          {
+            "subscription.currentPlan": new mongoose.Types.ObjectId(
+              membershipId as string
+            ),
+          },
+          {
+            "subscription.futurePlan": new mongoose.Types.ObjectId(
+              membershipId as string
+            ),
+          },
+        ],
+        isDeleted: false,
+      });
+
+      if (user) {
+        throw new CustomException(
+          StatusCodeEnum.Conflict_409,
+          "This membership package is currently in use by some user"
+        );
+      }
+    } catch (error) {
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async getMembershipByName(name: string): Promise<IMembershipPackage | null> {
+    try {
+      const membershipPackage = await MembershipModel.findOne({
+        name: { $eq: name },
+        isDeleted: false,
+      });
+
+      return membershipPackage;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;

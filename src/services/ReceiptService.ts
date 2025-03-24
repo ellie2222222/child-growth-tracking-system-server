@@ -2,23 +2,33 @@ import mongoose, { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import { IReceipt } from "../interfaces/IReceipt";
-import ReceiptRepository from "../repositories/ReceiptRepository";
+import { ReturnDataReceipts } from "../repositories/ReceiptRepository";
 import Database from "../utils/database";
-import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+// import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
+// import ReceiptRepository from "../repositories/ReceiptRepository";
+// import UserRepository from "../repositories/UserRepository";
 import UserEnum from "../enums/UserEnum";
-import UserRepository from "../repositories/UserRepository";
+import { IQuery } from "../interfaces/IQuery";
+import { IReceiptService } from "../interfaces/services/IReceiptService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
+import { IReceiptRepository } from "../interfaces/repositories/IReceiptRepository";
 
-class ReceiptService {
+class ReceiptService implements IReceiptService {
+  private receiptRepository: IReceiptRepository;
+  private membershipPackageRepository: IMembershipPackageRepository;
+  private userRepository: IUserRepository;
   private database: Database;
-  private receiptRepository: ReceiptRepository;
-  private membershipPackageRepository: MembershipPackageRepository;
-  private userRepository: UserRepository;
 
-  constructor() {
-    this.receiptRepository = new ReceiptRepository();
+  constructor(
+    receiptRepository: IReceiptRepository,
+    membershipPackageRepository: IMembershipPackageRepository,
+    userRepository: IUserRepository
+  ) {
+    this.receiptRepository = receiptRepository;
+    this.membershipPackageRepository = membershipPackageRepository;
+    this.userRepository = userRepository;
     this.database = Database.getInstance();
-    this.membershipPackageRepository = new MembershipPackageRepository();
-    this.userRepository = new UserRepository();
   }
 
   createReceipt = async (
@@ -43,16 +53,12 @@ class ReceiptService {
           "Membership Package Not Found"
         );
       }
-      const product = {
-        name: mempack.name,
-        description: mempack.description,
-        id: mempack._id,
-      };
+
       const data = {
         userId,
         transactionId,
         totalAmount,
-        product,
+        packageId: mempack._id,
         paymentMethod,
         paymentGateway,
         type,
@@ -74,7 +80,10 @@ class ReceiptService {
     }
   };
 
-  getAllReceipts = async (requesterId: string): Promise<IReceipt[]> => {
+  getAllReceipts = async (
+    query: IQuery,
+    requesterId: string
+  ): Promise<ReturnDataReceipts> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -87,12 +96,11 @@ class ReceiptService {
           "Requester not found"
         );
       }
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
         ignoreDeleted = true;
       }
       const receipts = await this.receiptRepository.getAllReceipt(
+        query,
         ignoreDeleted
       );
       return receipts;
@@ -108,9 +116,10 @@ class ReceiptService {
   };
 
   getReceiptsByUserId = async (
+    query: IQuery,
     userId: string | mongoose.Types.ObjectId,
     requesterId: string | mongoose.Types.ObjectId
-  ): Promise<IReceipt[]> => {
+  ): Promise<ReturnDataReceipts> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -123,14 +132,18 @@ class ReceiptService {
           "Requester not found"
         );
       }
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
         ignoreDeleted = true;
       }
+      if (!ignoreDeleted && requesterId.toString() !== userId.toString()) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not view other people's receipts"
+        );
+      }
       const receipts = await this.receiptRepository.getReceiptsByUserId(
+        query,
         userId,
-        requesterId,
         ignoreDeleted
       );
       return receipts;
@@ -148,7 +161,7 @@ class ReceiptService {
   getReceiptById = async (
     id: string | mongoose.Types.ObjectId,
     requesterId: string | mongoose.Types.ObjectId
-  ) => {
+  ): Promise<IReceipt | null> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -161,15 +174,12 @@ class ReceiptService {
           "Requester not found"
         );
       }
-      if (
-        [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(checkRequester?.role)
-      ) {
+      if ([UserEnum.ADMIN].includes(checkRequester?.role)) {
         ignoreDeleted = true;
       }
 
       const receipt = await this.receiptRepository.getReceiptById(
         id,
-        requesterId,
         ignoreDeleted
       );
       return receipt;
@@ -187,10 +197,10 @@ class ReceiptService {
   deleteReceipt = async (
     id: mongoose.Types.ObjectId | string,
     requesterId: mongoose.Types.ObjectId | string
-  ) => {
+  ): Promise<IReceipt | null> => {
     const session = await this.database.startTransaction();
     try {
-      const receipt = await this.receiptRepository.deleteRecepitById(
+      const receipt = await this.receiptRepository.deleteReceiptById(
         id,
         requesterId,
         session

@@ -3,7 +3,8 @@ import getLogger from "./logger";
 import Mail from "nodemailer/lib/mailer";
 const logger = getLogger("MAIL");
 
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
 const sendMail = async (mailOptions: Mail.Options): Promise<void> => {
   try {
@@ -17,7 +18,7 @@ const sendMail = async (mailOptions: Mail.Options): Promise<void> => {
       },
     });
 
-    const options: Mail.Options  = {
+    const options: Mail.Options = {
       from: process.env.EMAIL_USER,
       to: mailOptions.to,
       subject: mailOptions.subject,
@@ -25,8 +26,7 @@ const sendMail = async (mailOptions: Mail.Options): Promise<void> => {
       html: mailOptions.html,
     };
 
-    const info = await transporter
-      .sendMail(options);
+    const info = await transporter.sendMail(options);
     logger.info(`Email sent: ${info.response}`);
 
     transporter.verify(function (error, success) {

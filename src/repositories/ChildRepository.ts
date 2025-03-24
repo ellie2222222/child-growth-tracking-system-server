@@ -4,6 +4,7 @@ import { IChild } from "../interfaces/IChild";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { IChildRepository } from "../interfaces/repositories/IChildRepository";
 
 export type ChildrenData = {
   children: IChild[];
@@ -12,7 +13,7 @@ export type ChildrenData = {
   totalPages: number;
 };
 
-class ChildRepository {
+class ChildRepository implements IChildRepository {
   /**
    * Create a new child entry.
    * @param childData - Object containing child details adhering to IChild.
@@ -28,16 +29,16 @@ class ChildRepository {
       const result = await ChildModel.create([childData], { session });
       return result[0];
     } catch (error) {
-        if ((error as Error) || (error as CustomException)) {
-            throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            `Failed to create child: ${(error as Error).message}`
-            );
-        }
+      if ((error as Error) || (error as CustomException)) {
         throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            "Internal Server Error"
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to create child: ${(error as Error).message}`
         );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -47,21 +48,32 @@ class ChildRepository {
    * @returns The child document or null if not found.
    * @throws CustomException when retrieval fails.
    */
-  async getChildById(childId: string, isDeleted: boolean): Promise<IChild | null> {
+  async getChildById(
+    childId: string,
+    ignoreDeleted: boolean
+  ): Promise<IChild | null> {
     try {
-      const child = await ChildModel.findOne({ _id: childId, isDeleted });
+      const query = ignoreDeleted
+        ? {
+            _id: new mongoose.Types.ObjectId(childId),
+          }
+        : {
+            _id: new mongoose.Types.ObjectId(childId),
+            isDeleted: false,
+          };
+      const child = await ChildModel.findOne(query);
       return child;
     } catch (error) {
-        if ((error as Error) || (error as CustomException)) {
-            throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            `Failed to retrieve child: ${(error as Error).message}`
-            );
-        }
+      if (error as Error) {
         throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            "Internal Server Error"
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to retrieve child: ${(error as Error).message}`
         );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -71,18 +83,27 @@ class ChildRepository {
    * @returns A list of child documents.
    * @throws CustomException when retrieval fails.
    */
-  async getChildrenByUserId(memberId: string, query: IQuery, isDeleted: boolean): Promise<ChildrenData> {
+  async getChildrenByUserId(
+    memberId: string,
+    query: IQuery,
+    ignoreDeleted: boolean
+  ): Promise<ChildrenData> {
     try {
       type SearchQuery = {
-        isDeleted: boolean;
+        isDeleted?: boolean;
         relationships?: { $elemMatch: { memberId: mongoose.Types.ObjectId } };
         name?: { $regex: string; $options: string };
       };
       const { page, size, search, order, sortBy } = query;
       const searchQuery: SearchQuery = {
-        isDeleted,
-        relationships: { $elemMatch: { memberId: new mongoose.Types.ObjectId(memberId) } },
+        relationships: {
+          $elemMatch: { memberId: new mongoose.Types.ObjectId(memberId) },
+        },
       };
+
+      if (!ignoreDeleted) {
+        searchQuery.isDeleted = false;
+      }
 
       if (search) {
         searchQuery.name = { $regex: search, $options: "i" };
@@ -110,6 +131,10 @@ class ChildRepository {
             birthDate: 1,
             note: 1,
             relationships: 1,
+            feedingType: 1,
+            allergies: 1,
+            createdAt: 1,
+            updatedAt: 1,
           },
         },
         { $sort: { [sortField]: sortOrder } },
@@ -124,16 +149,16 @@ class ChildRepository {
         totalPages: Math.ceil(totalChildren / size),
       };
     } catch (error) {
-        if ((error as Error) || (error as CustomException)) {
-            throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            `Failed to retrieve children by user ID: ${(error as Error).message}`
-            );
-        }
+      if (error as Error) {
         throw new CustomException(
-            StatusCodeEnum.InternalServerError_500,
-            "Internal Server Error"
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to retrieve children by user ID: ${(error as Error).message}`
         );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
     }
   }
 
@@ -156,9 +181,10 @@ class ChildRepository {
         { $set: updateData },
         { new: true, session, runValidators: true }
       ).exec();
+
       return updatedChild;
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
           `Failed to update child: ${(error as Error).message}`
@@ -190,7 +216,30 @@ class ChildRepository {
       ).exec();
       return deletedChild;
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
+      if (error as Error) {
+        throw new CustomException(
+          StatusCodeEnum.InternalServerError_500,
+          `Failed to delete child: ${(error as Error).message}`
+        );
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async countUserChildren(userId: string) {
+    try {
+      const count = await ChildModel.countDocuments({
+        relationships: {
+          $elemMatch: { memberId: new mongoose.Types.ObjectId(userId) },
+        },
+      });
+
+      return count;
+    } catch (error) {
+      if (error as Error) {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,
           `Failed to delete child: ${(error as Error).message}`

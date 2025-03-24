@@ -1,12 +1,15 @@
 import { NextFunction, Request, Response } from "express";
-import CommentService from "../services/CommentService";
+// import CommentService from "../services/CommentService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { ICommentService } from "../interfaces/services/ICommentService";
 
 class CommentController {
-  private commentService: CommentService;
-  constructor() {
-    this.commentService = new CommentService();
+  private commentService: ICommentService;
+
+  constructor(commentService: ICommentService) {
+    this.commentService = commentService;
   }
+
   createComment = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { postId, content } = req.body;

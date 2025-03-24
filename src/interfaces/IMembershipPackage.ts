@@ -11,5 +11,6 @@ export interface IMembershipPackage extends IBaseEntity {
     unit: "DAY";
     value: number;
   };
-  tier: number;
+  postLimit: number;
+  updateChildDataLimit: number;
 }

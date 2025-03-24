@@ -32,24 +32,13 @@ const userModelSchema = new Schema<IUser>(
     password: {
       type: String,
     },
-
-    isActive: {
+    isDeleted: {
       type: Boolean,
-      required: true,
-      default: true,
-    },
-    isVerified: {
-      type: Boolean,
-      required: true,
       default: false,
     },
-    verificationPin: {
-      value: { type: String },
-      expiresAt: { type: Date },
-    },
     resetPasswordPin: {
-      value: { type: String },
-      expiresAt: { type: Date },
+      value: { type: String, default: null },
+      expiresAt: { type: Date, default: null },
       isVerified: { type: Boolean, default: false },
     },
     subscription: {
@@ -66,11 +55,7 @@ const userModelSchema = new Schema<IUser>(
         ref: "MembershipPackage",
         default: null,
       },
-      tier: {
-        type: Number,
-        default: 0,
-      },
-      futureMembership: {
+      futurePlan: {
         type: Schema.Types.ObjectId,
         ref: "MembershipPackage",
         default: null,
@@ -78,21 +63,30 @@ const userModelSchema = new Schema<IUser>(
     },
     ...baseModelSchema.obj,
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 // Unique except default value
 userModelSchema.index(
   { googleId: 1 },
-  { unique: true, partialFilterExpression: { googleId: { $exists: true } } }
+  {
+    unique: true,
+    partialFilterExpression: { googleId: { $exists: true, $ne: null } },
+  }
 );
 userModelSchema.index(
   { email: 1 },
-  { unique: true, partialFilterExpression: { email: { $exists: true } } }
+  {
+    unique: true,
+    partialFilterExpression: { email: { $exists: true, $ne: "" } },
+  }
 );
 userModelSchema.index(
   { phoneNumber: 1 },
-  { unique: true, partialFilterExpression: { phoneNumber: { $exists: true } } }
+  {
+    unique: true,
+    partialFilterExpression: { phoneNumber: { $exists: true, $ne: null } },
+  }
 );
 
 const UserModel: Model<IUser> = mongoose.model<IUser>("User", userModelSchema);

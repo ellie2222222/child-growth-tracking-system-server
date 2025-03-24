@@ -1,10 +1,10 @@
 import mongoose, { Schema } from "mongoose";
-import { IPost } from "../interfaces/IPost";
+import { IPost, PostStatus } from "../interfaces/IPost";
 
 const postSchema = new Schema<IPost>(
   {
     userId: {
-      type: mongoose.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -19,20 +19,18 @@ const postSchema = new Schema<IPost>(
     attachments: {
       type: [String],
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
+    thumbnailUrl: { type: String },
+    status: {
+      type: String,
+      enum: PostStatus,
+      default: PostStatus.PENDING,
     },
     isDeleted: {
       type: Boolean,
       default: false,
     },
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 const PostModel = mongoose.model<IPost>("Post", postSchema);

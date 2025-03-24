@@ -1,18 +1,20 @@
 import dotenv from "dotenv";
 import Database from "../utils/database";
-import SessionRepository from "../repositories/SessionRepository";
+// import SessionRepository from "../repositories/SessionRepository";
 import { ISession } from "../interfaces/ISession";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { ISessionService } from "../interfaces/services/ISessionService";
+import ISessionRepository from "../interfaces/repositories/ISessionRepository";
 
 dotenv.config();
 
-class SessionService {
-  private sessionRepository: SessionRepository;
+class SessionService implements ISessionService {
+  private sessionRepository: ISessionRepository;
   private database: Database;
 
-  constructor() {
-    this.sessionRepository = new SessionRepository();
+  constructor(sessionRepository: ISessionRepository) {
+    this.sessionRepository = sessionRepository;
     this.database = Database.getInstance();
   }
 

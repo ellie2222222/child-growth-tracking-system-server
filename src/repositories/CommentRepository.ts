@@ -3,12 +3,17 @@ import CommentModel from "../models/CommentModel";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
+import { ICommentRepository } from "../interfaces/repositories/ICommentRepository";
+import { IComment } from "../interfaces/IComment";
 
-class CommentRepository {
-  async createComment(data: object, session?: mongoose.ClientSession) {
+class CommentRepository implements ICommentRepository {
+  async createComment(
+    data: object,
+    session?: mongoose.ClientSession
+  ): Promise<IComment> {
     try {
       const comment = await CommentModel.create([data], { session });
-      return comment;
+      return comment[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -20,7 +25,10 @@ class CommentRepository {
     }
   }
 
-  async getComment(id: string | ObjectId, ignoreDeleted: boolean) {
+  async getComment(
+    id: string | ObjectId,
+    ignoreDeleted: boolean
+  ): Promise<IComment> {
     try {
       type searchQuery = {
         _id: mongoose.Types.ObjectId;
@@ -33,9 +41,19 @@ class CommentRepository {
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      // console.log(searchQuery);
 
-      const comment = await CommentModel.findOne(searchQuery);
+      const comment = await CommentModel.aggregate([
+        { $match: searchQuery },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+      ]);
 
       if (!comment) {
         throw new CustomException(
@@ -43,7 +61,7 @@ class CommentRepository {
           "Comment not found"
         );
       }
-      return comment;
+      return comment[0];
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
@@ -59,7 +77,12 @@ class CommentRepository {
     postId: string | ObjectId,
     query: IQuery,
     ignoreDeleted: boolean
-  ) {
+  ): Promise<{
+    comments: IComment[];
+    page: number;
+    total: number;
+    totalPages: number;
+  }> {
     try {
       type searchQuery = {
         postId: mongoose.Types.ObjectId;
@@ -80,15 +103,10 @@ class CommentRepository {
         { $skip: (query.page - 1) * query.size },
         { $limit: query.size },
       ]);
-      if (comments.length === 0) {
-        throw new CustomException(
-          StatusCodeEnum.NotFound_404,
-          "No comment found for this post"
-        );
-      }
+
       const totalComment = await CommentModel.countDocuments(searchQuery);
       return {
-        comments,
+        comments: comments || [],
         page: query.page || 1,
         total: totalComment,
         totalPages: Math.ceil(totalComment / query.size),
@@ -108,7 +126,7 @@ class CommentRepository {
     id: string | ObjectId,
     data: object,
     session?: mongoose.ClientSession
-  ) {
+  ): Promise<IComment> {
     try {
       const comment = await CommentModel.findOneAndUpdate(
         { _id: new mongoose.Types.ObjectId(id as string) },
@@ -132,7 +150,10 @@ class CommentRepository {
       );
     }
   }
-  async deleteComment(id: string | ObjectId, session?: ClientSession) {
+  async deleteComment(
+    id: string | ObjectId,
+    session?: ClientSession
+  ): Promise<IComment | null> {
     try {
       const comment = await CommentModel.findOneAndUpdate(
         {
@@ -142,6 +163,13 @@ class CommentRepository {
         { $set: { isDeleted: true } },
         { session, new: true }
       );
+
+      if (!comment) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Comment not found"
+        );
+      }
       return comment;
     } catch (error) {
       if (error as Error | CustomException) {

@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import validator from "validator";
+import { validateName } from "../utils/validator";
+import CustomException from "../exceptions/CustomException";
 
 class AuthHandler {
   /**
@@ -16,25 +18,6 @@ class AuthHandler {
       validationErrors.push({
         field: "email",
         error: "Invalid email format",
-      });
-    }
-
-    // Validate password
-    if (
-      !password ||
-      !validator.isStrongPassword(password, {
-        minLength: 8,
-        minLowercase: 1,
-        minUppercase: 1,
-        minNumbers: 1,
-        minSymbols: 1,
-      }) ||
-      password.length > 50
-    ) {
-      validationErrors.push({
-        field: "password",
-        error:
-          "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, 1 symbol, and be between 8-50 characters long",
       });
     }
 
@@ -57,11 +40,15 @@ class AuthHandler {
     const validationErrors: { field: string; error: string }[] = [];
 
     // Validate name
-    if (!name || !validator.isLength(name, { min: 1 })) {
-      validationErrors.push({
-        field: "name",
-        error: "Name must be at least 1 characters long",
-      });
+    if (name) {
+      try {
+        validateName(name);
+      } catch (error) {
+        validationErrors.push({
+          field: "name",
+          error: (error as Error | CustomException).message,
+        });
+      }
     }
 
     // Validate email
@@ -162,6 +149,14 @@ class AuthHandler {
       });
     }
 
+    // Validate existing password
+    if (oldPassword === newPassword) {
+      validationErrors.push({
+        field: "newPassword",
+        error: "New password cannot be the same as old password",
+      });
+    }
+
     // Validate new password
     if (
       !newPassword ||
@@ -190,11 +185,8 @@ class AuthHandler {
       next();
     }
   };
-
-  /**
-   * Validates input for verify email requests.
-   */
-  verifyEmail = (
+  
+  sendResetPasswordPin = (
     req: Request,
     res: Response,
     next: NextFunction
@@ -219,7 +211,7 @@ class AuthHandler {
     } else {
       next();
     }
-  };
+  }
 }
 
 export default AuthHandler;

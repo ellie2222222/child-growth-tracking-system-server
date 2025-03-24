@@ -2,17 +2,22 @@ import mongoose from "mongoose";
 import ReceiptModel from "../models/ReceiptModel";
 import { IReceipt } from "../interfaces/IReceipt";
 import CustomException from "../exceptions/CustomException";
-import UserModel from "../models/UserModel";
-import UserEnum from "../enums/UserEnum";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
+import { IQuery } from "../interfaces/IQuery";
+import { IReceiptRepository } from "../interfaces/repositories/IReceiptRepository";
 
-import { validateMongooseObjectId } from "../utils/validator";
-class ReceiptRepository {
+export type ReturnDataReceipts = {
+  receipts: IReceipt[];
+  page: number;
+  totalReceipts: number;
+  totalPages: number;
+};
+
+class ReceiptRepository implements IReceiptRepository {
   async createReceipt(
     data: object,
     session?: mongoose.ClientSession
   ): Promise<IReceipt> {
-    // console.log(data);
     try {
       const receipt = await ReceiptModel.create([data], { session });
       return receipt[0];
@@ -26,14 +31,58 @@ class ReceiptRepository {
       );
     }
   }
+
   //admin/super-admin only
-  getAllReceipt = async (ignoreDeleted: boolean): Promise<IReceipt[]> => {
+  getAllReceipt = async (
+    query: IQuery,
+    ignoreDeleted: boolean
+  ): Promise<ReturnDataReceipts> => {
     try {
-      const receipts = await ReceiptModel.find({});
-      if (receipts.length === 0) {
-        throw new CustomException(404, "No receipts found");
-      }
-      return receipts;
+      const { page, size, order, sortBy } = query;
+      type searchQuery = {
+        isDeleted?: boolean;
+      };
+
+      let sortField = "createdAt";
+      if (sortBy === "date") sortField = "createdAt";
+      const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
+      const skip = (page - 1) * size;
+
+      const searchQuery = ignoreDeleted ? {} : { isDeleted: true };
+
+      const receipts = await ReceiptModel.aggregate([
+        { $match: searchQuery },
+        { $skip: skip },
+        { $limit: size },
+        { $sort: { [sortField]: sortOrder } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "packageId",
+            foreignField: "_id",
+            as: "membershippackage",
+          },
+        },
+        { $unwind: "$membershippackage" },
+      ]);
+
+      const countReceipts = await ReceiptModel.countDocuments(searchQuery);
+
+      return {
+        receipts: receipts || [],
+        page,
+        totalReceipts: countReceipts,
+        totalPages: Math.ceil(countReceipts / size),
+      };
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw error;
@@ -44,43 +93,67 @@ class ReceiptRepository {
       );
     }
   };
+
   //admin/super-admin => get all
   //else get isDeleted: false
   async getReceiptsByUserId(
+    query: IQuery,
     userId: mongoose.Types.ObjectId | string,
-    requesterId: mongoose.Types.ObjectId | string,
-    ignoreDeleted: boolean,
-    session?: mongoose.ClientSession
-  ): Promise<IReceipt[]> {
+    ignoreDeleted: boolean
+  ): Promise<ReturnDataReceipts> {
     try {
-      const requester = await UserModel.findOne({
-        _id: requesterId,
-        isDeleted: false,
-      });
-      if (!requester) {
-        throw new CustomException(404, "Requester not found");
-      }
-      if (requesterId.toString() !== userId.toString()) {
-        throw new CustomException(
-          StatusCodeEnum.Forbidden_403,
-          "You can view other people's receipts"
-        );
-      }
-      const query =
-        requester &&
-        (requester.role === UserEnum.ADMIN ||
-          requester.role === UserEnum.SUPER_ADMIN)
-          ? { userId: validateMongooseObjectId(userId as string) }
-          : {
-              userId: validateMongooseObjectId(userId as string),
-              isDeleted: false,
-            };
+      const { page, size, order, sortBy } = query;
+      type searchQuery = {
+        userId: mongoose.Types.ObjectId;
+        isDeleted?: boolean;
+      };
 
-      const receipts = await ReceiptModel.find(query, {}, { session });
-      if (receipts.length === 0) {
-        throw new CustomException(404, "No receipts found");
-      }
-      return receipts;
+      const searchQuery: searchQuery = ignoreDeleted
+        ? { userId: new mongoose.Types.ObjectId(userId) }
+        : {
+            userId: new mongoose.Types.ObjectId(userId),
+            isDeleted: false,
+          };
+
+      let sortField = "createdAt";
+      if (sortBy === "date") sortField = "createdAt";
+      const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
+      const skip = (page - 1) * size;
+      const receipts = await ReceiptModel.aggregate([
+        {
+          $match: searchQuery,
+        },
+        { $sort: { [sortField]: sortOrder } },
+        { $skip: skip },
+        { $limit: size },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "packageId",
+            foreignField: "_id",
+            as: "membershippackage",
+          },
+        },
+        { $unwind: "$membershippackage" },
+      ]);
+
+      const countReceipts = await ReceiptModel.countDocuments(searchQuery);
+
+      return {
+        receipts: receipts,
+        page,
+        totalReceipts: countReceipts,
+        totalPages: Math.ceil(countReceipts / size),
+      };
     } catch (error: unknown) {
       if ((error as Error) || (error as CustomException)) {
         throw error;
@@ -96,26 +169,79 @@ class ReceiptRepository {
   //user can get not deleted
   async getReceiptById(
     id: mongoose.Types.ObjectId | string,
-    requesterId: mongoose.Types.ObjectId | string,
     ignoreDeleted: boolean,
     session?: mongoose.ClientSession
   ): Promise<IReceipt | null> {
     try {
-      const requester = await UserModel.findOne({
-        _id: requesterId,
-        isDeleted: false,
-      });
+      const query = ignoreDeleted
+        ? { _id: new mongoose.Types.ObjectId(id) }
+        : { _id: new mongoose.Types.ObjectId(id), isDeleted: false };
 
-      const query =
-        requester &&
-        (requester.role === UserEnum.ADMIN ||
-          requester.role === UserEnum.SUPER_ADMIN)
-          ? { _id: validateMongooseObjectId(id as string) }
-          : { _id: validateMongooseObjectId(id as string), isDeleted: false };
-      const receipt = await ReceiptModel.findOne(query, null, { session });
-      if (!receipt) {
+      const receipt = await ReceiptModel.aggregate([
+        {
+          $match: query,
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        { $unwind: "$user" },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "packageId",
+            foreignField: "_id",
+            as: "membershippackage",
+          },
+        },
+        { $unwind: "$membershippackage" },
+      ]);
+
+      if (!receipt[0]) {
         throw new CustomException(404, "Receipt not found");
       }
+
+      return receipt[0];
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    }
+  }
+
+  async deleteReceiptById(
+    id: mongoose.Types.ObjectId | string,
+    requesterId: mongoose.Types.ObjectId | string,
+    session?: mongoose.ClientSession
+  ): Promise<IReceipt | null> {
+    try {
+      const checkReceipt = await ReceiptModel.findOne(
+        { _id: new mongoose.Types.ObjectId(id as string), isDeleted: false },
+        null,
+        { session }
+      );
+      if (!checkReceipt) {
+        throw new CustomException(404, "Receipt not found");
+      }
+      if (requesterId !== checkReceipt?.userId.toString()) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "Cannot delete receipt"
+        );
+      }
+      const receipt = await ReceiptModel.findOneAndUpdate(
+        { _id: new mongoose.Types.ObjectId(id as string), isDeleted: false },
+        { $set: { isDeleted: true } },
+        { new: true }
+      );
       return receipt;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
@@ -128,32 +254,15 @@ class ReceiptRepository {
     }
   }
 
-  async deleteRecepitById(
-    id: mongoose.Types.ObjectId | string,
-    requesterId: mongoose.Types.ObjectId | string,
-    session?: mongoose.ClientSession
-  ): Promise<IReceipt | null> {
+  async getAllReceiptsTimeInterval(
+    startDate: Date,
+    endDate: Date
+  ): Promise<IReceipt[]> {
     try {
-      const checkReceipt = await ReceiptModel.findOne(
-        { _id: validateMongooseObjectId(id as string), isDeleted: false },
-        null,
-        { session }
-      );
-      if (!checkReceipt) {
-        throw new CustomException(404, "Receipt not found");
-      }
-      if (requesterId !== checkReceipt?.userId.toString()) {
-        throw new CustomException(
-          StatusCodeEnum.Forbidden_403,
-          "You can delete other people's receipt"
-        );
-      }
-      const receipt = await ReceiptModel.findOneAndUpdate(
-        { _id: validateMongooseObjectId(id as string), isDeleted: false },
-        { $set: { isDeleted: true } },
-        { new: true }
-      );
-      return receipt;
+      const receipts = await ReceiptModel.find({
+        createdAt: { $gte: startDate, $lte: endDate },
+      }).lean();
+      return receipts || [];
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw error;

@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import MembershipPackageService from "../services/MembershipPackagesService";
+// import MembershipPackageService from "../services/MembershipPackagesService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
+import { IMembershipPackageService } from "../interfaces/services/IMembershipPackagesService";
 
 class MembershipPackageController {
-  private membershipPackageService: MembershipPackageService;
-  constructor() {
-    this.membershipPackageService = new MembershipPackageService();
+  private membershipPackageService: IMembershipPackageService;
+
+  constructor(membershipPackageService: IMembershipPackageService) {
+    this.membershipPackageService = membershipPackageService;
   }
   createMembershipPackage = async (
     req: Request,
@@ -15,7 +17,8 @@ class MembershipPackageController {
   ) => {
     try {
       let { price, duration } = req.body;
-      const { unit, name, description, tier } = req.body;
+      const { unit, name, description, postLimit, updateChildDataLimit } =
+        req.body;
       const formatedPrice = {
         value: parseFloat(price as string),
         unit: unit,
@@ -32,14 +35,17 @@ class MembershipPackageController {
           description,
           price,
           duration,
-          tier
+          parseInt(postLimit),
+          parseInt(updateChildDataLimit)
         );
       res.status(StatusCodeEnum.Created_201).json({
         package: membershipPackage,
         message: "Membership package created successfully",
       });
+      return;
     } catch (error) {
       next(error);
+      return;
     }
   };
 
@@ -54,12 +60,13 @@ class MembershipPackageController {
       const membershipPackage =
         await this.membershipPackageService.getMembershipPackage(
           id,
-          requesterId
+          requesterId || ""
         );
       res.status(StatusCodeEnum.OK_200).json({
         package: membershipPackage,
         message: "Get membership package successfully",
       });
+      return;
     } catch (error) {
       next(error);
     }
@@ -82,12 +89,13 @@ class MembershipPackageController {
             order: order ? (order as "ascending" | "descending") : "ascending",
             sortBy: sortBy ? (sortBy as "date") : "date",
           },
-          requesterId
+          requesterId || ""
         );
       res.status(StatusCodeEnum.OK_200).json({
         ...membershipPackages,
         message: "Get membership packages successfully",
       });
+      return;
     } catch (error) {
       next(error);
     }
@@ -100,7 +108,8 @@ class MembershipPackageController {
     try {
       const { id } = req.params;
       let { price, duration } = req.body;
-      const { unit, name, description, tier } = req.body;
+      const { unit, name, description, postLimit, updateChildDataLimit } =
+        req.body;
 
       const formatedPrice = {
         value: parseFloat(price as string),
@@ -120,12 +129,14 @@ class MembershipPackageController {
           description,
           price,
           duration,
-          tier
+          parseInt(postLimit),
+          parseInt(updateChildDataLimit)
         );
       res.status(StatusCodeEnum.OK_200).json({
         package: membershipPackage,
         message: "Updated membership package successfully",
       });
+      return;
     } catch (error) {
       next(error);
     }
@@ -146,6 +157,7 @@ class MembershipPackageController {
         res
           .status(StatusCodeEnum.OK_200)
           .json({ message: "Membership package deleted successfully" });
+        return;
       } else {
         throw new CustomException(
           StatusCodeEnum.InternalServerError_500,

@@ -9,7 +9,15 @@ class PaymentHandler {
     next: NextFunction
   ) => {
     const validationErrors: { field: string; error: string }[] = [];
-    const { price, packageId } = req.body;
+    const { price, packageId, purchaseType } = req.body;
+
+    console.log(typeof price, price, packageId, purchaseType);
+    if (!purchaseType) {
+      validationErrors.push({
+        field: "purchaseType",
+        error: "purchaseType is required",
+      });
+    }
 
     try {
       await validateMongooseObjectId(packageId);
@@ -20,7 +28,7 @@ class PaymentHandler {
       });
     }
 
-    if (isNaN(price) || price <= 0) {
+    if (isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
       validationErrors.push({
         field: "price",
         error: `Invalid price`,
@@ -42,8 +50,14 @@ class PaymentHandler {
     next: NextFunction
   ) => {
     const validationErrors: { field: string; error: string }[] = [];
-    const { price, packageId } = req.body;
+    const { price, packageId, purchaseType } = req.body;
 
+    if (!purchaseType) {
+      validationErrors.push({
+        field: "purchaseType",
+        error: "purchaseType is required",
+      });
+    }
     try {
       await validateMongooseObjectId(packageId);
     } catch {
@@ -53,7 +67,11 @@ class PaymentHandler {
       });
     }
 
-    if (isNaN(price) || price < 10000 || price > 1000000000) {
+    if (
+      isNaN(parseFloat(price)) ||
+      parseFloat(price) < 10000 ||
+      parseFloat(price) > 1000000000
+    ) {
       res.status(400).json({
         message:
           "Số tiền giao dịch không hợp lệ. Số tiền hợp lệ từ 10,000 đến dưới 1 tỷ đồng",

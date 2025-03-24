@@ -2,6 +2,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { Request, Response, NextFunction } from "express";
 import UserRepository from "../repositories/UserRepository";
 import { IUser } from "../interfaces/IUser";
+import UserEnum from "../enums/UserEnum";
 
 /**
  *
@@ -24,17 +25,14 @@ const RoleMiddleware = (roles: Array<number>) => {
       );
       if (!user) {
         res
-          .status(StatusCodeEnum.NotFound_404)
-          .json({ message: "User not found" });
+          .status(StatusCodeEnum.Unauthorized_401)
+          .json({ message: "Invalid user from access token" });
         return;
       }
 
-      if (!user?.isVerified) {
-        res
-          .status(StatusCodeEnum.Forbidden_403)
-          .json({ message: "User is not verified" });
-        return;
-      }
+      // if (user.role === UserEnum.ADMIN) {
+      //   return next();
+      // }
 
       if (!roles.includes(user?.role)) {
         res

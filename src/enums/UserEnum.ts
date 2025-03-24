@@ -1,8 +1,7 @@
 const UserEnum = {
   MEMBER: 0,
   ADMIN: 1,
-  SUPER_ADMIN: 2,
-  DOCTOR: 3,
+  DOCTOR: 2,
 };
 
 export default UserEnum;

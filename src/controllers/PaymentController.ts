@@ -2,12 +2,14 @@ import { NextFunction, Request, Response } from "express";
 import { client } from "../config/paypalConfig";
 import paypal from "@paypal/checkout-server-sdk";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
-import PaymentQueue from "../queue/PaymentQueue";
+// import PaymentQueue from "../queue/PaymentQueue";
 import querystring from "qs";
 import crypto from "crypto";
 import { sortObject } from "../utils/payment";
 import { vnpayConfig } from "../config/vnpayConfig";
-import PaymentService from "../services/PaymentService";
+// import PaymentService from "../services/PaymentService";
+import { IPaymentQueue } from "../interfaces/queue/IPaymentQueue";
+import { IPaymentService } from "../interfaces/services/IPaymentService";
 
 export interface ILink {
   href: string;
@@ -31,12 +33,12 @@ export interface VnpParams {
 }
 
 class PaymentController {
-  private paymentQueue: PaymentQueue;
-  private paymentService: PaymentService;
+  private paymentQueue: IPaymentQueue;
+  private paymentService: IPaymentService;
 
-  constructor() {
-    this.paymentQueue = new PaymentQueue();
-    this.paymentService = new PaymentService();
+  constructor(paymentQueue: IPaymentQueue, paymentService: IPaymentService) {
+    this.paymentQueue = paymentQueue;
+    this.paymentService = paymentService;
   }
 
   createPaypalPayment = async (
@@ -44,14 +46,15 @@ class PaymentController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const { price, packageId } = req.body;
+    const { price, packageId, purchaseType } = req.body;
     const userId = req.userInfo.userId;
 
     try {
       const approvalLink = await this.paymentService.createPaypalPayment(
         price,
         packageId,
-        userId
+        userId,
+        purchaseType
       );
 
       if (approvalLink) {
@@ -65,19 +68,20 @@ class PaymentController {
       next(error);
     }
   };
+
   successPaypalPayment = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     const { token } = req.query;
-    // console.log("Token: ", token);
 
     if (!token) {
-      res
-        .status(StatusCodeEnums.BadRequest_400)
-        .json({ message: "Missing payment token." });
-      return;
+      return res.render("PaymentReturn", {
+        success: false,
+        message: "Missing payment token.",
+        frontendUrl: process.env.FRONTEND_URL,
+      });
     }
 
     try {
@@ -108,17 +112,19 @@ class PaymentController {
         await this.paymentQueue.sendPaymentData(data);
         const receipt = await this.paymentQueue.consumePaymentData();
 
-        res.status(StatusCodeEnums.OK_200).json({
+        // Render EJS page
+        return res.render("PaymentReturn", {
+          success: true,
           message: "Payment processed successfully.",
-          receipt: receipt,
+          frontendUrl: process.env.FRONTEND_URL,
+          receipt,
         });
-
-        return;
       } else {
-        res
-          .status(StatusCodeEnums.InternalServerError_500)
-          .json({ message: "Failed to process payment.", status });
-        return;
+        return res.render("PaymentReturn", {
+          success: false,
+          message: "Failed to process payment.",
+          frontendUrl: process.env.FRONTEND_URL,
+        });
       }
     } catch (error) {
       next(error);
@@ -127,12 +133,13 @@ class PaymentController {
 
   canceledPaypalPayment = async (
     req: Request,
-    res: Response
-    // next: NextFunction
+    res: Response,
+    next: NextFunction
   ): Promise<void> => {
-    res
-      .status(StatusCodeEnums.BadRequest_400)
-      .json("Payment request was canceled");
+    res.render("PaymentFailedPage", {
+      message: "Your payment request was canceled.",
+      frontendUrl: process.env.FRONTEND_URL,
+    });
   };
 
   createVnpayPayment = async (
@@ -140,7 +147,7 @@ class PaymentController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    const { price, packageId, bankCode } = req.body;
+    const { price, packageId, bankCode, purchaseType } = req.body;
     const userId = req.userInfo.userId;
     const ipAddr =
       req.headers["x-forwarded-for"] || req.connection.remoteAddress;
@@ -151,9 +158,10 @@ class PaymentController {
         userId,
         packageId,
         ipAddr as string,
-        bankCode
+        bankCode,
+        purchaseType
       );
-      res.status(200).json({ url: vnpUrl });
+      res.status(200).json({ link: vnpUrl });
     } catch (error) {
       next(error);
     }
@@ -165,7 +173,6 @@ class PaymentController {
     next: NextFunction
   ) => {
     let vnp_Params = req.query;
-
     const secureHash = vnp_Params["vnp_SecureHash"];
 
     delete vnp_Params["vnp_SecureHash"];
@@ -174,16 +181,14 @@ class PaymentController {
     vnp_Params = sortObject(vnp_Params);
 
     const secretKey = vnpayConfig.vnp_HashSecret;
-    // Sort the parameters to compare with the signature
     const signData = querystring.stringify(vnp_Params, { encode: false });
     const hmac = crypto.createHmac("sha512", secretKey);
-    const signed = hmac.update(new Buffer(signData, "utf-8")).digest("hex");
-    // Validate the checksum and payment status
+    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+
     if (secureHash === signed && vnp_Params["vnp_ResponseCode"] === "00") {
       try {
-        const amount = parseFloat(vnp_Params.vnp_Amount as string) / 100; // Convert back from VND cents
+        const amount = parseFloat(vnp_Params.vnp_Amount as string) / 100; // Convert from VND cents
 
-        console.log(vnp_Params.vnp_OrderInfo);
         const data = {
           userId: (vnp_Params.vnp_OrderInfo as string).split("%")[0],
           membershipPackageId: (vnp_Params.vnp_OrderInfo as string).split(
@@ -191,7 +196,7 @@ class PaymentController {
           )[1],
           totalAmount: {
             value: amount,
-            currency: vnp_Params.vnp_CurrCode,
+            currency: vnp_Params.vnp_CurrCode || "VND",
           },
           transactionId: vnp_Params.vnp_TxnRef,
           paymentMethod: vnp_Params.vnp_CardType,
@@ -203,20 +208,21 @@ class PaymentController {
         await this.paymentQueue.sendPaymentData(data);
         const receipt = await this.paymentQueue.consumePaymentData();
 
-        res.status(StatusCodeEnums.OK_200).json({
+        // Render EJS page
+        return res.render("PaymentReturn", {
+          success: true,
           message: "Payment processed successfully.",
-          receipt: receipt,
+          frontendUrl: process.env.FRONTEND_URL,
+          receipt,
         });
-
-        return;
       } catch (error) {
         next(error);
       }
     } else {
-      res.status(StatusCodeEnums.InternalServerError_500).json({
+      return res.render("PaymentReturn", {
         success: false,
-        message: "Payment failed or checksum validation failed",
-        vnp_Params: vnp_Params,
+        message: "Payment failed or checksum validation failed.",
+        frontendUrl: process.env.FRONTEND_URL,
       });
     }
   };

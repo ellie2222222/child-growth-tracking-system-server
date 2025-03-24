@@ -1,147 +1,136 @@
 import mongoose, { UpdateWriteOpResult } from "mongoose";
-import { IBmi } from "../interfaces/IBmi";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import BmiModel from "../models/BmiModel";
-import WfaModel from "../models/WfaModel";
-import Lhfa from "../models/LhfaModel";
+import WflhModel from "../models/WflhModel";
 import { GenderEnumType } from "../enums/GenderEnum";
-import { ILhfa } from "../interfaces/ILhfa";
-import { IWfa } from "../interfaces/IWfa";
+import { IWflh } from "../interfaces/IWflh";
+import { GrowthMetricsEnumType } from "../enums/GrowthMetricsEnum";
+import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
+import GrowthMetricForAgeModel from "../models/GrowthMetricsForAgeModel";
+import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
+import GrowthVelocityModel from "../models/GrowthVelocityModel";
+import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAgeRepository";
 
 export type GrowthMetricsQuery = {
-  ageMonth: number;
-  ageMonthRange: string;
+  age: number;
   gender: GenderEnumType;
   percentiles: Array<{ percentile: number; value: number }>;
 };
 
-class GrowthMetricsRepository {
-  async insertBmiData(
-    bmiDataArray: Partial<IBmi>[],
-    session?: mongoose.ClientSession
-  ): Promise<IBmi[]> {
-    try {
-      return await BmiModel.insertMany(bmiDataArray, { session });
-    } catch (error) {
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        `Failed to insert BMI data: ${(error as Error).message}`
-      );
-    }
-  }
-
-  async getBmiData(query: Partial<GrowthMetricsQuery>): Promise<IBmi[]> {
-    try {
-      return await BmiModel.find(query);
-    } catch (error) {
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        `Failed to get BMI data: ${(error as Error).message}`
-      );
-    }
-  }
-
-  async updateBmiData(
-    bmiData: Partial<IBmi>,
+class GrowthMetricsRepository implements IGrowthMetricsRepository {
+  async upsertGrowthMetricsForAgeData(
+    data: Partial<IGrowthMetricForAge>,
+    type: GrowthMetricsEnumType,
     session?: mongoose.ClientSession
   ): Promise<UpdateWriteOpResult> {
     try {
-      return await BmiModel.updateMany(
-        { gender: bmiData.gender, ageMonth: bmiData.ageMonth, ageMonthRange: bmiData.ageMonthRange }, 
-        { $set: bmiData },
+      return await GrowthMetricForAgeModel.updateMany(
+        { gender: data.gender, age: data.age, type }, 
+        { $set: data },
         { upsert: true, session }
       );
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        `Failed to update BMI data: ${(error as Error).message}`
+        `Failed to update growth metrics for age data: ${(error as Error).message}`
       );
     }
   }
 
-  async insertWfaData(
-    wfaDataArray: Partial<IWfa>[],
-    session?: mongoose.ClientSession
-  ): Promise<IWfa[]> {
+  async getGrowthMetricsForAgeData(gender: number, age: number, unit: string): Promise<IGrowthMetricForAge[]> {
     try {
-      return await WfaModel.insertMany(wfaDataArray, { session });
+      let data: IGrowthMetricForAge[] = [];
+      switch (unit) {
+        case "month":
+          data = await GrowthMetricForAgeModel.find(
+            { 
+              gender: gender,
+              'age.inMonths': age,
+            },
+          );
+          break;
+
+        case "day":
+          data = await GrowthMetricForAgeModel.find(
+            { 
+              gender: gender,
+              'age.inDays': age,
+            },
+          );
+          break;
+      }
+      return data;
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        `Failed to insert WFA data: ${(error as Error).message}`
+        `Failed to get data: ${(error as Error).message}`
       );
     }
   }
 
-  async getWfaData(query: Partial<GrowthMetricsQuery>): Promise<IWfa[]> {
-    try {
-      return await WfaModel.find(query);
-    } catch (error) {
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        `Failed to get WFA data: ${(error as Error).message}`
-      );
-    }
-  }
-
-  async updateWfaData(
-    wfaData: Partial<IWfa>,
+  async upsertGrowthVelocityData(
+    data: Partial<IGrowthVelocity>,
+    type: string,
     session?: mongoose.ClientSession
   ): Promise<UpdateWriteOpResult> {
     try {
-      return await WfaModel.updateMany(
-        { gender: wfaData.gender, ageMonth: wfaData.ageMonth, ageMonthRange: wfaData.ageMonthRange }, 
-        { $set: wfaData },
+      return await GrowthVelocityModel.updateMany(
+        { 
+          gender: data.gender, 
+          type,
+          'firstInterval.inMonths': data.firstInterval?.inMonths,
+          'lastInterval.inMonths': data.firstInterval?.inMonths,
+        }, 
+        { $set: data },
         { upsert: true, session }
       );
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        `Failed to update WFA data: ${(error as Error).message}`
+        `Failed to update WFLH data: ${(error as Error).message}`
       );
     }
   }
-
-  async insertLhfaData(
-    lhfaDataArray: Partial<ILhfa>[],
-    session?: mongoose.ClientSession
-  ): Promise<ILhfa[]> {
+  
+  async getGrowthVelocityData(gender: number): Promise<IGrowthVelocity[]> {
     try {
-      return await Lhfa.insertMany(lhfaDataArray, { session });
+      const data: IGrowthVelocity[] = await GrowthVelocityModel.find({ gender });
+      return data;
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        `Failed to insert LHFA data: ${(error as Error).message}`
+        `Failed to get data: ${(error as Error).message}`
       );
     }
   }
 
-  async getLhfaData(query: Partial<GrowthMetricsQuery>): Promise<ILhfa[]> {
-    try {
-      return await Lhfa.find(query);
-    } catch (error) {
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        `Failed to get LHFA data: ${(error as Error).message}`
-      );
-    }
-  }
-
-  async updateLhfaData(
-    lhfaData: Partial<ILhfa>,
+  async upsertWflhData(
+    wflhData: Partial<IWflh>,
     session?: mongoose.ClientSession
   ): Promise<UpdateWriteOpResult> {
     try {
-      return await Lhfa.updateMany(
-        { gender: lhfaData.gender, ageMonth: lhfaData.ageMonth, ageMonthRange: lhfaData.ageMonthRange }, 
-        { $set: lhfaData },
+      return await WflhModel.updateMany(
+        { gender: wflhData.gender, height: wflhData.height }, 
+        { $set: wflhData },
         { upsert: true, session }
       );
     } catch (error) {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        `Failed to update LHFA data: ${(error as Error).message}`
+        `Failed to update WFLH data: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async getWflhData(gender: number, height: number): Promise<IWflh[]> {
+    try {
+      const data: IWflh[] = await WflhModel.find({ gender, height });
+
+      return data;
+    } catch (error) {
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Failed to get data: ${(error as Error).message}`
       );
     }
   }

@@ -1,7 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { validateMongooseObjectId } from "../utils/validator";
+import { JSDOM } from "jsdom";
 import validator from "validator";
+import { PostStatus } from "../interfaces/IPost";
+
 class PostHandler {
   constructor() {}
 
@@ -10,7 +13,7 @@ class PostHandler {
 
     const { title, content } = req.body;
 
-    if (!title && !validator.isLength(title, { min: 6, max: 150 })) {
+    if (!title || !validator.isLength(title, { min: 0, max: 150 })) {
       validationErrors.push({
         field: "title",
         error: "Title is required and should be between 6 and 150 characters",
@@ -19,6 +22,30 @@ class PostHandler {
 
     if (!content) {
       validationErrors.push({ field: "content", error: "Content is required" });
+    }
+
+    const dom = new JSDOM(content);
+    const document = dom.window.document;
+    const images = document.querySelectorAll("img");
+
+    if (images.length > 0) {
+      // console.log(images.length);
+
+      const files = req.files as
+        | { [key: string]: Express.Multer.File[] }
+        | undefined;
+
+      const attachmentCount = files?.postAttachments
+        ? files.postAttachments.length
+        : 0;
+      // console.log(attachmentCount);
+
+      if (images.length !== attachmentCount) {
+        validationErrors.push({
+          field: "postAttachments",
+          error: `The number of images in content (${images.length}) does not match the uploaded images (${attachmentCount}).`,
+        });
+      }
     }
 
     try {
@@ -60,19 +87,19 @@ class PostHandler {
   getPosts = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
 
-    const { page, size, order, sortBy } = req.query;
+    const { page, size, order, sortBy, status } = req.query;
 
     if (page && isNaN(parseInt(page as string))) {
       validationErrors.push({
         field: "page",
-        error: "Page is required and must be a number",
+        error: "Page must be a number",
       });
     }
 
     if (size && isNaN(parseInt(size as string))) {
       validationErrors.push({
         field: "size",
-        error: "Size is required and must be a number",
+        error: "Size must be a number",
       });
     }
 
@@ -80,10 +107,21 @@ class PostHandler {
       validationErrors.push({ field: "order", error: "Invalid order" });
     }
 
-    if (sortBy && !["date"].includes(sortBy as string)) {
+    if (sortBy && !["date", "name"].includes(sortBy as string)) {
       validationErrors.push({ field: "sortBy", error: "Invalid sort by" });
     }
 
+    if (
+      status &&
+      ![
+        PostStatus.DELETED,
+        PostStatus.PUBLISHED,
+        PostStatus.REJECTED,
+        PostStatus.PENDING,
+      ].includes(status as PostStatus)
+    ) {
+      validationErrors.push({ field: "status", error: "Invalid status" });
+    }
     if (validationErrors.length > 0) {
       res.status(StatusCodeEnum.BadRequest_400).json({
         message: "Validation failed",
@@ -94,7 +132,7 @@ class PostHandler {
     }
   };
 
-  updatePosts = async (req: Request, res: Response, next: NextFunction) => {
+  updatePost = async (req: Request, res: Response, next: NextFunction) => {
     const validationErrors: { field: string; error: string }[] = [];
 
     const { id } = req.params;
@@ -111,6 +149,29 @@ class PostHandler {
         field: "title",
         error: "Title is required and should be between 6 and 150 characters",
       });
+    }
+
+    if (content) {
+      const dom = new JSDOM(content);
+      const document = dom.window.document;
+      const images = document.querySelectorAll("img");
+
+      if (images.length > 0) {
+        const files = req.files as
+          | { [key: string]: Express.Multer.File[] }
+          | undefined;
+
+        const attachmentCount = files?.postAttachments
+          ? files.postAttachments.length
+          : 0;
+
+        if (images.length !== attachmentCount) {
+          validationErrors.push({
+            field: "postAttachments",
+            error: `The number of images in content (${images.length}) does not match the uploaded images (${attachmentCount}).`,
+          });
+        }
+      }
     }
 
     if (validationErrors.length > 0) {
@@ -132,6 +193,93 @@ class PostHandler {
       await validateMongooseObjectId(id);
     } catch {
       validationErrors.push({ field: "id", error: "Invalid post Id" });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
+      next();
+    }
+  };
+
+  updatePostStatus = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const validationErrors: { field: string; error: string }[] = [];
+
+    const { id } = req.params;
+    const { status } = req.query;
+
+    try {
+      validateMongooseObjectId(id);
+    } catch {
+      validationErrors.push({ field: "id", error: "Invalid post Id" });
+    }
+
+    if (!status) {
+      validationErrors.push({ field: "status", error: "Status is required" });
+    } else if (
+      ![
+        PostStatus.DELETED,
+        PostStatus.PENDING,
+        PostStatus.PUBLISHED,
+        PostStatus.REJECTED,
+      ].includes(status as PostStatus)
+    ) {
+      validationErrors.push({
+        field: "status",
+        error: "Invalid status",
+      });
+    }
+
+    if (validationErrors.length > 0) {
+      res.status(StatusCodeEnum.BadRequest_400).json({
+        message: "Validation failed",
+        validationErrors,
+      });
+    } else {
+      next();
+    }
+  };
+
+  getPostsByUserId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const validationErrors: { field: string; error: string }[] = [];
+    const { page, size, order, sortBy, userId } = req.query;
+    try {
+      await validateMongooseObjectId(userId as string);
+    } catch {
+      validationErrors.push({ field: "userId", error: "Invalid user Id" });
+    }
+
+    if (page && isNaN(parseInt(page as string))) {
+      validationErrors.push({
+        field: "page",
+        error: "Page must be a number",
+      });
+    }
+
+    if (size && isNaN(parseInt(size as string))) {
+      validationErrors.push({
+        field: "size",
+        error: "Size must be a number",
+      });
+    }
+
+    if (order && !["ascending", "descending"].includes(order as string)) {
+      validationErrors.push({ field: "order", error: "Invalid order" });
+    }
+
+    if (sortBy && !["date", "name"].includes(sortBy as string)) {
+      validationErrors.push({ field: "sortBy", error: "Invalid sort by" });
     }
 
     if (validationErrors.length > 0) {

@@ -1,14 +1,16 @@
 import { Request, Response, NextFunction } from "express";
-import AuthService from "../services/AuthService";
+// import AuthService from "../services/AuthService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import ms from "ms";
 import { ISession } from "../interfaces/ISession";
+// import UserService from "../services/UserService";
+import { IAuthService } from "../interfaces/services/IAuthService";
 
 class AuthController {
-  private authService: AuthService;
+  private authService: IAuthService;
 
-  constructor() {
-    this.authService = new AuthService();
+  constructor(authService: IAuthService) {
+    this.authService = authService;
   }
 
   /**
@@ -29,9 +31,17 @@ class AuthController {
       // Set Refresh Token and session ID in cookies
       const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
         maxAge: refreshTokenMaxAge,
       });
@@ -39,13 +49,13 @@ class AuthController {
       // Set session ID in cookies
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
         maxAge: refreshTokenMaxAge, // 30 days
       });
 
       res.status(StatusCodeEnum.OK_200).json({
-        message: "Login successful",
+        message: "Success",
         accessToken,
       });
     } catch (error) {
@@ -53,22 +63,70 @@ class AuthController {
     }
   };
 
+  logout = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const refreshToken = req.cookies?.refreshToken;
+
+      await this.authService.logout(refreshToken);
+
+      res.clearCookie("sessionId", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+      });
+
+      res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+      });
+
+      res.clearCookie("accessToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+      });
+
+      res.status(StatusCodeEnum.OK_200).json({
+        message: "Success",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   /**
-   * Handle Google login 
+   * Handle Google login
    */
-  loginGoogle = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  loginGoogle = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       const googleUser = req.user;
       const sessionData: Partial<ISession> = req.userInfo;
 
-      const { accessToken, refreshToken, sessionId } = await this.authService.loginGoogle(googleUser, sessionData);
+      const { accessToken, refreshToken, sessionId } =
+        await this.authService.loginGoogle(googleUser, sessionData);
 
       // Set Refresh Token and session ID in cookies
       const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
         maxAge: refreshTokenMaxAge,
       });
@@ -76,12 +134,12 @@ class AuthController {
       // Set session ID in cookies
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "PRODUCTION",
         sameSite: "strict",
         maxAge: refreshTokenMaxAge, // 30 days
       });
 
-      res.redirect(`${process.env.FRONTEND_URL}/accessToken=${accessToken}`)
+      res.redirect(`${process.env.FRONTEND_URL}`);
     } catch (error) {
       next(error);
     }
@@ -101,7 +159,22 @@ class AuthController {
       await this.authService.signup(name, email, password);
 
       res.status(StatusCodeEnum.Created_201).json({
-        message: "Signup successful",
+        message: "Success",
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getUserByToken = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const accessToken = req.cookies?.accessToken;
+
+      const user = await this.authService.getUserByToken(accessToken);
+
+      res.status(StatusCodeEnum.OK_200).json({
+        message: "Success",
+        user,
       });
     } catch (error) {
       next(error);
@@ -117,15 +190,25 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { refreshToken } = req.body;
+      const accessToken = req.cookies?.accessToken;
+      const refreshToken = req.cookies?.refreshToken;
 
       const newAccessToken = await this.authService.renewAccessToken(
+        accessToken,
         refreshToken
       );
 
+      const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION!;
+      const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
+      res.cookie("accessToken", newAccessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "PRODUCTION",
+        sameSite: "strict",
+        maxAge: refreshTokenMaxAge,
+      });
+
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
-        accessToken: newAccessToken,
       });
     } catch (error) {
       next(error);
@@ -141,9 +224,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { userId } = req.userInfo;
+      const { email } = req.body;
 
-      await this.authService.sendResetPasswordPin(userId);
+      await this.authService.sendResetPasswordPin(email);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
@@ -162,10 +245,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { pin } = req.body;
-      const { userId } = req.userInfo;
+      const { pin, email } = req.body;
 
-      await this.authService.confirmResetPasswordPin(userId, pin);
+      await this.authService.confirmResetPasswordPin(email, pin);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
@@ -184,10 +266,9 @@ class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { newPassword } = req.body;
-      const { userId } = req.userInfo;
+      const { newPassword, email } = req.body;
 
-      await this.authService.resetPassword(userId, newPassword);
+      await this.authService.resetPassword(email, newPassword);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
@@ -222,38 +303,19 @@ class AuthController {
   /**
    * Handles verifying token
    */
-  confirmEmailVerificationPin = async (
+  confirmEmailVerificationToken = async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { token } = req.body;
+      const { verificationToken } = req.body;
 
-      await this.authService.confirmEmailVerificationPin(token);
+      await this.authService.confirmEmailVerificationToken(verificationToken);
 
       res.status(StatusCodeEnum.OK_200).json({
         message: "Success",
       });
-    } catch (error) {
-      next(error);
-    }
-  };
-
-  /**
-   * Handles sending verification email
-   */
-  verifyEmail = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> => {
-    try {
-      const { email } = req.body;
-
-      await this.authService.verifyEmail(email);
-
-      res.status(200).json({ message: "Success" });
     } catch (error) {
       next(error);
     }

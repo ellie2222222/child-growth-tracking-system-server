@@ -2,25 +2,42 @@ import mongoose, { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
-import { IUser } from "../interfaces/IUser";
-import UserRepository from "../repositories/UserRepository";
+import { ISubscription, IUser } from "../interfaces/IUser";
+import { IDoctor } from "../repositories/UserRepository";
+
 import Database from "../utils/database";
-import SessionService from "./SessionService";
+
 import { IQuery } from "../interfaces/IQuery";
 import { returnData } from "../repositories/UserRepository";
-import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
 
-class UserService {
-  private userRepository: UserRepository;
-  private sessionService: SessionService;
+import bcrypt from "bcrypt";
+import { IConsultation } from "../interfaces/IConsultation";
+import { IUserService } from "../interfaces/services/IUserService";
+import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
+
+import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
+import { ISessionService } from "../interfaces/services/ISessionService";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+import { cleanUpFile } from "../utils/fileUtils";
+
+class UserService implements IUserService {
+  private userRepository: IUserRepository;
+  private sessionService: ISessionService;
+  private membershipPackageRepository: IMembershipPackageRepository;
+  private consultationRepository: IConsultationRepository;
   private database: Database;
-  private membershipPackageRepository: MembershipPackageRepository;
 
-  constructor() {
-    this.userRepository = new UserRepository();
-    this.sessionService = new SessionService();
+  constructor(
+    userRepository: IUserRepository,
+    sessionService: ISessionService,
+    membershipPackageRepository: IMembershipPackageRepository,
+    consultationRepository: IConsultationRepository
+  ) {
+    this.userRepository = userRepository;
+    this.sessionService = sessionService;
+    this.membershipPackageRepository = membershipPackageRepository;
+    this.consultationRepository = consultationRepository;
     this.database = Database.getInstance();
-    this.membershipPackageRepository = new MembershipPackageRepository();
   }
 
   /**
@@ -64,19 +81,9 @@ class UserService {
         );
       }
 
-      // Check if a super admin is trying to change their own role or another super admin's role
-      if (requesterRole === UserEnum.SUPER_ADMIN) {
-        if (role === UserEnum.SUPER_ADMIN) {
-          throw new CustomException(
-            StatusCodeEnum.BadRequest_400,
-            "Only one super admin allowed"
-          );
-        }
-      }
-
       // If the requester is an admin, they cannot change another admin's role
       if (requesterRole === UserEnum.ADMIN) {
-        if (role === UserEnum.ADMIN || role === UserEnum.SUPER_ADMIN) {
+        if (role === UserEnum.ADMIN) {
           throw new CustomException(
             StatusCodeEnum.BadRequest_400,
             "Admins cannot change another admin's role"
@@ -108,7 +115,7 @@ class UserService {
     password: string,
     phoneNumber: string,
     email: string,
-    type: string,
+    role: number,
     requesterId: string
   ): Promise<IUser> => {
     const session = await this.database.startTransaction();
@@ -125,32 +132,27 @@ class UserService {
         );
       }
 
-      let data;
-      let user: IUser;
-
-      switch (type) {
-        case "doctor":
-          data = { name, password, phoneNumber, email, role: 3 };
-          user = await this.userRepository.createDoctor(data, session);
-          break;
-
-        case "admin":
-          if (checkUser.role === UserEnum.ADMIN) {
-            throw new CustomException(
-              StatusCodeEnum.Forbidden_403,
-              "Admins cannot create another admin"
-            );
-          }
-          data = { name, password, role: 1, email, phoneNumber };
-          user = await this.userRepository.createAdmin(data, session);
-          break;
-
-        default:
-          throw new CustomException(
-            StatusCodeEnum.BadRequest_400,
-            "User type not supported"
-          );
+      if (checkUser.role !== UserEnum.ADMIN) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "Only admins can create new users"
+        );
       }
+
+      const saltRounds = 10;
+      const salt = await bcrypt.genSalt(saltRounds);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      const data = {
+        name: name,
+        password: hashedPassword,
+        phoneNumber,
+        email,
+        role: role,
+      };
+
+      const user: IUser = await this.userRepository.createUser(data, session);
+
       await this.database.commitTransaction(session);
       return user;
     } catch (error) {
@@ -169,7 +171,7 @@ class UserService {
   getUserById = async (
     id: string | ObjectId,
     requesterId: string | ObjectId
-  ): Promise<IUser | CustomException> => {
+  ): Promise<IDoctor | IUser | CustomException> => {
     try {
       let ignoreDeleted = false;
       const checkRequester = await this.userRepository.getUserById(
@@ -183,10 +185,8 @@ class UserService {
           "Requester not found"
         );
       }
-      ignoreDeleted = [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-        checkRequester.role
-      );
-      const checkUser = await this.userRepository.getUserById(
+      ignoreDeleted = [UserEnum.ADMIN].includes(checkRequester.role);
+      let checkUser = await this.userRepository.getUserById(
         id as string,
         ignoreDeleted
       );
@@ -197,40 +197,70 @@ class UserService {
         );
       }
 
+      if (checkUser.role === UserEnum.DOCTOR) {
+        let totalRating = 0;
+        let totalRatingCount = 0;
+        const consultations =
+          await this.consultationRepository.getAllConsultationsByDoctorId(
+            id as string
+          );
+
+        if ((consultations || []).length > 0) {
+          consultations.map((c) => {
+            if (c.rating > 0) {
+              totalRating += c.rating;
+              totalRatingCount += 1;
+            }
+          });
+        } else {
+          totalRating = 0;
+          totalRatingCount = 1;
+        }
+
+        checkUser = {
+          ...checkUser.toObject(),
+          rating: totalRating / totalRatingCount,
+        };
+      }
+
       if (id.toString() === requesterId.toString()) {
-        return checkUser;
+        return checkUser as IUser | IDoctor;
       }
 
       switch (checkRequester?.role) {
         //user cant get indivitual user, can get other role
         case UserEnum.MEMBER:
-          if (checkUser?.role === UserEnum.MEMBER) {
+          if (
+            [UserEnum.MEMBER, UserEnum.ADMIN].includes(
+              checkUser?.role as number
+            )
+          ) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,
               "User can not get other users' info"
             );
           }
-          return checkUser;
+          return checkUser as IUser | IDoctor;
 
-        //everyone can get doctor
-        case UserEnum.DOCTOR:
-          return checkUser;
+        case UserEnum.DOCTOR: {
+          if ([UserEnum.ADMIN].includes(checkUser?.role as number)) {
+            throw new CustomException(
+              StatusCodeEnum.Forbidden_403,
+              "Doctor can't view admin info"
+            );
+          }
+          return checkUser as IUser | IDoctor;
+        }
 
         //admin can get admins and super admin
         case UserEnum.ADMIN:
-          if (
-            ![UserEnum.SUPER_ADMIN, UserEnum.ADMIN].includes(checkUser?.role)
-          ) {
+          if ([UserEnum.ADMIN].includes(checkUser?.role as number)) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,
-              "You do not have the authorization to perform this action"
+              "Admin can't view other admin info"
             );
           }
-          return checkUser;
-
-        //get all
-        case UserEnum.SUPER_ADMIN:
-          return checkUser;
+          return checkUser as IUser | IDoctor;
 
         default:
           throw new CustomException(
@@ -249,6 +279,7 @@ class UserService {
       );
     }
   };
+
   getUsers = async (
     Query: IQuery,
     requesterId: string | ObjectId
@@ -265,9 +296,8 @@ class UserService {
         "Requester not found"
       );
     }
-    ignoreDeleted = [UserEnum.ADMIN, UserEnum.SUPER_ADMIN].includes(
-      checkRequester.role
-    );
+
+    ignoreDeleted = [UserEnum.ADMIN].includes(checkRequester.role);
     try {
       let users;
       switch (checkRequester?.role) {
@@ -289,35 +319,59 @@ class UserService {
           users = await this.userRepository.getAllUsersRepository(
             Query,
             ignoreDeleted,
-            [
-              UserEnum.MEMBER,
-              UserEnum.DOCTOR,
-              UserEnum.ADMIN,
-              UserEnum.SUPER_ADMIN,
-            ]
+            Query.role === ""
+              ? undefined
+              : Query.role ?? [UserEnum.MEMBER, UserEnum.DOCTOR]
           );
           break;
-        case UserEnum.SUPER_ADMIN:
-          users = await this.userRepository.getAllUsersRepository(
-            Query,
-            ignoreDeleted,
-            [
-              UserEnum.MEMBER,
-              UserEnum.DOCTOR,
-              UserEnum.ADMIN,
-              UserEnum.SUPER_ADMIN,
-            ]
-          );
-          break;
+
         default:
           throw new CustomException(
             StatusCodeEnum.BadRequest_400,
             "Your role is not supported"
           );
       }
-      return users;
+
+      const formatedUsers = await Promise.all(
+        users.users.map(async (user) => {
+          if (user.role === UserEnum.DOCTOR) {
+            let totalRating = 0;
+            let totalRatingCount = 0;
+            const consultations =
+              await this.consultationRepository.getAllConsultationsByDoctorId(
+                user._id as string
+              );
+
+            if ((consultations || []).length > 0) {
+              consultations.map((c) => {
+                if (c.rating > 0) {
+                  totalRating += c.rating;
+                  totalRatingCount += 1;
+                }
+              });
+            } else {
+              totalRating = 0;
+              totalRatingCount = 0;
+            }
+
+            return {
+              ...(typeof user.toObject === "function" ? user.toObject() : user),
+              rating: totalRating / totalRatingCount,
+            };
+          }
+
+          return user;
+        })
+      );
+
+      return {
+        users: formatedUsers as unknown as IDoctor[] | IUser[],
+        total: users.total,
+        page: users.page,
+        totalPages: users.totalPages,
+      };
     } catch (error) {
-      if (error as Error | CustomException) {
+      if (error instanceof Error || error instanceof CustomException) {
         throw error;
       }
       throw new CustomException(
@@ -330,97 +384,83 @@ class UserService {
   updateUser = async (
     id: string | ObjectId,
     requesterId: string | ObjectId,
-    data: {
-      name: string;
-    }
-  ) => {
+    name?: string,
+    role?: number,
+    phoneNumber?: string,
+    avatar?: string
+  ): Promise<IUser | null> => {
     const session = await this.database.startTransaction();
-    const ignoreDeleted = false;
     try {
-      const checkRequester = await this.userRepository.getUserById(
+      const requester = await this.userRepository.getUserById(
         requesterId as string,
-        ignoreDeleted
+        false
       );
-
-      if (!checkRequester) {
+      if (!requester)
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "Requester not found"
         );
-      }
 
-      const checkUser = await this.userRepository.getUserById(
-        id as string,
-        ignoreDeleted
-      );
-      if (!checkUser) {
+      const user = await this.userRepository.getUserById(id as string, false);
+
+      if (!user)
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
           "User not found"
         );
+
+      const isAdmin = requester.role === UserEnum.ADMIN;
+      const isSelf = id === requesterId;
+
+      const updateData: Partial<IUser> = {};
+
+      if (role !== undefined) {
+        if (!isAdmin) {
+          throw new CustomException(
+            StatusCodeEnum.Forbidden_403,
+            "You do not have the authority to perform this action"
+          );
+        } else {
+          updateData.role = role;
+        }
       }
 
-      if (checkUser.id === requesterId) {
-        const user = await this.userRepository.updateUserById(
-          id as string,
-          data
+      if (!isAdmin && !isSelf) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You do not have the authority to perform this action"
         );
-        await this.database.commitTransaction(session);
-        return user;
+      } else {
+        if (name) updateData.name = name;
+        if (phoneNumber) updateData.phoneNumber = phoneNumber;
+        if (avatar) updateData.avatar = avatar;
       }
 
-      switch (checkRequester?.role) {
-        case UserEnum.ADMIN:
-          if (checkUser?.role === UserEnum.DOCTOR) {
-            const user = await this.userRepository.updateUserById(
-              id as string,
-              data,
-              session
-            );
-            await this.database.commitTransaction(session);
-            return user;
-          }
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Admin can only update doctor"
-          );
-
-        case UserEnum.SUPER_ADMIN:
-          if ([UserEnum.DOCTOR, UserEnum.ADMIN].includes(checkUser?.role)) {
-            const user = await this.userRepository.updateUserById(
-              id as string,
-              data,
-              session
-            );
-            await this.database.commitTransaction(session);
-            return user;
-          }
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Super admin can only update doctor, admin"
-          );
-
-        default:
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "You do not have the authorization to perform this action"
-          );
-      }
-    } catch (error) {
-      if (error as Error | CustomException) {
-        throw error;
-      }
-      throw new CustomException(
-        StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
+      const updatedUser = await this.userRepository.updateUserById(
+        id as string,
+        updateData,
+        session
       );
+      //Object assign did not work
+
+      await this.database.commitTransaction(session);
+      await cleanUpFile(user.avatar, "update");
+      return updatedUser;
+    } catch (error) {
+      await this.database.abortTransaction(session);
+      throw error instanceof CustomException
+        ? error
+        : new CustomException(
+            StatusCodeEnum.InternalServerError_500,
+            "Internal Server Error"
+          );
     }
   };
 
   deleteUser = async (
     id: string | ObjectId,
     requesterId: string | ObjectId
-  ) => {
+  ): Promise<boolean> => {
     const session = await this.database.startTransaction();
     try {
       const ignoreDeleted = false;
@@ -460,15 +500,6 @@ class UserService {
             "Admin can only delete doctor"
           );
 
-        case UserEnum.SUPER_ADMIN:
-          if ([UserEnum.ADMIN, UserEnum.DOCTOR].includes(checkUser?.role)) {
-            const user = await this.userRepository.deleteUserById(id as string);
-            return user;
-          }
-          throw new CustomException(
-            StatusCodeEnum.Forbidden_403,
-            "Super admin can only delete admin and doctor"
-          );
         default:
           throw new CustomException(
             StatusCodeEnum.Forbidden_403,
@@ -490,7 +521,7 @@ class UserService {
   updateSubscription = async (
     id: string | ObjectId,
     membershipPackageId: string | mongoose.Types.ObjectId
-  ) => {
+  ): Promise<IUser | null> => {
     const session = await this.database.startTransaction();
     try {
       const checkUser = await this.userRepository.getUserById(
@@ -523,25 +554,27 @@ class UserService {
         membershipPackageId as string
       );
       if (checkUser.subscription.currentPlan !== null) {
-        subscription.futureMembership = membershipPackageObjectId;
+        subscription.futurePlan = membershipPackageObjectId;
       } else {
         subscription.currentPlan = membershipPackageObjectId;
-        subscription.tier = checkMembershipPackage.tier;
         subscription.startDate = new Date();
         subscription.endDate = new Date(
           Date.now() + 3600 * 24 * checkMembershipPackage.duration.value * 1000
         );
       }
+
+      const data = {
+        subscription: subscription,
+      };
+
       const user = await this.userRepository.updateUserById(
         id as string,
-        {
-          ...checkUser,
-          subscription: subscription,
-        },
+        data,
         session
       );
 
       await session.commitTransaction(session);
+
       return user;
     } catch (error) {
       await session.abortTransaction(session);
@@ -552,6 +585,293 @@ class UserService {
         StatusCodeEnum.InternalServerError_500,
         "Internal Server Error"
       );
+    }
+  };
+
+  removeCurrentSubscription = async (
+    userId: string | ObjectId,
+    requesterId: string
+  ): Promise<IUser | null> => {
+    const session = await this.database.startTransaction();
+    try {
+      if (requesterId !== userId.toString()) {
+        throw new CustomException(StatusCodeEnum.Forbidden_403, "Forbidden");
+      }
+      const checkUser = await this.userRepository.getUserById(
+        userId as string,
+        false
+      );
+
+      if (!checkUser) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      if (checkUser.subscription.currentPlan === null) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User has no subscription"
+        );
+      }
+
+      const subscription = checkUser.subscription;
+
+      if (checkUser.subscription.futurePlan !== null) {
+        const checkMembershipPackage =
+          await this.membershipPackageRepository.getMembershipPackage(
+            checkUser.subscription.futurePlan as unknown as string,
+            true
+          );
+
+        if (!checkMembershipPackage) {
+          throw new CustomException(
+            StatusCodeEnum.NotFound_404,
+            "Membership package not found in database"
+          );
+        }
+
+        subscription.currentPlan = checkUser.subscription.futurePlan;
+        subscription.startDate = new Date();
+        subscription.endDate = new Date(
+          Date.now() + 3600 * 24 * checkMembershipPackage.duration.value * 1000
+        );
+        subscription.futurePlan = null;
+      } else {
+        subscription.endDate = null;
+        subscription.startDate = null;
+        subscription.currentPlan = null;
+      }
+
+      const data = {
+        subscription: subscription,
+      };
+
+      const user = await this.userRepository.updateUserById(
+        userId as string,
+        data,
+        session
+      );
+
+      await this.database.commitTransaction(session);
+
+      return user;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  createConsultationRating = async (
+    consultationId: string,
+    requesterId: string,
+    rating: number
+  ): Promise<IConsultation> => {
+    const session = await this.database.startTransaction();
+    try {
+      const consultation = await this.consultationRepository.getConsultation(
+        consultationId,
+        false
+      );
+
+      if (!consultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
+
+      if (
+        consultation.requestDetails.memberId.toString() !==
+        requesterId.toString()
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation"
+        );
+      }
+
+      if (consultation.status !== "Ended") {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation because it has not ended yet"
+        );
+      }
+
+      if (consultation.rating !== 0) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Please use the update rating to update consultation"
+        );
+      }
+
+      const updatedConsultation =
+        await this.consultationRepository.updateConsultation(
+          consultationId,
+          {
+            rating: rating,
+          },
+          session
+        );
+
+      await this.database.commitTransaction(session);
+      return updatedConsultation;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  updateConsultationRating = async (
+    consultationId: string,
+    requesterId: string,
+    rating: number
+  ): Promise<IConsultation> => {
+    const session = await this.database.startTransaction();
+    try {
+      const consultation = await this.consultationRepository.getConsultation(
+        consultationId,
+        false
+      );
+
+      if (!consultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
+
+      if (
+        consultation.requestDetails.memberId.toString() !==
+        requesterId.toString()
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation"
+        );
+      }
+
+      if (consultation.status !== "Ended") {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation because it has not ended yet"
+        );
+      }
+
+      if (consultation.rating === 0) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "You need to have a rating before you can update it"
+        );
+      }
+      const updatedConsultation =
+        await this.consultationRepository.updateConsultation(
+          consultationId,
+          {
+            rating: rating,
+          },
+          session
+        );
+
+      await this.database.commitTransaction(session);
+      return updatedConsultation;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
+
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  removeConsultationRating = async (
+    consultationId: string,
+    requesterId: string,
+    rating: number
+  ): Promise<IConsultation> => {
+    const session = await this.database.startTransaction();
+    try {
+      const consultation = await this.consultationRepository.getConsultation(
+        consultationId,
+        false
+      );
+
+      if (!consultation) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "Consultation not found"
+        );
+      }
+
+      if (
+        consultation.requestDetails.memberId.toString() !==
+        requesterId.toString()
+      ) {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation"
+        );
+      }
+
+      if (consultation.status !== "Ended") {
+        throw new CustomException(
+          StatusCodeEnum.Forbidden_403,
+          "You can not rate this consultation because it has not ended yet"
+        );
+      }
+
+      if (consultation.rating === 0) {
+        throw new CustomException(
+          StatusCodeEnum.BadRequest_400,
+          "Consultation can not be deleted because it does not exist"
+        );
+      }
+      const updatedConsultation =
+        await this.consultationRepository.updateConsultation(
+          consultationId,
+          {
+            rating: rating,
+          },
+          session
+        );
+
+      await this.database.commitTransaction(session);
+      return updatedConsultation;
+    } catch (error) {
+      await session.abortTransaction(session);
+      if (error as Error | CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
+      );
+    } finally {
+      await session.endSession();
     }
   };
 }

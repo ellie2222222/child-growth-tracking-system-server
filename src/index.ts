@@ -9,22 +9,26 @@ import authRoutes from "./routes/AuthRoute";
 import paymentRoutes from "./routes/PaymentRoute";
 import receiptRoutes from "./routes/ReceiptRoute";
 import ErrorLogMiddleware from "./middlewares/ErrorLogMiddleware";
-import AuthMiddleware from "./middlewares/AuthMiddleware";
 import SessionMiddleware from "./middlewares/SessionMiddleware";
-// import CSRFMiddleware from "./middlewares/CSRFMiddleware";
 import securityHeaders from "./middlewares/SecurityHeaders";
 import helmet from "helmet";
 import RouteMiddleware from "./middlewares/RouteMiddleware";
 import passport from "./config/passportConfig";
 import session from "express-session";
 import userRoutes from "./routes/UserRoute";
-import limiter from "./middlewares/rateLimiter";
 import childRoutes from "./routes/ChildRoute";
 import postRoute from "./routes/PostRoute";
 import commentRoute from "./routes/CommentRoute";
 import membershipPackageRoute from "./routes/MembershipPackageRoute";
+import requestRouter from "./routes/RequestRoute";
 import cronJob from "./utils/cron";
 import growthMetricsRoute from "./routes/GrowthMetricsRoute";
+import consultationRouter from "./routes/ConsultationRoute";
+import consultationMessageRouter from "./routes/ConsultationMessageRoute";
+import statisticRouter from "./routes/StatisticRoute";
+import { swaggerDoc } from "./config/swaggerConfig";
+import limiter from "./middlewares/rateLimiter";
+import path from "path";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
 
@@ -37,14 +41,17 @@ app.use(express.urlencoded({ extended: true }));
 // Middleware
 app.use(
   cors({
-    origin: "*",
+    origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:8081"],
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
 // Files
 app.use("/", express.static(__dirname));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "templates"));
 
 // Session and passport
 app.use(
@@ -67,10 +74,11 @@ app.use(limiter(15, 100000));
 app.use(securityHeaders);
 
 // Helmet
-app.use(helmet());
-
-// CSRF middleware to ensure CSRF protection
-// app.use(CSRFMiddleware);
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
 
 app.use(cookieParser());
 
@@ -99,7 +107,6 @@ app.use("/assets", express.static("assets"));
 // Routers
 app.use(RouteMiddleware);
 app.use(SessionMiddleware);
-app.use(AuthMiddleware);
 app.use("/api/auth", authRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/users", userRoutes);
@@ -107,15 +114,14 @@ app.use("/api/children", childRoutes);
 app.use("/api/posts", postRoute);
 app.use("/api/comments", commentRoute);
 app.use("/api/growth-metrics", growthMetricsRoute);
-app.use("/api/receipt", receiptRoutes);
-
-// Google Login
-app.get("/", (req, res) => {
-  res.send("<a href='/api/auth/google'>Login with Google</a><br>");
-});
+app.use("/api/receipts", receiptRoutes);
+app.use("/api/membership-packages", membershipPackageRoute);
+app.use("/api/requests", requestRouter);
+app.use("/api/consultations", consultationRouter);
+app.use("/api/consultation-messages", consultationMessageRouter);
+app.use("/api/statistics", statisticRouter);
 
 // Middleware for error logging
-app.use("/api/membership-packages", membershipPackageRoute);
 app.use(ErrorLogMiddleware);
 
 cronJob.start();
@@ -131,5 +137,6 @@ server.listen(port, async (err?: Error) => {
     process.exit(1);
   } else {
     logger.info(`Server is running at port ${port}`);
+    swaggerDoc(app);
   }
 });

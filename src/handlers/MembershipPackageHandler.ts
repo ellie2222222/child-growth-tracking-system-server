@@ -10,7 +10,15 @@ class MembershipPackageHandler {
   ) => {
     const validationErrors: { field: string; error: string }[] = [];
 
-    const { price, duration, unit, name, description, tier } = req.body;
+    const {
+      price,
+      duration,
+      unit,
+      name,
+      description,
+      postLimit,
+      updateChildDataLimit,
+    } = req.body;
 
     if (
       !price ||
@@ -42,10 +50,10 @@ class MembershipPackageHandler {
       });
     }
 
-    if (!name || !validator.isLength(name, { min: 6, max: 100 })) {
+    if (!name || !validator.isLength(name, { min: 1, max: 100 })) {
       validationErrors.push({
         field: "Name",
-        error: "Invalid name: name must be between 6 and 100 characters",
+        error: "Invalid name: name must be between 1 and 100 characters",
       });
     }
 
@@ -56,10 +64,21 @@ class MembershipPackageHandler {
       });
     }
 
-    if (!tier || ![0, 1, 2].includes(tier)) {
+    if (!postLimit || isNaN(parseInt(postLimit)) || parseInt(postLimit) < 0) {
       validationErrors.push({
-        field: "Tier",
-        error: "Invalid tier: tier must be 0, 1 or 2",
+        field: "post limit",
+        error: "Invalid post limit",
+      });
+    }
+
+    if (
+      !updateChildDataLimit ||
+      isNaN(parseInt(updateChildDataLimit)) ||
+      parseInt(updateChildDataLimit) < 0
+    ) {
+      validationErrors.push({
+        field: "updateChildDataLimit",
+        error: "Invalid ChildData limit",
       });
     }
 
@@ -68,6 +87,7 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }
@@ -81,7 +101,8 @@ class MembershipPackageHandler {
     const validationErrors: { field: string; error: string }[] = [];
 
     const { id } = req.params;
-    const { price, duration, unit, name, tier } = req.body;
+    const { price, duration, unit, name, postLimit, updateChildDataLimit } =
+      req.body;
 
     try {
       validateMongooseObjectId(id as string);
@@ -122,17 +143,28 @@ class MembershipPackageHandler {
       });
     }
 
-    if (name && !validator.isLength(name, { min: 6, max: 100 })) {
+    if (name && !validator.isLength(name, { min: 1, max: 100 })) {
       validationErrors.push({
         field: "Name",
-        error: "Invalid name: name must be between 6 and 100 characters",
+        error: "Invalid name: name must be between 1 and 100 characters",
       });
     }
 
-    if (tier && ![0, 1, 2].includes(tier)) {
+    if (!postLimit || isNaN(parseInt(postLimit)) || parseInt(postLimit) < 0) {
       validationErrors.push({
-        field: "Tier",
-        error: "Invalid tier: tier must be 0, 1 or 2",
+        field: "post limit",
+        error: "Invalid post limit",
+      });
+    }
+
+    if (
+      !updateChildDataLimit ||
+      isNaN(parseInt(updateChildDataLimit)) ||
+      parseInt(updateChildDataLimit) < 0
+    ) {
+      validationErrors.push({
+        field: "updateChildDataLimit",
+        error: "Invalid ChildData limit",
       });
     }
 
@@ -141,10 +173,12 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }
   };
+
   deleteMembershipPackage = async (
     req: Request,
     res: Response,
@@ -169,10 +203,12 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }
   };
+
   getMembershipPackage = async (
     req: Request,
     res: Response,
@@ -197,10 +233,12 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }
   };
+
   getMembershipPackages = async (
     req: Request,
     res: Response,
@@ -228,7 +266,7 @@ class MembershipPackageHandler {
       validationErrors.push({ field: "order", error: "Invalid order" });
     }
 
-    if (sortBy && !["date"].includes(sortBy as string)) {
+    if (sortBy && !["date", "price", "name"].includes(sortBy as string)) {
       validationErrors.push({ field: "sortBy", error: "Invalid sort by" });
     }
 
@@ -237,6 +275,7 @@ class MembershipPackageHandler {
         message: "Validation failed",
         validationErrors,
       });
+      return;
     } else {
       next();
     }

@@ -8,25 +8,20 @@ export interface IUser extends Document {
   email: string;
   phoneNumber: string;
   password: string;
-  isActive: boolean;
-  isVerified: boolean;
-  verificationPin: {
-    value: string | null;
-    expiresAt: Date | null;
-  };
   resetPasswordPin: {
     value: string | null;
     expiresAt: Date | null;
     isVerified: boolean;
   };
-  subscription: {
-    startDate: Date | null;
-    endDate: Date | null;
-    currentPlan: Types.ObjectId | null;
-    tier: number | null;
-    futureMembership: Types.ObjectId | null;
-  };
+  subscription: ISubscription;
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export type ISubscription = {
+  startDate: Date | null;
+  endDate: Date | null;
+  currentPlan: Types.ObjectId | null;
+  futurePlan: Types.ObjectId | null;
+};

@@ -1,35 +1,54 @@
 import CustomException from "../exceptions/CustomException";
-import PaymentQueue from "../queue/PaymentQueue";
-import MembershipPackageService from "./MembershipPackagesService";
-import ReceiptService from "./ReceiptService";
-import UserService from "./UserService";
+// import MembershipPackageService from "./MembershipPackagesService";
+// import UserService from "./UserService";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
 import { IUser } from "../interfaces/IUser";
 import { ObjectId } from "mongoose";
 import { PaypalPayment, VnpayPayment } from "../utils/payment";
+import { IPaymentService } from "../interfaces/services/IPaymentService";
+import { IMembershipPackageService } from "../interfaces/services/IMembershipPackagesService";
+import { IUserService } from "../interfaces/services/IUserService";
 
-class PaymentService {
-  private paymentQueue: PaymentQueue;
-  private receiptService: ReceiptService;
-  private membershipPackageService: MembershipPackageService;
-  private userService: UserService;
+class PaymentService implements IPaymentService {
+  private membershipPackageService: IMembershipPackageService;
+  private userService: IUserService;
 
-  constructor() {
-    this.receiptService = new ReceiptService();
-    this.membershipPackageService = new MembershipPackageService();
-    this.paymentQueue = new PaymentQueue();
-    this.userService = new UserService();
+  constructor(
+    membershipPackageService: IMembershipPackageService,
+    userService: IUserService
+  ) {
+    this.membershipPackageService = membershipPackageService;
+    this.userService = userService;
   }
 
-  checkUserPackage = async (userId: string) => {
+  private checkUserPackage = async (userId: string, purchaseType?: string) => {
     const user = await this.userService.getUserById(userId, userId);
+
     if (!user) {
       throw new CustomException(
         StatusCodeEnums.BadRequest_400,
         "User not found"
       );
     }
-    if ((user as IUser).subscription.futureMembership != null) {
+    if (
+      (user as IUser).subscription.currentPlan === null &&
+      purchaseType === "FUTURE"
+    ) {
+      throw new CustomException(
+        StatusCodeEnums.Conflict_409,
+        "You need to have current plan before buying future plan"
+      );
+    }
+    if (
+      (user as IUser).subscription.currentPlan !== null &&
+      purchaseType === "CURRENT"
+    ) {
+      throw new CustomException(
+        StatusCodeEnums.Conflict_409,
+        "Current plan has already existed"
+      );
+    }
+    if ((user as IUser).subscription.futurePlan != null) {
       throw new CustomException(
         StatusCodeEnums.BadRequest_400,
         "You can only have 1 prepurchased package"
@@ -40,10 +59,11 @@ class PaymentService {
   createPaypalPayment = async (
     price: number,
     packageId: string | ObjectId,
-    userId: string
-  ) => {
+    userId: string,
+    purchaseType?: string
+  ): Promise<string> => {
     try {
-      await this.checkUserPackage(userId);
+      await this.checkUserPackage(userId, purchaseType);
       const testPackage =
         await this.membershipPackageService.getMembershipPackage(
           packageId,
@@ -67,14 +87,25 @@ class PaymentService {
           }
           break;
 
-        case "VND":
-          if (price !== testPackage.price.value * 25000) {
+        case "VND": {
+          const convertedPrice = parseFloat((price * 25000).toFixed(2));
+          const expectedPrice = parseFloat(testPackage.price.value.toFixed(2));
+
+          if (Math.abs(convertedPrice - expectedPrice) > 25000) {
+            // ±25,000 VND
+            console.log(
+              "Converted:",
+              convertedPrice,
+              "Expected:",
+              expectedPrice
+            );
             throw new CustomException(
               StatusCodeEnums.BadRequest_400,
               "Price mismatch, please check the item's price"
             );
           }
           break;
+        }
 
         default:
           break;
@@ -97,10 +128,11 @@ class PaymentService {
     userId: string,
     packageId: string,
     ipAddr: string,
-    bankCode?: string
-  ) => {
+    bankCode?: string,
+    purchaseType?: string
+  ): Promise<string> => {
     try {
-      await this.checkUserPackage(userId);
+      await this.checkUserPackage(userId, purchaseType);
       const testPackage =
         await this.membershipPackageService.getMembershipPackage(
           packageId,
@@ -116,7 +148,10 @@ class PaymentService {
 
       switch (testPackage.price.unit) {
         case "USD":
-          if (price !== testPackage.price.value * 25000) {
+          if (
+            parseFloat(price.toFixed(2)) !==
+            parseFloat((testPackage.price.value * 25000).toFixed(2))
+          ) {
             throw new CustomException(
               StatusCodeEnums.BadRequest_400,
               "Price mismatch, please check the item's price"

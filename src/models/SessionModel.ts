@@ -42,7 +42,7 @@ const sessionSchema = new Schema<ISession>(
     },
     ...baseModelSchema.obj,
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
 const sessionModel = model<ISession>("session", sessionSchema);

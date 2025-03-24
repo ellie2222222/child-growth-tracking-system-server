@@ -25,7 +25,7 @@ const ReceiptSchema = new Schema<IReceipt>(
       },
       currency: {
         type: String,
-        require: true,
+        required: true,
         enum: Object.values(Currency),
       },
     },
@@ -42,19 +42,9 @@ const ReceiptSchema = new Schema<IReceipt>(
     bankCode: {
       type: String,
     },
-    product: {
-      name: {
-        type: String,
-        required: true,
-      },
-      description: {
-        type: String,
-        default: "",
-      },
-      id: {
-        type: Schema.Types.ObjectId,
-        ref: "MembershipPackage",
-      },
+    packageId: {
+      type: Schema.Types.ObjectId,
+      ref: "MembershipPackage",
     },
     type: {
       type: String,
@@ -68,6 +58,7 @@ const ReceiptSchema = new Schema<IReceipt>(
   },
   {
     timestamps: true, // Automatically adds `createdAt` and `updatedAt`
+    strict: true,
   }
 );
 

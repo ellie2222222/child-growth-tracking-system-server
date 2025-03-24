@@ -1,18 +1,25 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import UserModel from "../models/UserModel";
 import { IUser } from "../interfaces/IUser";
 import { IQuery } from "../interfaces/IQuery";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import getLogger from "../utils/logger";
-import MembershipModel from "../models/MembershipPackage";
+import MembershipModel from "../models/MembershipPackageModel";
+import ChildModel from "../models/ChildModel";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
+
+export interface IDoctor extends IUser {
+  rating?: number;
+}
+
 export type returnData = {
-  users: IUser[];
+  users: IDoctor[];
   page: number;
   total: number;
   totalPages: number;
 };
-class UserRepository {
+class UserRepository implements IUserRepository {
   /**
    * Creates a new user document in the database.
    * @param data - Object containing user data.
@@ -20,7 +27,6 @@ class UserRepository {
    * @returns The created user document.
    * @throws Error when the creation fails.
    */
-
   async createUser(
     data: object,
     session?: mongoose.ClientSession
@@ -53,31 +59,58 @@ class UserRepository {
     ignoreDeleted: boolean
   ): Promise<IUser | null> {
     try {
-      type searchQuery = {
-        _id: mongoose.Types.ObjectId;
-        isDeleted?: boolean;
-      };
-      const searchQuery: searchQuery = {
+      const searchQuery: { _id: mongoose.Types.ObjectId; isDeleted?: boolean } = {
         _id: new mongoose.Types.ObjectId(userId),
       };
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      const user = await UserModel.findOne(searchQuery);
-      return user;
+  
+      const user = await UserModel.aggregate([
+        { $match: searchQuery },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "subscription.currentPlan",
+            foreignField: "_id",
+            as: "currentPlanDetails",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            role: 1,
+            avatar: 1,
+            googleId: 1,
+            email: 1,
+            phoneNumber: 1,
+            password: 1,
+            isDeleted: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            subscription: {
+              downloadChart: 1,
+              futurePlan: 1,
+              currentPlan: 1,
+              startDate: 1,
+              endDate: 1,
+              currentPlanDetails: { $arrayElemAt: ["$currentPlanDetails", 0] },
+            },
+            resetPasswordPin: 1,
+          },
+        },
+      ]);
+  
+      return user.length ? user[0] : null;
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
-        throw new CustomException(
-          StatusCodeEnum.InternalServerError_500,
-          `Failed to finding user by id: ${(error as Error).message}`
-        );
-      }
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
+        `Failed to find user by ID: ${(error as Error).message}`
       );
     }
   }
+  
 
   /**
    * Fetches a user document by email.
@@ -160,14 +193,14 @@ class UserRepository {
    * @throws Error when the update fails.
    */
   async deleteUserById(
-    userId: string, 
+    userId: string,
     session?: mongoose.ClientSession
   ): Promise<boolean> {
     try {
       await UserModel.findByIdAndUpdate(
         userId,
         { isDeleted: true },
-        { session, new: true },
+        { session, new: true }
       );
       return true;
     } catch (error) {
@@ -264,10 +297,19 @@ class UserRepository {
     type SearchQuery = {
       isDeleted?: boolean;
       role?: number | { $in: Array<number> };
-      name?: { $regex: string; $options: string }; // Optional name property with regex
+      $or?: Array<
+        | { name?: { $regex: string; $options: string } }
+        | { email?: { $regex: string; $options: string } }
+      >;
     };
     try {
-      const { page, size, search, order, sortBy } = query;
+      const {
+        page,
+        size,
+        search,
+        order = "descending",
+        sortBy = "date",
+      } = query;
       const searchQuery: SearchQuery = {};
 
       if (!ignoreDeleted) {
@@ -275,42 +317,89 @@ class UserRepository {
       }
 
       if (search) {
-        searchQuery.name = { $regex: search, $options: "i" };
+        searchQuery.$or = [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ];
       }
-      if (role) {
-        if (typeof role === "number") {
-          searchQuery.role = role;
-        } else if (Array.isArray(role)) {
-          searchQuery.role = { $in: role };
+
+      if (role !== undefined && role !== null) {
+        const parsedRole = Array.isArray(role)
+          ? role.map(Number)
+          : Number(role);
+
+        if (typeof parsedRole === "number" && !isNaN(parsedRole)) {
+          searchQuery.role = parsedRole;
+        } else if (Array.isArray(parsedRole) && parsedRole.length > 0) {
+          searchQuery.role = { $in: parsedRole };
         }
       }
+
       let sortField = "createdAt";
       const sortOrder: 1 | -1 = order === "ascending" ? 1 : -1;
 
       if (sortBy === "date") sortField = "createdAt";
+      if (sortBy === "name") sortField = "name";
 
       const skip = (page - 1) * size;
       const users = await UserModel.aggregate([
         { $match: searchQuery },
+        { $skip: skip },
+        { $limit: size },
         {
-          $skip: skip,
+          $sort: { [sortField]: sortOrder },
         },
         {
-          $limit: size,
+          $lookup: {
+            from: "membershippackages", // The name of the collection in MongoDB
+            localField: "subscription.currentPlan",
+            foreignField: "_id",
+            as: "subscription.currentPlan",
+          },
+        },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "subscription.futurePlan",
+            foreignField: "_id",
+            as: "subscription.futurePlan",
+          },
+        },
+        {
+          $unwind: {
+            path: "$subscription.currentPlan",
+            preserveNullAndEmptyArrays: true, // Allow null values if no match
+          },
+        },
+        {
+          $unwind: {
+            path: "$subscription.futurePlan",
+            preserveNullAndEmptyArrays: true,
+          },
         },
         {
           $project: {
+            name: 1,
             email: 1,
-            fullName: 1,
             avatar: 1,
+            googleId: 1,
             phoneNumber: 1,
             createdAt: 1,
             updatedAt: 1,
             role: 1,
+            isDeleted: 1,
+            "subscription.startDate": 1,
+            "subscription.endDate": 1,
+            "subscription.viewChart": 1,
+            "subscription.currentPlan": 1,
+            "subscription.futurePlan": 1,
           },
         },
-        { $sort: { [sortField]: sortOrder } },
       ]);
+
+      if (sortBy === "name") {
+        users.sort((a, b) => sortOrder * a.name.localeCompare(b.name));
+      }
 
       const totalUsers = await UserModel.countDocuments(searchQuery);
 
@@ -343,8 +432,6 @@ class UserRepository {
         [
           {
             ...data,
-            isActive: true,
-            isVerified: true,
           },
         ],
         { session }
@@ -373,8 +460,6 @@ class UserRepository {
         [
           {
             ...data,
-            isActive: true,
-            isVerified: true,
           },
         ],
         { session }
@@ -418,6 +503,7 @@ class UserRepository {
       );
     }
   }
+
   async handleExpirations(userIds: Array<IUser>) {
     try {
       const Logger = getLogger("MEMBERSHIP_EXPIRATION");
@@ -430,7 +516,7 @@ class UserRepository {
           continue;
         }
 
-        const nextMembershipId = user.subscription.futureMembership;
+        const nextMembershipId = user.subscription.futurePlan;
 
         if (!nextMembershipId) {
           // No future memberships, clear subscription
@@ -441,7 +527,6 @@ class UserRepository {
                 "subscription.endDate": null,
                 "subscription.startDate": null,
                 "subscription.currentPlan": null,
-                "subscription.tier": null,
               },
             }
           );
@@ -464,13 +549,15 @@ class UserRepository {
             3600 * 24 * (membershipPackage.duration.value as number) * 1000
         );
 
-        // Update user's subscription and remove the used membership from futureMembership
+        // const children = await this.getUserChildrenIds(userId.toString());
+        // Update user's subscription and remove the used membership from futurePlan
         await UserModel.findByIdAndUpdate(userId, {
           $set: {
             "subscription.currentPlan": nextMembershipId,
             "subscription.startDate": new Date(),
             "subscription.endDate": newEndDate,
-            "subscription.futureMembership": null,
+            "subscription.futurePlan": null,
+            // childrenIds: children,
           },
         });
       }
@@ -478,6 +565,69 @@ class UserRepository {
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
         `Failed to handle expirations: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async getUserChildrenIds(userId: string): Promise<[Types.ObjectId]> {
+    try {
+      const user = await UserModel.findOne({
+        _id: new mongoose.Types.ObjectId(userId),
+        isDeleted: false,
+      });
+
+      if (!user) {
+        throw new CustomException(
+          StatusCodeEnum.NotFound_404,
+          "User not found"
+        );
+      }
+
+      const childrens = await ChildModel.aggregate([
+        {
+          $match: {
+            relationships: {
+              $elemMatch: { memberId: new mongoose.Types.ObjectId(userId) },
+            },
+            isDeleted: false,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+          },
+        },
+        { $sort: { ["createdAt"]: 1 } },
+      ]);
+
+      return childrens as [Types.ObjectId];
+    } catch (error) {
+      if (error as CustomException) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        `Error update user childrenIds: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async getAllUsersTimeInterval(
+    startDate: Date,
+    endDate: Date
+  ): Promise<IUser[]> {
+    try {
+      const users = await UserModel.find({
+        createdAt: { $gte: startDate, $lte: endDate },
+      }).lean();
+      return users || [];
+    } catch (error) {
+      if ((error as Error) || (error as CustomException)) {
+        throw error;
+      }
+      throw new CustomException(
+        StatusCodeEnum.InternalServerError_500,
+        "Internal Server Error"
       );
     }
   }
