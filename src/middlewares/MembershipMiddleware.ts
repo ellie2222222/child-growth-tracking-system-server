@@ -15,9 +15,7 @@ const growthDataRepository = new GrowthDataRepository();
 const membershipPackageRepository = new MembershipPackageRepository();
 const logger = getLogger("MEMBERSHIP_MIDDLEWARE");
 
-const validateMembership = (
-  usage: "postLimit" | "updateChildDataLimit" | "downloadChart"
-) => {
+const validateMembership = (usage: "postLimit" | "updateChildDataLimit") => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.userInfo.userId;
 
