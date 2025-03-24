@@ -59,31 +59,58 @@ class UserRepository implements IUserRepository {
     ignoreDeleted: boolean
   ): Promise<IUser | null> {
     try {
-      type searchQuery = {
-        _id: mongoose.Types.ObjectId;
-        isDeleted?: boolean;
-      };
-      const searchQuery: searchQuery = {
+      const searchQuery: { _id: mongoose.Types.ObjectId; isDeleted?: boolean } = {
         _id: new mongoose.Types.ObjectId(userId),
       };
       if (!ignoreDeleted) {
         searchQuery.isDeleted = false;
       }
-      const user = await UserModel.findOne(searchQuery);
-      return user;
+  
+      const user = await UserModel.aggregate([
+        { $match: searchQuery },
+        {
+          $lookup: {
+            from: "membershippackages",
+            localField: "subscription.currentPlan",
+            foreignField: "_id",
+            as: "currentPlanDetails",
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            name: 1,
+            role: 1,
+            avatar: 1,
+            googleId: 1,
+            email: 1,
+            phoneNumber: 1,
+            password: 1,
+            isDeleted: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            subscription: {
+              downloadChart: 1,
+              futurePlan: 1,
+              currentPlan: 1,
+              startDate: 1,
+              endDate: 1,
+              currentPlanDetails: { $arrayElemAt: ["$currentPlanDetails", 0] },
+            },
+            resetPasswordPin: 1,
+          },
+        },
+      ]);
+  
+      return user.length ? user[0] : null;
     } catch (error) {
-      if ((error as Error) || (error as CustomException)) {
-        throw new CustomException(
-          StatusCodeEnum.InternalServerError_500,
-          `Failed to finding user by id: ${(error as Error).message}`
-        );
-      }
       throw new CustomException(
         StatusCodeEnum.InternalServerError_500,
-        "Internal Server Error"
+        `Failed to find user by ID: ${(error as Error).message}`
       );
     }
   }
+  
 
   /**
    * Fetches a user document by email.
