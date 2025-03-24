@@ -313,31 +313,21 @@ const fileFilter = (
   file: Express.Multer.File,
   cb: FileFilterCallback
 ) => {
-  const fileType =
-    allowedFormats[file.fieldname as keyof typeof allowedFormats];
+  const fileType = allowedFormats[file.fieldname as keyof typeof allowedFormats];
 
   if (!fileType) {
-    return cb(
-      new CustomException(
-        StatusCodeEnum.BadRequest_400,
-        "Invalid file field name."
-      )
-    );
+    return cb(new CustomException(StatusCodeEnum.BadRequest_400, "Invalid file field name."));
   }
 
   const isMimeTypeValid = fileType.mime.includes(file.mimetype);
-  const isExtensionValid = fileType.regex.test(path.extname(file.originalname));
 
-  if (isMimeTypeValid && isExtensionValid) {
+  const expectedExtension = fileType.regex.test(`.${file.mimetype.split("/")[1]}`);
+
+  if (isMimeTypeValid && expectedExtension) {
     return cb(null, true);
+  } else {
+    return cb(new CustomException(StatusCodeEnum.BadRequest_400, fileType.message));
   }
-
-  cb(
-    new CustomException(
-      StatusCodeEnum.BadRequest_400,
-      `Invalid format. ${fileType.message}`
-    )
-  );
 };
 
 const uploadFile = multer({
