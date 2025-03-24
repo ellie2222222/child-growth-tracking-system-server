@@ -24,8 +24,4 @@ export type ISubscription = {
   endDate: Date | null;
   currentPlan: Types.ObjectId | null;
   futurePlan: Types.ObjectId | null;
-  downloadChart: {
-    counter: number;
-    lastCalled: Date;
-  };
 };

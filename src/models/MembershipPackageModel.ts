@@ -39,10 +39,6 @@ const MembershipPackageSchema = new Schema<IMembershipPackage>(
       type: Number,
       default: 0,
     },
-    downloadChart: {
-      type: Number,
-      default: 0,
-    },
   },
   { timestamps: true, strict: true }
 );

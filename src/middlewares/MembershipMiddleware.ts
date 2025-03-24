@@ -15,9 +15,7 @@ const growthDataRepository = new GrowthDataRepository();
 const membershipPackageRepository = new MembershipPackageRepository();
 const logger = getLogger("MEMBERSHIP_MIDDLEWARE");
 
-const validateMembership = (
-  usage: "postLimit" | "updateChildDataLimit" | "downloadChart"
-) => {
+const validateMembership = (usage: "postLimit" | "updateChildDataLimit") => {
   return async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.userInfo.userId;
 
@@ -114,24 +112,6 @@ const validateMembership = (
           }
           break;
         }
-        case "downloadChart":
-          try {
-            if (
-              user?.subscription?.downloadChart?.counter >=
-                (mempack as IMembershipPackage).downloadChart &&
-              new Date().getTime() < user.subscription.endDate.getTime()
-            ) {
-              res.status(StatusCodeEnum.BadRequest_400).json({
-                message: "You have exceed current pack download chart limit",
-              });
-              return;
-            }
-          } catch (error) {
-            res
-              .status(500)
-              .json({ message: (error as Error | CustomException).message });
-          }
-          break;
         default:
           res.status(StatusCodeEnum.BadRequest_400).json({
             message: "Unsupported case",

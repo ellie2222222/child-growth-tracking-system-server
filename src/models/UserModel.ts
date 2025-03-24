@@ -60,16 +60,6 @@ const userModelSchema = new Schema<IUser>(
         ref: "MembershipPackage",
         default: null,
       },
-      downloadChart: {
-        counter: {
-          type: Number,
-          default: 0,
-        },
-        lastCalled: {
-          type: Date,
-          default: null,
-        },
-      },
     },
     ...baseModelSchema.obj,
   },

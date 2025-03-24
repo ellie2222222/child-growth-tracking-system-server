@@ -13,5 +13,4 @@ export interface IMembershipPackage extends IBaseEntity {
   };
   postLimit: number;
   updateChildDataLimit: number;
-  downloadChart: number;
 }

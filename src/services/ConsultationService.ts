@@ -63,7 +63,7 @@ class ConsultationService implements IConsultationService {
           ) {
             throw new CustomException(
               StatusCodeEnum.Forbidden_403,
-              "You are not authorized to update request status"
+              "You are not authorized to update consultation status"
             );
           }
         }
