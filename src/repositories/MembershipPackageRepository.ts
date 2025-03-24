@@ -173,7 +173,6 @@ class MembershipPackageRepository implements IMembershipPackageRepository {
             isDeleted: 1,
             postLimit: 1,
             updateChildDataLimit: 1,
-            downloadChart: 1,
             convertedPrice: 1,
             totalUsage: 1,
           },
