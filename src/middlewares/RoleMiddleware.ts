@@ -25,7 +25,7 @@ const RoleMiddleware = (roles: Array<number>) => {
       );
       if (!user) {
         res
-          .status(StatusCodeEnum.Forbidden_403)
+          .status(StatusCodeEnum.Unauthorized_401)
           .json({ message: "Invalid user from access token" });
         return;
       }
