@@ -272,7 +272,28 @@ class RequestService implements IRequestService {
         as
       );
 
-      return requests;
+      let formatedRequest: ReturnDataRequest = requests;
+      if (checkRequester.role === UserEnum.DOCTOR) {
+        formatedRequest = {
+          ...requests,
+          requests: requests.requests.filter(
+            (request: IRequest) =>
+              ![RequestStatus.Pending].includes(request.status)
+          ),
+          total: requests.requests.filter(
+            (request: IRequest) =>
+              ![RequestStatus.Pending].includes(request.status)
+          ).length,
+          totalPages: Math.ceil(
+            requests.requests.filter(
+              (request: IRequest) =>
+                ![RequestStatus.Pending].includes(request.status)
+            ).length / query.size
+          ),
+        };
+      }
+
+      return formatedRequest;
     } catch (error) {
       if (error as Error | CustomException) {
         throw error;
