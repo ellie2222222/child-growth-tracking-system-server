@@ -64,13 +64,6 @@ userRoutes.delete(
   userController.deleteUser
 );
 
-//this has no input => no need for handler
-userRoutes.put(
-  "/download-chart",
-  validateMembership("downloadChart"),
-  userController.downloadChart
-);
-
 userRoutes.put(
   "/remove-membership/:id",
   RoleMiddleware([UserEnum.ADMIN, UserEnum.MEMBER, UserEnum.DOCTOR]),
