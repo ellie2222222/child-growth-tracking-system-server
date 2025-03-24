@@ -21,7 +21,7 @@
  *             properties:
  *               status:
  *                 type: string
- *                 enum: [Accepted, Rejected, Canceled]
+ *                 enum: [Accepted, Rejected, Canceled,AdminApprove]
  *                 description: The new status of the request
  *     responses:
  *       200:
