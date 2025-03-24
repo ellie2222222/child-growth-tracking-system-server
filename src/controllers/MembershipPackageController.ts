@@ -108,14 +108,8 @@ class MembershipPackageController {
     try {
       const { id } = req.params;
       let { price, duration } = req.body;
-      const {
-        unit,
-        name,
-        description,
-        postLimit,
-        updateChildDataLimit,
-        ,
-      } = req.body;
+      const { unit, name, description, postLimit, updateChildDataLimit } =
+        req.body;
 
       const formatedPrice = {
         value: parseFloat(price as string),
@@ -136,8 +130,7 @@ class MembershipPackageController {
           price,
           duration,
           parseInt(postLimit),
-          parseInt(updateChildDataLimit),
-          
+          parseInt(updateChildDataLimit)
         );
       res.status(StatusCodeEnum.OK_200).json({
         package: membershipPackage,
