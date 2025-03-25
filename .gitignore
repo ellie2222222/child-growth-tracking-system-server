@@ -13,3 +13,7 @@ npm-debug.log*
 Thumbs.db
 
 assets/
+
+cert/
+
+certs/
