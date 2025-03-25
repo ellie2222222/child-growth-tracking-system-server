@@ -1,5 +1,6 @@
 import { Document, Types } from "mongoose";
 import { IGrowthResult } from "./IGrowthResult";
+import { IGrowthVelocityResult } from "./IGrowthVelocityResult";
 
 export interface IGrowthData extends Document {
   childId: Types.ObjectId;
@@ -13,4 +14,5 @@ export interface IGrowthData extends Document {
   isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  growthVelocityResult?: Partial<IGrowthVelocityResult>[];
 }
