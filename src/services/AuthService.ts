@@ -773,13 +773,12 @@ class AuthService implements IAuthService {
       const url =
         process.env.NODE_ENV?.toLowerCase() === "production"
           ? process.env.PRODUCTION_URL
-          : process.env.SERVER_URL;
+          : process.env.FRONTEND_URL;
 
       const emailHtml = await ejs.renderFile(emailTemplatePath, {
         name: name,
         expiration: process.env.EMAIL_TOKEN_EXPIRATION,
-        verificationToken: token,
-        verificationLink: `${url}/api/auth/confirm-email-verification-token`,
+        verificationLink: `${url}/email-verification?verificationToken=${token}`,
       });
 
       const mailOptions: Mail.Options = {
