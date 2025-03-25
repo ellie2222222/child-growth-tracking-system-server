@@ -175,9 +175,18 @@ const extractAndReplaceImages = (
     if (attachments[index]) {
       img.src = attachments[index]; // Replace Base64 with actual URL
 
+      const wrapper = document.createElement("div");
+      wrapper.style.display = "flex";
+      wrapper.style.justifyContent = "center"; // Horizontally center
+      wrapper.style.alignItems = "center"; // Align if needed
+      wrapper.style.width = "100%";
+
       img.style.width = "100%";
       img.style.height = "auto";
       img.style.maxWidth = "600px";
+
+      wrapper.appendChild(img.cloneNode(true));
+      img.replaceWith(wrapper); // Replace the original img with the wrapped version
     }
   });
 

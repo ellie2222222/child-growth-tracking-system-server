@@ -136,7 +136,8 @@ class PaymentController {
     res: Response,
     next: NextFunction
   ): Promise<void> => {
-    res.render("PaymentFailedPage", {
+    res.render("PaymentReturn", {
+      success: false,
       message: "Your payment request was canceled.",
       frontendUrl: process.env.FRONTEND_URL,
     });
