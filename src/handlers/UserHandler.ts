@@ -326,7 +326,7 @@ class UserHandler {
       });
     }
 
-    if (rating < 1 || rating > 5) {
+    if (parseInt(rating) < 1 || parseInt(rating) > 5) {
       validationErrors.push({
         field: "rating",
         error: "Rating must be between 1 and 5",
@@ -363,7 +363,7 @@ class UserHandler {
       });
     }
 
-    if (rating < 1 || rating > 5) {
+    if (parseInt(rating) < 1 || parseInt(rating) > 5) {
       validationErrors.push({
         field: "rating",
         error: "Rating must be between 1 and 5",
