@@ -32,8 +32,13 @@ class UserRepository implements IUserRepository {
     session?: mongoose.ClientSession
   ): Promise<IUser> {
     try {
-      const user = await UserModel.create([{ ...data }], { session });
-      return user[0];
+      const userData = data as { email: string };
+      const user = await UserModel.findOneAndUpdate(
+        { email: userData.email },
+        { $setOnInsert: data }, 
+        { upsert: true, new: true } 
+      );      
+      return user!;
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw new CustomException(
