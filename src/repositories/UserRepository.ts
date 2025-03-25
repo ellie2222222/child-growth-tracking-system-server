@@ -77,6 +77,14 @@ class UserRepository implements IUserRepository {
           },
         },
         {
+          $lookup: {
+            from: "membershippackages",
+            localField: "subscription.futurePlan",
+            foreignField: "_id",
+            as: "futurePlanDetails",
+          },
+        },
+        {
           $project: {
             _id: 1,
             name: 1,
@@ -96,6 +104,7 @@ class UserRepository implements IUserRepository {
               startDate: 1,
               endDate: 1,
               currentPlanDetails: { $arrayElemAt: ["$currentPlanDetails", 0] },
+              futurePlanDetails: { $arrayElemAt: ["$futurePlanDetails", 0] },
             },
             resetPasswordPin: 1,
           },
