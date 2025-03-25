@@ -4,7 +4,6 @@ import { IBaseEntity } from "../models/BaseModel";
 export enum RequestStatus {
   Pending = "Pending",
   Accepted = "Accepted",
-  AdminApprove = "AdminApprove",
   Rejected = "Rejected",
   Canceled = "Canceled",
 }

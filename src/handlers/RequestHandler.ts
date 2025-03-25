@@ -110,7 +110,6 @@ class RequestHandler {
       RequestStatus.Canceled.toLowerCase(),
       RequestStatus.Pending.toLowerCase(),
       RequestStatus.Rejected.toLowerCase(),
-      RequestStatus.AdminApprove.toLowerCase(),
     ];
 
     if (status && !validStatuses.includes((status as string).toLowerCase())) {
@@ -182,7 +181,6 @@ class RequestHandler {
       RequestStatus.Canceled.toLowerCase(),
       RequestStatus.Pending.toLowerCase(),
       RequestStatus.Rejected.toLowerCase(),
-      RequestStatus.AdminApprove.toLowerCase(),
     ];
 
     if (status && !validStatuses.includes((status as string).toLowerCase())) {
@@ -240,7 +238,6 @@ class RequestHandler {
       RequestStatus.Canceled.toLowerCase(),
       RequestStatus.Pending.toLowerCase(),
       RequestStatus.Rejected.toLowerCase(),
-      RequestStatus.AdminApprove.toLowerCase(),
     ];
 
     if (status && !validStatuses.includes((status as string).toLowerCase())) {
