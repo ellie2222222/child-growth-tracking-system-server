@@ -2,17 +2,12 @@ import Database from "../utils/database";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import { IQuery } from "../interfaces/IQuery";
-// import UserRepository from "../repositories/UserRepository";
 import { Request } from "express";
 import UserEnum from "../enums/UserEnum";
-// import ChildRepository from "../repositories/ChildRepository";
 import { IChild } from "../interfaces/IChild";
 import mongoose from "mongoose";
 import { GrowthData } from "../repositories/GrowthDataRepository";
-// import GrowthDataRepository from "../repositories/GrowthDataRepository";
 import { IGrowthData } from "../interfaces/IGrowthData";
-// import ConfigRepository from "../repositories/ConfigRepository";
-// import GrowthMetricsRepository from "../repositories/GrowthMetricsRepository";
 import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
 import { IGrowthResult } from "../interfaces/IGrowthResult";
 import { BmiLevelEnum, LevelEnum } from "../enums/LevelEnum";
@@ -77,6 +72,7 @@ class GrowthDataService implements IGrowthDataService {
 
         const result =
           lower.percentile + fraction * (upper.percentile - lower.percentile);
+
         return Math.round(result * 100) / 100;
       }
     }
@@ -466,10 +462,10 @@ class GrowthDataService implements IGrowthDataService {
 
     const wflhData = await this.growthMetricsRepository.getWflhData(
       child.gender,
-      height!
+      weight!
     );
     wflhData.forEach((data) => {
-      const percentile = this.getPercentile(height!, data.percentiles.values);
+      const percentile = this.getPercentile(weight!, data.percentiles.values);
       growthResult!.weightForLength!.percentile = percentile;
       growthResult!.weightForLength!.description = `Your child is in the ${percentile} percentile for weight for height. That means ${percentile} percent of ${
         child.gender === 0 ? "boys" : "girls"
@@ -1471,7 +1467,7 @@ class GrowthDataService implements IGrowthDataService {
       }
 
       const growthResult = await this.generateGrowthResult(growthData, child);
-      growthData.growthResult = growthResult;
+      updateData.growthResult = growthResult;
 
       const updatedGrowthData =
         await this.growthDataRepository.updateGrowthData(
