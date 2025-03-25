@@ -11,7 +11,7 @@ import { IQuery } from "../interfaces/IQuery";
 import { returnData } from "../repositories/UserRepository";
 
 import bcrypt from "bcrypt";
-import { IConsultation } from "../interfaces/IConsultation";
+import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
 import { IUserService } from "../interfaces/services/IUserService";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
 
@@ -684,6 +684,7 @@ class UserService implements IUserService {
         false
       );
 
+      console.log(consultation);
       if (!consultation) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -701,7 +702,7 @@ class UserService implements IUserService {
         );
       }
 
-      if (consultation.status !== "Ended") {
+      if (consultation.status !== ConsultationStatus.Ended) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You can not rate this consultation because it has not ended yet"
@@ -769,7 +770,7 @@ class UserService implements IUserService {
         );
       }
 
-      if (consultation.status !== "Ended") {
+      if (consultation.status !== ConsultationStatus.Ended) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You can not rate this consultation because it has not ended yet"
@@ -820,6 +821,7 @@ class UserService implements IUserService {
         false
       );
 
+      console.log(consultationId);
       if (!consultation) {
         throw new CustomException(
           StatusCodeEnum.NotFound_404,
@@ -837,7 +839,7 @@ class UserService implements IUserService {
         );
       }
 
-      if (consultation.status !== "Ended") {
+      if (consultation.status !== ConsultationStatus.Ended) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You can not rate this consultation because it has not ended yet"

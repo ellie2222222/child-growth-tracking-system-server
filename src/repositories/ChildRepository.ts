@@ -5,6 +5,7 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IQuery } from "../interfaces/IQuery";
 import { IChildRepository } from "../interfaces/repositories/IChildRepository";
+import GrowthDataModel from "../models/GrowthDataModel";
 
 export type ChildrenData = {
   children: IChild[];
@@ -209,6 +210,10 @@ class ChildRepository implements IChildRepository {
     session?: mongoose.ClientSession
   ): Promise<IChild | null> {
     try {
+      await GrowthDataModel.deleteMany({
+        childId: new mongoose.Types.ObjectId(childId),
+      });
+
       const deletedChild = await ChildModel.findByIdAndUpdate(
         childId,
         { $set: { isDeleted: true } },

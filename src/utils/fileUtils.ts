@@ -133,11 +133,6 @@ const cleanUpFileArray = async (
             "Unknown clean up field"
           );
       }
-    } else {
-      throw new CustomException(
-        StatusCodeEnum.BadRequest_400,
-        "Invalid files array"
-      );
     }
     return true;
   } catch (error) {

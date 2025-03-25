@@ -5,6 +5,7 @@ import PostModel from "../models/PostModel";
 import { IQuery } from "../interfaces/IQuery";
 import { IPost, PostStatus } from "../interfaces/IPost";
 import { IPostRepository } from "../interfaces/repositories/IPostRepository";
+import CommentModel from "../models/CommentModel";
 
 export type ReturnDataPosts = {
   posts: IPost[];
@@ -214,6 +215,12 @@ class PostRepository implements IPostRepository {
     session?: mongoose.ClientSession
   ): Promise<IPost> {
     try {
+      await CommentModel.updateMany(
+        {
+          postId: new mongoose.Types.ObjectId(id as string),
+        },
+        { $set: { isDeleted: true } }
+      );
       const post = await PostModel.findByIdAndUpdate(
         id,
         { $set: { isDeleted: true, status: PostStatus.DELETED } },
