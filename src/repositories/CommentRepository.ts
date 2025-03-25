@@ -53,6 +53,7 @@ class CommentRepository implements ICommentRepository {
             pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
           },
         },
+        { $unwind: "$user" },
       ]);
 
       if (!comment) {
@@ -102,6 +103,16 @@ class CommentRepository implements ICommentRepository {
         },
         { $skip: (query.page - 1) * query.size },
         { $limit: query.size },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "user",
+            pipeline: [{ $project: { _id: 1, name: 1, avatar: 1 } }],
+          },
+        },
+        { $unwind: "$user" },
       ]);
 
       const totalComment = await CommentModel.countDocuments(searchQuery);
