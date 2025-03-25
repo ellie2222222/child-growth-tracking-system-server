@@ -194,7 +194,7 @@ class RequestRepository implements IRequestRepository {
       doctorId?: mongoose.Types.ObjectId;
       isDeleted?: boolean;
       title?: { $regex: string; $options: string };
-      status?: { $regex: string; $options: string };
+      status?: { $regex?: string; $options?: string; $ne?: string };
     };
 
     try {
@@ -215,6 +215,15 @@ class RequestRepository implements IRequestRepository {
 
       if (as === "DOCTOR") {
         searchQuery.doctorId = new mongoose.Types.ObjectId(userId);
+        if (status) {
+          searchQuery.status = {
+            $regex: status,
+            $options: "i",
+            $ne: RequestStatus.Pending,
+          };
+        } else {
+          searchQuery.status = { $ne: RequestStatus.Pending };
+        }
       } else {
         searchQuery.memberId = new mongoose.Types.ObjectId(userId);
       }
