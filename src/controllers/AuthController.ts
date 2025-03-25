@@ -34,23 +34,23 @@ class AuthController {
 
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: refreshTokenMaxAge,
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: refreshTokenMaxAge,
       });
 
       // Set session ID in cookies
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: refreshTokenMaxAge, // 30 days
       });
 
@@ -75,20 +75,20 @@ class AuthController {
 
       res.clearCookie("sessionId", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
       });
 
       res.clearCookie("refreshToken", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
       });
 
       res.clearCookie("accessToken", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
       });
 
       res.status(StatusCodeEnum.OK_200).json({
@@ -119,23 +119,23 @@ class AuthController {
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
       res.cookie("accessToken", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: refreshTokenMaxAge,
       });
 
       res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: refreshTokenMaxAge,
       });
 
       // Set session ID in cookies
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: refreshTokenMaxAge, // 30 days
       });
 
@@ -202,8 +202,8 @@ class AuthController {
       const refreshTokenMaxAge = ms(REFRESH_TOKEN_EXPIRATION);
       res.cookie("accessToken", newAccessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "PRODUCTION",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
         maxAge: refreshTokenMaxAge,
       });
 

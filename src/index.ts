@@ -46,6 +46,7 @@ app.use(
       "http://localhost:5173",
       "http://localhost:5174",
       "http://localhost:8081",
+      "https://child-growth-tracking-system.vercel.app"
     ],
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
