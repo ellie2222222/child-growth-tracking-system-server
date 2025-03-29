@@ -32,14 +32,6 @@ const validateName = (name: string): void => {
       "Name is invalid. It must be between 2 and 50 characters."
     );
   }
-  const regex = /^[\p{L}0-9\s]+$/u;
-
-  if (!regex.test(name)) {
-    throw new CustomException(
-      StatusCodeEnum.BadRequest_400,
-      "Name is invalid. It should only contain alphanumeric characters."
-    );
-  }
 };
 
 // Validates if the email is correct
