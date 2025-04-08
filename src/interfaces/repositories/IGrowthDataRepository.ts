@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { IGrowthData } from "../IGrowthData";
-import { IQuery } from "../IQuery";
+import { IGrowthData } from "../models/IGrowthData";
+import { IQuery } from "../models/IQuery";
 import { GrowthData } from "../../repositories/GrowthDataRepository";
 
 export interface IGrowthDataRepository {

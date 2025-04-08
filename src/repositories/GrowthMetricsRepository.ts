@@ -3,11 +3,11 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import WflhModel from "../models/WflhModel";
 import { GenderEnumType } from "../enums/GenderEnum";
-import { IWflh } from "../interfaces/IWflh";
+import { IWflh } from "../interfaces/models/IWflh";
 import { GrowthMetricsEnumType } from "../enums/GrowthMetricsEnum";
-import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
+import { IGrowthMetricForAge } from "../interfaces/models/IGrowthMetricForAge";
 import GrowthMetricForAgeModel from "../models/GrowthMetricsForAgeModel";
-import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
+import { IGrowthVelocity } from "../interfaces/models/IGrowthVelocity";
 import GrowthVelocityModel from "../models/GrowthVelocityModel";
 import { IGrowthMetricsRepository } from "../interfaces/repositories/IGrowthMetricsForAgeRepository";
 

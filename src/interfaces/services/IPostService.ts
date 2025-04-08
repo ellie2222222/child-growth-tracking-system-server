@@ -1,7 +1,7 @@
 import { ObjectId } from "mongoose";
-import { IPost, PostStatus } from "../IPost";
+import { IPost, PostStatus } from "../models/IPost";
 import { ReturnDataPosts } from "../../repositories/PostRepository";
-import { IQuery } from "../IQuery";
+import { IQuery } from "../models/IQuery";
 
 export interface IPostService {
   createPost: (

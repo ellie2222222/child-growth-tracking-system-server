@@ -2,12 +2,12 @@ import mongoose, { ObjectId, Types } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import ConsultationModel from "../models/ConsultationModel";
-import { IQuery } from "../interfaces/IQuery";
-import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
+import { IQuery } from "../interfaces/models/IQuery";
+import { ConsultationStatus, IConsultation } from "../interfaces/models/IConsultation";
 import ConsultationMessageModel from "../models/ConsultationMessageModel";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
 import ConfigModel from "../models/ConfigModel";
-import { IConfig } from "../interfaces/IConfig";
+import { IConfig } from "../interfaces/models/IConfig";
 
 export type returnDataConsultation = {
   consultations: IConsultation[];
@@ -420,7 +420,7 @@ class ConsultationRepository implements IConsultationRepository {
 
       // Step 2: Get all ongoing consultations
       const consultations = await ConsultationModel.find({
-        status: ConsultationStatus.Ongoing,
+        status: ConsultationStatus.ONGOING,
       }).select("_id createdAt");
 
       // Step 3: Determine inactive consultations
@@ -454,7 +454,7 @@ class ConsultationRepository implements IConsultationRepository {
         {
           _id: { $in: ids },
         },
-        { $set: { status: ConsultationStatus.Ended } }
+        { $set: { status: ConsultationStatus.ENDED } }
       );
     } catch (error) {
       if (error instanceof Error || error instanceof CustomException) {

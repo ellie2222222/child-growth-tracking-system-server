@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { IReceipt } from "../IReceipt";
-import { IQuery } from "../IQuery";
+import { IReceipt } from "../models/IReceipt";
+import { IQuery } from "../models/IQuery";
 import { ReturnDataReceipts } from "../../repositories/ReceiptRepository";
 
 export interface IReceiptRepository {

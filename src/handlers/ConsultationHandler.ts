@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { validateMongooseObjectId } from "../utils/validator";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { ConsultationStatus } from "../interfaces/IConsultation";
+import { ConsultationStatus } from "../interfaces/models/IConsultation";
 
 class ConsultationHandler {
   getConsultation = (req: Request, res: Response, next: NextFunction): void => {
@@ -67,7 +67,7 @@ class ConsultationHandler {
 
     if (
       status &&
-      ![ConsultationStatus.Ended, ConsultationStatus.Ongoing].includes(
+      ![ConsultationStatus.ENDED, ConsultationStatus.ONGOING].includes(
         status as ConsultationStatus
       )
     ) {
@@ -136,7 +136,7 @@ class ConsultationHandler {
 
     if (
       status &&
-      ![ConsultationStatus.Ended, ConsultationStatus.Ongoing].includes(
+      ![ConsultationStatus.ENDED, ConsultationStatus.ONGOING].includes(
         status as ConsultationStatus
       )
     ) {
@@ -191,7 +191,7 @@ class ConsultationHandler {
 
     if (
       status &&
-      ![ConsultationStatus.Ended].includes(status as ConsultationStatus)
+      ![ConsultationStatus.ENDED].includes(status as ConsultationStatus)
     ) {
       validationErrors.push({
         field: "Invalid status",

@@ -1,18 +1,18 @@
 import Database from "../utils/database";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import { Request } from "express";
 import UserEnum from "../enums/UserEnum";
-import { IChild } from "../interfaces/IChild";
+import { IChild } from "../interfaces/models/IChild";
 import mongoose from "mongoose";
 import { GrowthData } from "../repositories/GrowthDataRepository";
-import { IGrowthData } from "../interfaces/IGrowthData";
-import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
-import { IGrowthResult } from "../interfaces/IGrowthResult";
+import { IGrowthData } from "../interfaces/models/IGrowthData";
+import { IGrowthMetricForAge } from "../interfaces/models/IGrowthMetricForAge";
+import { IGrowthResult } from "../interfaces/models/IGrowthResult";
 import { BmiLevelEnum, LevelEnum } from "../enums/LevelEnum";
-import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
-import { IGrowthVelocityResult } from "../interfaces/IGrowthVelocityResult";
+import { IGrowthVelocity } from "../interfaces/models/IGrowthVelocity";
+import { IGrowthVelocityResult } from "../interfaces/models/IGrowthVelocityResult";
 
 import { IGrowthDataService } from "../interfaces/services/IGrowthDataService";
 import { IGrowthDataRepository } from "../interfaces/repositories/IGrowthDataRepository";

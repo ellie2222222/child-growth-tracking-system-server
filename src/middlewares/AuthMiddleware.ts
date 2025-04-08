@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import getLogger from "../utils/logger";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import IJwtPayload from "../interfaces/IJwtPayload";
+import IJwtPayload from "../interfaces/models/IJwtPayload";
 import CustomException from "../exceptions/CustomException";
 
 const logger = getLogger("AUTHENTICATION");

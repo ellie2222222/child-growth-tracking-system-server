@@ -1,4 +1,4 @@
-import { ISession } from "../ISession";
+import { ISession } from "../models/ISession";
 
 export interface ISessionService {
   createSession: (sessionData: Partial<ISession>) => Promise<ISession>;

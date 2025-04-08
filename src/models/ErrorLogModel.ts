@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import baseModelSchema from "./BaseModel";
-import { IErrorLog } from "../interfaces/IErrorLog";
+import { IErrorLog } from "../interfaces/models/IErrorLog";
 
 const errorLogModelSchema = new Schema<IErrorLog>(
   {

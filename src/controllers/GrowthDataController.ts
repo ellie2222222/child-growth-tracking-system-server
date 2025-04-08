@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 // import GrowthDataService from "../services/GrowthDataService";
 import { IGrowthDataService } from "../interfaces/services/IGrowthDataService";
 

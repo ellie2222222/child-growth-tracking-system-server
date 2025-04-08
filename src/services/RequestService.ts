@@ -6,8 +6,8 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import Database from "../utils/database";
 import UserEnum from "../enums/UserEnum";
-import { IQuery } from "../interfaces/IQuery";
-import { IRequest, RequestStatus } from "../interfaces/IRequest";
+import { IQuery } from "../interfaces/models/IQuery";
+import { IRequest, RequestStatus } from "../interfaces/models/IRequest";
 // import ChildRepository from "../repositories/ChildRepository";
 // import ConsultationRepository from "../repositories/ConsultationRepository";
 import { IRequestService } from "../interfaces/services/IRequestService";
@@ -348,7 +348,7 @@ class RequestService implements IRequestService {
       if (notAdmin) {
         switch (status) {
           //Not requested doctor => cant accept or reject
-          case RequestStatus.Accepted:
+          case RequestStatus.ACCEPTED:
             if (requesterId.toString() !== request.doctorId.toString()) {
               throw new CustomException(
                 StatusCodeEnum.Forbidden_403,
@@ -357,7 +357,7 @@ class RequestService implements IRequestService {
             }
             break;
 
-          case RequestStatus.Rejected:
+          case RequestStatus.REJECTED:
             if (requesterId.toString() !== request.doctorId.toString()) {
               throw new CustomException(
                 StatusCodeEnum.Forbidden_403,
@@ -367,14 +367,14 @@ class RequestService implements IRequestService {
             break;
 
           //Not requester => cant cancel
-          case RequestStatus.Canceled:
+          case RequestStatus.CANCELLED:
             if (requesterId.toString() !== request.memberId.toString()) {
               throw new CustomException(
                 StatusCodeEnum.Forbidden_403,
                 "You do not have access to perform this action"
               );
             }
-            if ([RequestStatus.Accepted].includes(status)) {
+            if ([RequestStatus.ACCEPTED].includes(status)) {
               throw new CustomException(
                 StatusCodeEnum.Forbidden_403,
                 "You can't cancel an accepted request"
@@ -389,7 +389,7 @@ class RequestService implements IRequestService {
         }
       }
 
-      if (status === RequestStatus.Accepted) {
+      if (status === RequestStatus.ACCEPTED) {
         const checkUser = await this.userRepository.getUserByIdRepository(
           request.memberId.toString()
         );
@@ -434,7 +434,7 @@ class RequestService implements IRequestService {
           },
           session
         );
-      } else if (status === RequestStatus.Rejected) {
+      } else if (status === RequestStatus.REJECTED) {
         const checkUser = await this.userRepository.getUserByIdRepository(
           request.memberId.toString()
         );

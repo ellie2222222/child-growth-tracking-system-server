@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 // import AuthService from "../services/AuthService";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import ms from "ms";
-import { ISession } from "../interfaces/ISession";
+import { ISession } from "../interfaces/models/ISession";
 // import UserService from "../services/UserService";
 import { IAuthService } from "../interfaces/services/IAuthService";
 

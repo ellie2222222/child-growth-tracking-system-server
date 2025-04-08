@@ -2,8 +2,8 @@ import mongoose, { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import PostModel from "../models/PostModel";
-import { IQuery } from "../interfaces/IQuery";
-import { IPost, PostStatus } from "../interfaces/IPost";
+import { IQuery } from "../interfaces/models/IQuery";
+import { IPost, PostStatus } from "../interfaces/models/IPost";
 import { IPostRepository } from "../interfaces/repositories/IPostRepository";
 import CommentModel from "../models/CommentModel";
 

@@ -2,8 +2,8 @@ import mongoose, { ClientSession, ObjectId } from "mongoose";
 import ConsultationMessageModel from "../models/ConsultationMessageModel";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { IQuery } from "../interfaces/IQuery";
-import { IConsultationMessage } from "../interfaces/IConsultationMessage";
+import { IQuery } from "../interfaces/models/IQuery";
+import { IConsultationMessage } from "../interfaces/models/IConsultationMessage";
 import { IConsultationMessageRepository } from "../interfaces/repositories/IConsultationMessageRepository";
 
 export type ReturnDataConsultationMessages = {

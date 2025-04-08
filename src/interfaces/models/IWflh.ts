@@ -1,5 +1,5 @@
 import { Document } from "mongoose";
-import { GenderEnumType } from "../enums/GenderEnum";
+import { GenderEnumType } from "../../enums/GenderEnum";
 
 export interface IWflh extends Document {
   height: number,

@@ -1,7 +1,7 @@
 import { ObjectId } from "mongoose";
 import { returnDataConsultation } from "../../repositories/ConsultationRepository";
-import { IQuery } from "../IQuery";
-import { IConsultation } from "../IConsultation";
+import { IQuery } from "../models/IQuery";
+import { IConsultation } from "../models/IConsultation";
 
 export interface IConsultationService {
   updateConsultationStatus: (

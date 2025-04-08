@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import { IBaseEntity } from "../models/BaseModel";
+import { IBaseEntity } from "../../models/BaseModel";
 
 export enum Currency {
   USD = "USD",

@@ -1,6 +1,6 @@
 import { Document } from "mongoose";
-import { GenderEnumType } from "../enums/GenderEnum";
-import { GrowthMetricsEnumType, GrowthMetricsForAgeEnumType } from "../enums/GrowthMetricsEnum";
+import { GenderEnumType } from "../../enums/GenderEnum";
+import { GrowthMetricsEnumType, GrowthMetricsForAgeEnumType } from "../../enums/GrowthMetricsEnum";
 
 export interface IGrowthMetricForAge extends Document {
   age: { 

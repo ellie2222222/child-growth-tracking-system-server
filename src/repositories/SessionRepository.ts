@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import SessionModel from "../models/SessionModel";
-import { ISession } from "../interfaces/ISession";
+import { ISession } from "../interfaces/models/ISession";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import ISessionRepository from "../interfaces/repositories/ISessionRepository";

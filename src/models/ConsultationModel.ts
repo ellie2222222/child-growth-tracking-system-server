@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
+import { ConsultationStatus, IConsultation } from "../interfaces/models/IConsultation";
 
 const ConsultationSchema = new mongoose.Schema<IConsultation>(
   {
@@ -10,7 +10,7 @@ const ConsultationSchema = new mongoose.Schema<IConsultation>(
     status: {
       type: String,
       enum: ConsultationStatus,
-      default: ConsultationStatus.Ongoing,
+      default: ConsultationStatus.ONGOING,
     },
     rating: {
       type: Number,

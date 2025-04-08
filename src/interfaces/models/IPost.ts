@@ -1,5 +1,5 @@
 import { ObjectId } from "mongoose";
-import { IBaseEntity } from "../models/BaseModel";
+import { IBaseEntity } from "../../models/BaseModel";
 
 export enum PostStatus {
   PENDING = "PENDING",

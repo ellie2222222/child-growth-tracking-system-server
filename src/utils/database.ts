@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import getLoggers from "../utils/logger";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 
-dotenv.config();
-
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config({ path: path.resolve(process.cwd(), `.env.${process.env.NODE_ENV}`) });
 const logger = getLoggers("MONGOOSE");
 
 

@@ -3,7 +3,7 @@ import { validateMongooseObjectId } from "../utils/validator";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { ObjectId } from "mongoose";
 import validator from "validator";
-import { RequestStatus } from "../interfaces/IRequest";
+import { RequestStatus } from "../interfaces/models/IRequest";
 
 class RequestHandler {
   createRequest = (req: Request, res: Response, next: NextFunction): void => {
@@ -106,10 +106,10 @@ class RequestHandler {
     }
 
     const validStatuses = [
-      RequestStatus.Accepted.toLowerCase(),
-      RequestStatus.Canceled.toLowerCase(),
-      RequestStatus.Pending.toLowerCase(),
-      RequestStatus.Rejected.toLowerCase(),
+      RequestStatus.ACCEPTED.toLowerCase(),
+      RequestStatus.CANCELLED.toLowerCase(),
+      RequestStatus.PENDING.toLowerCase(),
+      RequestStatus.REJECTED.toLowerCase(),
     ];
 
     if (status && !validStatuses.includes((status as string).toLowerCase())) {
@@ -177,10 +177,10 @@ class RequestHandler {
     }
 
     const validStatuses = [
-      RequestStatus.Accepted.toLowerCase(),
-      RequestStatus.Canceled.toLowerCase(),
-      RequestStatus.Pending.toLowerCase(),
-      RequestStatus.Rejected.toLowerCase(),
+      RequestStatus.ACCEPTED.toLowerCase(),
+      RequestStatus.CANCELLED.toLowerCase(),
+      RequestStatus.PENDING.toLowerCase(),
+      RequestStatus.REJECTED.toLowerCase(),
     ];
 
     if (status && !validStatuses.includes((status as string).toLowerCase())) {
@@ -234,10 +234,10 @@ class RequestHandler {
     }
 
     const validStatuses = [
-      RequestStatus.Accepted.toLowerCase(),
-      RequestStatus.Canceled.toLowerCase(),
-      RequestStatus.Pending.toLowerCase(),
-      RequestStatus.Rejected.toLowerCase(),
+      RequestStatus.ACCEPTED.toLowerCase(),
+      RequestStatus.CANCELLED.toLowerCase(),
+      RequestStatus.PENDING.toLowerCase(),
+      RequestStatus.REJECTED.toLowerCase(),
     ];
 
     if (status && !validStatuses.includes((status as string).toLowerCase())) {

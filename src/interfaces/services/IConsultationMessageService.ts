@@ -1,6 +1,6 @@
 import { ReturnDataConsultationMessages } from "../../repositories/ConsultationMessageRepository";
-import { IConsultationMessage } from "../IConsultationMessage";
-import { IQuery } from "../IQuery";
+import { IConsultationMessage } from "../models/IConsultationMessage";
+import { IQuery } from "../models/IQuery";
 
 export interface IConsultationMessageService {
   createConsultationMessage: (

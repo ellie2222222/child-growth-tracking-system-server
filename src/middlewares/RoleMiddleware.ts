@@ -1,7 +1,7 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { Request, Response, NextFunction } from "express";
 import UserRepository from "../repositories/UserRepository";
-import { IUser } from "../interfaces/IUser";
+import { IUser } from "../interfaces/models/IUser";
 import UserEnum from "../enums/UserEnum";
 
 /**

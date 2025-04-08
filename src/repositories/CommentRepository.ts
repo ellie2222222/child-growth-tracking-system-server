@@ -2,9 +2,9 @@ import mongoose, { ClientSession, ObjectId } from "mongoose";
 import CommentModel from "../models/CommentModel";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import { ICommentRepository } from "../interfaces/repositories/ICommentRepository";
-import { IComment } from "../interfaces/IComment";
+import { IComment } from "../interfaces/models/IComment";
 
 class CommentRepository implements ICommentRepository {
   async createComment(

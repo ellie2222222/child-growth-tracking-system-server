@@ -1,6 +1,6 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import { IUser } from "../interfaces/IUser";
+import { IUser } from "../interfaces/models/IUser";
 import { IReceiptRepository } from "../interfaces/repositories/IReceiptRepository";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IStatisticService } from "../interfaces/services/IStatisticService";

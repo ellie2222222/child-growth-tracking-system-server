@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import { IMembershipPackage } from "../interfaces/models/IMembershipPackage";
 
 const MembershipPackageSchema = new Schema<IMembershipPackage>(
   {

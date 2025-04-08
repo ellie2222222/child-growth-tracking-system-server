@@ -1,6 +1,6 @@
 import mongoose, { ObjectId } from "mongoose";
-import { IQuery } from "../IQuery";
-import { IPost } from "../IPost";
+import { IQuery } from "../models/IQuery";
+import { IPost } from "../models/IPost";
 import { ReturnDataPosts } from "../../repositories/PostRepository";
 
 export interface IPostRepository {

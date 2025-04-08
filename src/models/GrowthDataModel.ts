@@ -1,7 +1,7 @@
 import mongoose, { Model, Schema } from "mongoose";
 import baseModelSchema from "./BaseModel";
-import { IGrowthData } from "../interfaces/IGrowthData";
-import { IGrowthResult } from "../interfaces/IGrowthResult";
+import { IGrowthData } from "../interfaces/models/IGrowthData";
+import { IGrowthResult } from "../interfaces/models/IGrowthResult";
 import { BmiLevelEnum, LevelEnum } from "../enums/LevelEnum";
 
 const growthResultSchema = new Schema<IGrowthResult>(

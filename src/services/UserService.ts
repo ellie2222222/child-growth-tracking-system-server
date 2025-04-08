@@ -2,16 +2,16 @@ import mongoose, { ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
-import { ISubscription, IUser } from "../interfaces/IUser";
+import { ISubscription, IUser } from "../interfaces/models/IUser";
 import { IDoctor } from "../repositories/UserRepository";
 
 import Database from "../utils/database";
 
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import { returnData } from "../repositories/UserRepository";
 
 import bcrypt from "bcrypt";
-import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
+import { ConsultationStatus, IConsultation } from "../interfaces/models/IConsultation";
 import { IUserService } from "../interfaces/services/IUserService";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
 
@@ -702,7 +702,7 @@ class UserService implements IUserService {
         );
       }
 
-      if (consultation.status !== ConsultationStatus.Ended) {
+      if (consultation.status !== ConsultationStatus.ENDED) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You can not rate this consultation because it has not ended yet"
@@ -770,7 +770,7 @@ class UserService implements IUserService {
         );
       }
 
-      if (consultation.status !== ConsultationStatus.Ended) {
+      if (consultation.status !== ConsultationStatus.ENDED) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You can not rate this consultation because it has not ended yet"
@@ -839,7 +839,7 @@ class UserService implements IUserService {
         );
       }
 
-      if (consultation.status !== ConsultationStatus.Ended) {
+      if (consultation.status !== ConsultationStatus.ENDED) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You can not rate this consultation because it has not ended yet"

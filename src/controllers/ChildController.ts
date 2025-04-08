@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-// import ChildService from "../services/ChildService";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import { IChildService } from "../interfaces/services/IChildService";
 
 class ChildController {

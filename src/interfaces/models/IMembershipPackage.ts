@@ -1,4 +1,4 @@
-import { IBaseEntity } from "../models/BaseModel";
+import { IBaseEntity } from "../../models/BaseModel";
 
 export interface IMembershipPackage extends IBaseEntity {
   name: string;

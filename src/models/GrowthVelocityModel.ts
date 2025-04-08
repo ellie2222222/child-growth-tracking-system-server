@@ -1,6 +1,6 @@
 import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
-import { IGrowthVelocity } from "../interfaces/IGrowthVelocity";
+import { IGrowthVelocity } from "../interfaces/models/IGrowthVelocity";
 import baseModelSchema from "./BaseModel";
 import { GrowthVelocityEnum } from "../enums/GrowthMetricsEnum";
 

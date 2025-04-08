@@ -1,6 +1,6 @@
 import { ClientSession, ObjectId } from "mongoose";
-import { IMembershipPackage } from "../IMembershipPackage";
-import { IQuery } from "../IQuery";
+import { IMembershipPackage } from "../models/IMembershipPackage";
+import { IQuery } from "../models/IQuery";
 import { ReturnDataMembershipPackages } from "../../repositories/MembershipPackageRepository";
 
 export interface IMembershipPackageRepository {

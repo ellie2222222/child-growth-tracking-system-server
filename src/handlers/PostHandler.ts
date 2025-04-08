@@ -3,7 +3,7 @@ import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { validateMongooseObjectId } from "../utils/validator";
 import { JSDOM } from "jsdom";
 import validator from "validator";
-import { PostStatus } from "../interfaces/IPost";
+import { PostStatus } from "../interfaces/models/IPost";
 
 class PostHandler {
   constructor() {}

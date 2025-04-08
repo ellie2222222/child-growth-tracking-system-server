@@ -1,7 +1,7 @@
 import { ObjectId } from "mongoose";
 import { ReturnDataRequest } from "../../repositories/RequestRepository";
-import { IQuery } from "../IQuery";
-import { IRequest } from "../IRequest";
+import { IQuery } from "../models/IQuery";
+import { IRequest } from "../models/IRequest";
 
 export interface IRequestService {
   createRequest: (

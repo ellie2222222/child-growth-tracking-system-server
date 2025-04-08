@@ -1,6 +1,6 @@
 import mongoose, { Types } from "mongoose";
-import { IUser } from "../IUser";
-import { IQuery } from "../IQuery";
+import { IUser } from "../models/IUser";
+import { IQuery } from "../models/IQuery";
 import { returnData } from "../../repositories/UserRepository";
 
 export interface IUserRepository {

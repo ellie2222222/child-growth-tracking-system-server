@@ -1,11 +1,11 @@
 import { ObjectId } from "mongoose";
-import { IBaseEntity } from "../models/BaseModel";
+import { IBaseEntity } from "../../models/BaseModel";
 
 export enum RequestStatus {
-  Pending = "Pending",
-  Accepted = "Accepted",
-  Rejected = "Rejected",
-  Canceled = "Canceled",
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+  CANCELLED = "cancelled",
 }
 
 export interface IRequest extends IBaseEntity {

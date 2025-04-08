@@ -6,8 +6,8 @@ import { ReturnDataMembershipPackages } from "../repositories/MembershipPackageR
 // import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
 import UserEnum from "../enums/UserEnum";
-import { IQuery } from "../interfaces/IQuery";
-import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import { IQuery } from "../interfaces/models/IQuery";
+import { IMembershipPackage } from "../interfaces/models/IMembershipPackage";
 import { IMembershipPackageService } from "../interfaces/services/IMembershipPackagesService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";

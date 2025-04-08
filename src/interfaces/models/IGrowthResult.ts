@@ -1,5 +1,5 @@
 import { Document } from "mongoose";
-import { BmiLevelEnumType, LevelEnumType } from "../enums/LevelEnum";
+import { BmiLevelEnumType, LevelEnumType } from "../../enums/LevelEnum";
 
 export interface IGrowthResult extends Document {
   weight: {

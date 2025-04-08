@@ -1,9 +1,9 @@
 import mongoose, { UpdateWriteOpResult } from "mongoose";
-import { IGrowthMetricForAge } from "../IGrowthMetricForAge";
+import { IGrowthMetricForAge } from "../models/IGrowthMetricForAge";
 import { GrowthMetricsEnumType } from "../../enums/GrowthMetricsEnum";
-import { IGrowthVelocity } from "../IGrowthVelocity";
+import { IGrowthVelocity } from "../models/IGrowthVelocity";
 import { GenderEnumType } from "../../enums/GenderEnum";
-import { IWflh } from "../IWflh";
+import { IWflh } from "../models/IWflh";
 
 export interface IGrowthMetricsRepository {
   upsertGrowthMetricsForAgeData(

@@ -1,9 +1,9 @@
-import { IBaseEntity } from "../models/BaseModel";
+import { IBaseEntity } from "../../models/BaseModel";
 import { ObjectId } from "mongoose";
 
 export enum ConsultationStatus {
-  Ongoing = "Ongoing",
-  Ended = "Ended",
+  ONGOING = "ongoing",
+  ENDED = "ended",
 }
 export interface IConsultation extends IBaseEntity {
   requestId: ObjectId;

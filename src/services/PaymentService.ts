@@ -2,7 +2,7 @@ import CustomException from "../exceptions/CustomException";
 // import MembershipPackageService from "./MembershipPackagesService";
 // import UserService from "./UserService";
 import StatusCodeEnums from "../enums/StatusCodeEnum";
-import { IUser } from "../interfaces/IUser";
+import { IUser } from "../interfaces/models/IUser";
 import { ObjectId } from "mongoose";
 import { PaypalPayment, VnpayPayment } from "../utils/payment";
 import { IPaymentService } from "../interfaces/services/IPaymentService";

@@ -1,9 +1,9 @@
 import mongoose, { ObjectId } from "mongoose";
-import { IConsultation } from "../IConsultation";
-import { IUser } from "../IUser";
+import { IConsultation } from "../models/IConsultation";
+import { IUser } from "../models/IUser";
 import { IDoctor, returnData } from "../../repositories/UserRepository";
 import CustomException from "../../exceptions/CustomException";
-import { IQuery } from "../IQuery";
+import { IQuery } from "../models/IQuery";
 
 export interface IUserService {
   createUser: (

@@ -1,15 +1,13 @@
-import dotenv from "dotenv";
 import passport from "passport";
 import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
 
-dotenv.config();
+import dotenv from "dotenv";
+import path from "path";
+dotenv.config({ path: path.resolve(process.cwd(), `.env.${process.env.NODE_ENV}`) });
 
 type User = Profile;
 
-const callbackURL =
-  process.env.NODE_ENV === "production"
-    ? process.env.GOOGLE_CLIENT_URL!
-    : `${process.env.SERVER_URL}/api/auth/google/redirect`;
+const callbackURL = process.env.GOOGLE_CLIENT_URL!;
 
 passport.use(
   new GoogleStrategy(

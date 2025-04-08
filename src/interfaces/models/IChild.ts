@@ -1,7 +1,7 @@
 import { Document, Types } from "mongoose";
-import { GenderEnumType } from "../enums/GenderEnum";
-import { FeedingTypeEnumType } from "../enums/FeedingTypeEnum";
-import { AllergyEnumType } from "../enums/AllergyEnum";
+import { GenderEnumType } from "../../enums/GenderEnum";
+import { FeedingTypeEnumType } from "../../enums/FeedingTypeEnum";
+import { AllergyEnumType } from "../../enums/AllergyEnum";
 import { IGrowthVelocityResult } from "./IGrowthVelocityResult";
 
 export type RelationshipType = "Parent" | "Sibling" | "Guardian" | "Other";

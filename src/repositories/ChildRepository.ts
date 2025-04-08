@@ -1,9 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 import ChildModel from "../models/ChildModel";
-import { IChild } from "../interfaces/IChild";
+import { IChild } from "../interfaces/models/IChild";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import { IChildRepository } from "../interfaces/repositories/IChildRepository";
 import GrowthDataModel from "../models/GrowthDataModel";
 

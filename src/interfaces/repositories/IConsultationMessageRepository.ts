@@ -1,6 +1,6 @@
 import { ClientSession, ObjectId } from "mongoose";
-import { IQuery } from "../IQuery";
-import { IConsultationMessage } from "../IConsultationMessage";
+import { IQuery } from "../models/IQuery";
+import { IConsultationMessage } from "../models/IConsultationMessage";
 import { ReturnDataConsultationMessages } from "../../repositories/ConsultationMessageRepository";
 
 export interface IConsultationMessageRepository {

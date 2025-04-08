@@ -1,6 +1,6 @@
 import { Document } from "mongoose";
-import { GenderEnumType } from "../enums/GenderEnum";
-import { GrowthMetricsEnumType } from "../enums/GrowthMetricsEnum";
+import { GenderEnumType } from "../../enums/GenderEnum";
+import { GrowthMetricsEnumType } from "../../enums/GrowthMetricsEnum";
 
 export interface IGrowthVelocity extends Document {
   firstInterval: { 

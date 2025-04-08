@@ -1,7 +1,7 @@
 import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
 import baseModelSchema from "./BaseModel";
-import { IGrowthMetricForAge } from "../interfaces/IGrowthMetricForAge";
+import { IGrowthMetricForAge } from "../interfaces/models/IGrowthMetricForAge";
 import { GrowthMetricsForAgeEnum } from "../enums/GrowthMetricsEnum";
 
 const growthMetricForAgeModelSchema = new Schema<IGrowthMetricForAge>(

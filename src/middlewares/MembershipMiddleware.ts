@@ -5,7 +5,7 @@ import UserEnum from "../enums/UserEnum";
 import PostRepository from "../repositories/PostRepository";
 import GrowthDataRepository from "../repositories/GrowthDataRepository";
 import MembershipPackageRepository from "../repositories/MembershipPackageRepository";
-import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import { IMembershipPackage } from "../interfaces/models/IMembershipPackage";
 import getLogger from "../utils/logger";
 import CustomException from "../exceptions/CustomException";
 

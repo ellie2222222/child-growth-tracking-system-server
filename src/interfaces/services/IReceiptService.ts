@@ -1,7 +1,7 @@
 import mongoose, { ObjectId } from "mongoose";
-import { IReceipt } from "../IReceipt";
+import { IReceipt } from "../models/IReceipt";
 import { ReturnDataReceipts } from "../../repositories/ReceiptRepository";
-import { IQuery } from "../IQuery";
+import { IQuery } from "../models/IQuery";
 
 export interface IReceiptService {
   createReceipt: (

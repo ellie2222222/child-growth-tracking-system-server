@@ -6,8 +6,8 @@ import CustomException from "../exceptions/CustomException";
 import { returnDataConsultation } from "../repositories/ConsultationRepository";
 // import UserRepository from "../repositories/UserRepository";
 import Database from "../utils/database";
-import { IQuery } from "../interfaces/IQuery";
-import { ConsultationStatus, IConsultation } from "../interfaces/IConsultation";
+import { IQuery } from "../interfaces/models/IQuery";
+import { ConsultationStatus, IConsultation } from "../interfaces/models/IConsultation";
 import { IConsultationService } from "../interfaces/services/IConsultationService";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
@@ -313,7 +313,7 @@ class ConsultationService implements IConsultationService {
         );
       }
 
-      if (consultation.status !== ConsultationStatus.Ended) {
+      if (consultation.status !== ConsultationStatus.ENDED) {
         throw new CustomException(
           StatusCodeEnum.Forbidden_403,
           "You can't delete an ongoing consultation"

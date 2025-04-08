@@ -3,9 +3,9 @@ import {
   DurationType,
   PriceType,
 } from "../../services/MembershipPackagesService";
-import { IMembershipPackage } from "../IMembershipPackage";
+import { IMembershipPackage } from "../models/IMembershipPackage";
 import { ReturnDataMembershipPackages } from "../../repositories/MembershipPackageRepository";
-import { IQuery } from "../IQuery";
+import { IQuery } from "../models/IQuery";
 
 export interface IMembershipPackageService {
   createMembershipPackage: (

@@ -1,6 +1,6 @@
 import mongoose, { ClientSession, ObjectId } from "mongoose";
-import { IComment } from "../IComment";
-import { IQuery } from "../IQuery";
+import { IComment } from "../models/IComment";
+import { IQuery } from "../models/IQuery";
 
 export interface ICommentRepository {
   createComment(

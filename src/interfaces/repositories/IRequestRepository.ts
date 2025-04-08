@@ -1,6 +1,6 @@
 import mongoose, { ObjectId } from "mongoose";
-import { IQuery } from "../IQuery";
-import { IRequest } from "../IRequest";
+import { IQuery } from "../models/IQuery";
+import { IRequest } from "../models/IRequest";
 import { ReturnDataRequest } from "../../repositories/RequestRepository";
 
 export interface IRequestRepository {

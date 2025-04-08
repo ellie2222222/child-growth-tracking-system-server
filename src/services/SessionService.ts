@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import Database from "../utils/database";
 // import SessionRepository from "../repositories/SessionRepository";
-import { ISession } from "../interfaces/ISession";
+import { ISession } from "../interfaces/models/ISession";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { ISessionService } from "../interfaces/services/ISessionService";

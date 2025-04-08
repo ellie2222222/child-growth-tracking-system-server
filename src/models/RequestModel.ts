@@ -1,5 +1,5 @@
 import mongoose, { Schema } from "mongoose";
-import { IRequest, RequestStatus } from "../interfaces/IRequest";
+import { IRequest, RequestStatus } from "../interfaces/models/IRequest";
 
 const RequestSchema = new mongoose.Schema<IRequest>(
   {
@@ -20,7 +20,7 @@ const RequestSchema = new mongoose.Schema<IRequest>(
     status: {
       type: String,
       enum: RequestStatus,
-      default: RequestStatus.Pending,
+      default: RequestStatus.PENDING,
     },
     title: {
       type: String,

@@ -1,6 +1,6 @@
 import mongoose, { Model, Schema } from "mongoose";
 import GenderEnum from "../enums/GenderEnum";
-import { IWflh } from "../interfaces/IWflh";
+import { IWflh } from "../interfaces/models/IWflh";
 import baseModelSchema from "./BaseModel";
 
 const wflhModelSchema = new Schema<IWflh>(

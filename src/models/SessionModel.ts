@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import { ISession } from "../interfaces/ISession";
+import { ISession } from "../interfaces/models/ISession";
 import baseModelSchema from "./BaseModel";
 const now = new Date();
 

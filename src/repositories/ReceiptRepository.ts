@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import ReceiptModel from "../models/ReceiptModel";
-import { IReceipt } from "../interfaces/IReceipt";
+import { IReceipt } from "../interfaces/models/IReceipt";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import { IReceiptRepository } from "../interfaces/repositories/IReceiptRepository";
 
 export type ReturnDataReceipts = {

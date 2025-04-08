@@ -7,7 +7,7 @@ import {
   formatPathArray,
   formatPathSingle,
 } from "../utils/fileUtils";
-import { PostStatus } from "../interfaces/IPost";
+import { PostStatus } from "../interfaces/models/IPost";
 import { IPostService } from "../interfaces/services/IPostService";
 
 type BlogFiles = {

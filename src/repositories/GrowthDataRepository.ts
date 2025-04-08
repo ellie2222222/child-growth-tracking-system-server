@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 import GrowthDataModel from "../models/GrowthDataModel";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { IQuery } from "../interfaces/IQuery";
-import { IGrowthData } from "../interfaces/IGrowthData";
+import { IQuery } from "../interfaces/models/IQuery";
+import { IGrowthData } from "../interfaces/models/IGrowthData";
 import ChildModel from "../models/ChildModel";
 import { IGrowthDataRepository } from "../interfaces/repositories/IGrowthDataRepository";
 

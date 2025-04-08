@@ -1,9 +1,9 @@
 import { Request } from "express";
 import { GrowthData } from "../../repositories/GrowthDataRepository";
-import { IGrowthData } from "../IGrowthData";
-import { IQuery } from "../IQuery";
-import { IGrowthVelocityResult } from "../IGrowthVelocityResult";
-import { IGrowthResult } from "../IGrowthResult";
+import { IGrowthData } from "../models/IGrowthData";
+import { IQuery } from "../models/IQuery";
+import { IGrowthVelocityResult } from "../models/IGrowthVelocityResult";
+import { IGrowthResult } from "../models/IGrowthResult";
 
 export interface IGrowthDataService {
   createGrowthData: (

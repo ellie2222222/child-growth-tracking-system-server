@@ -2,12 +2,12 @@ import mongoose, { ObjectId } from "mongoose";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import RequestModel from "../models/RequestModel";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import dotenv from "dotenv";
-import { IRequest, RequestStatus } from "../interfaces/IRequest";
+import { IRequest, RequestStatus } from "../interfaces/models/IRequest";
 import { IRequestRepository } from "../interfaces/repositories/IRequestRepository";
 import ConfigModel from "../models/ConfigModel";
-import { IConfig } from "../interfaces/IConfig";
+import { IConfig } from "../interfaces/models/IConfig";
 dotenv.config();
 
 export type ReturnDataRequest = {
@@ -401,7 +401,7 @@ class RequestRepository implements IRequestRepository {
             $lt: new Date(Date.now() - daysPending * 24 * 60 * 60 * 1000),
           },
           isDeleted: false,
-          status: RequestStatus.Pending,
+          status: RequestStatus.PENDING,
         },
         { _id: 1 }
       );
@@ -422,7 +422,7 @@ class RequestRepository implements IRequestRepository {
     try {
       await RequestModel.updateMany(
         { _id: { $in: requestIds } },
-        { $set: { status: RequestStatus.Canceled } }
+        { $set: { status: RequestStatus.CANCELLED } }
       );
     } catch (error) {
       if (error instanceof Error || error instanceof CustomException) {

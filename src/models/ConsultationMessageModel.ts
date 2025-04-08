@@ -1,5 +1,5 @@
 import mongoose, { Model, Schema } from "mongoose";
-import { IConsultationMessage } from "../interfaces/IConsultationMessage";
+import { IConsultationMessage } from "../interfaces/models/IConsultationMessage";
 
 const ConsultationMessageSchema = new Schema<IConsultationMessage>(
   {

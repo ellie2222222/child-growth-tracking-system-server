@@ -1,7 +1,7 @@
 import { Request } from "express";
-import { IChild } from "../IChild";
+import { IChild } from "../models/IChild";
 import { ChildrenData } from "../../repositories/ChildRepository";
-import { IQuery } from "../IQuery";
+import { IQuery } from "../models/IQuery";
 
 export interface IChildService {
   createChild: (

@@ -5,7 +5,7 @@ import {
   PaymentMethod,
   PaymentGateway,
   TransactionType,
-} from "../interfaces/IReceipt";
+} from "../interfaces/models/IReceipt";
 
 const ReceiptSchema = new Schema<IReceipt>(
   {

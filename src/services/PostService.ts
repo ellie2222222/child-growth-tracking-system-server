@@ -4,7 +4,7 @@ import { ReturnDataPosts } from "../repositories/PostRepository";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import Database from "../utils/database";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import {
   cleanUpFile,
   cleanUpFileArray,
@@ -12,7 +12,7 @@ import {
 } from "../utils/fileUtils";
 
 import UserEnum from "../enums/UserEnum";
-import { IPost, PostStatus } from "../interfaces/IPost";
+import { IPost, PostStatus } from "../interfaces/models/IPost";
 import { IPostService } from "../interfaces/services/IPostService";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { IPostRepository } from "../interfaces/repositories/IPostRepository";

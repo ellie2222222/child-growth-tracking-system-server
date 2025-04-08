@@ -6,14 +6,14 @@ import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import Database from "../utils/database";
 // import SessionService from "./SessionService";
-import { ISession } from "../interfaces/ISession";
-import { IUser } from "../interfaces/IUser";
+import { ISession } from "../interfaces/models/ISession";
+import { IUser } from "../interfaces/models/IUser";
 import { Schema } from "mongoose";
 import sendMail from "../utils/mailer";
 import Mail from "nodemailer/lib/mailer";
 import IJwtPayload, {
   IVerificationTokenPayload,
-} from "../interfaces/IJwtPayload";
+} from "../interfaces/models/IJwtPayload";
 import path from "path";
 import ejs from "ejs";
 import UserEnum from "../enums/UserEnum";

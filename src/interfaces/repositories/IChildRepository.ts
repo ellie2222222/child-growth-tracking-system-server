@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { IChild } from "../IChild";
-import { IQuery } from "../IQuery";
+import { IChild } from "../models/IChild";
+import { IQuery } from "../models/IQuery";
 
 export interface IChildRepository {
   createChild(

@@ -2,9 +2,9 @@ import mongoose, { ClientSession, ObjectId } from "mongoose";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import MembershipModel from "../models/MembershipPackageModel";
-import { IQuery } from "../interfaces/IQuery";
+import { IQuery } from "../interfaces/models/IQuery";
 import UserModel from "../models/UserModel";
-import { IMembershipPackage } from "../interfaces/IMembershipPackage";
+import { IMembershipPackage } from "../interfaces/models/IMembershipPackage";
 import { IMembershipPackageRepository } from "../interfaces/repositories/IMembershipPackageRepository";
 
 export type ReturnDataMembershipPackages = {

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ISession } from "../ISession";
+import { ISession } from "../models/ISession";
 
 interface ISessionRepository {
   createSession(

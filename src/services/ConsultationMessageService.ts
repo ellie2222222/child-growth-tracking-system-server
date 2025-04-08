@@ -1,9 +1,9 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import UserEnum from "../enums/UserEnum";
 import CustomException from "../exceptions/CustomException";
-import { ConsultationStatus } from "../interfaces/IConsultation";
-import { IConsultationMessage } from "../interfaces/IConsultationMessage";
-import { IQuery } from "../interfaces/IQuery";
+import { ConsultationStatus } from "../interfaces/models/IConsultation";
+import { IConsultationMessage } from "../interfaces/models/IConsultationMessage";
+import { IQuery } from "../interfaces/models/IQuery";
 import { IConsultationMessageRepository } from "../interfaces/repositories/IConsultationMessageRepository";
 import { IConsultationRepository } from "../interfaces/repositories/IConsultationRepository";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
@@ -77,7 +77,7 @@ class ConsultationMessageService implements IConsultationMessageService {
         );
       }
 
-      if (checkConsultation.status !== ConsultationStatus.Ongoing) {
+      if (checkConsultation.status !== ConsultationStatus.ONGOING) {
         throw new CustomException(
           StatusCodeEnum.BadRequest_400,
           "Consultation has ended"

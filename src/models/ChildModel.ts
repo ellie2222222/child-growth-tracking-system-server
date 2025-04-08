@@ -1,10 +1,10 @@
 import mongoose, { Schema, Model } from "mongoose";
 import baseModelSchema from "./BaseModel";
-import { IChild, Relationship } from "../interfaces/IChild";
+import { IChild, Relationship } from "../interfaces/models/IChild";
 import GenderEnum from "../enums/GenderEnum";
 import { FeedingTypeEnum } from "../enums/FeedingTypeEnum";
 import { AllergyEnum } from "../enums/AllergyEnum";
-import { IGrowthVelocityResult } from "../interfaces/IGrowthVelocityResult";
+import { IGrowthVelocityResult } from "../interfaces/models/IGrowthVelocityResult";
 
 const growthVelocityResultSchema = new Schema<IGrowthVelocityResult>(
   {

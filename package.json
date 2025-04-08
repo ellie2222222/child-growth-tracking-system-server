@@ -4,11 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc",
-    "start": "ts-node src/index.ts",
-    "dev": "nodemon --exec ts-node src/index.ts",
-    "fast-dev": "nodemon --exec 'ts-node --transpileOnly' src/index.ts",
-    "product": "node dist/index.js"
+    "start": "cross-env NODE_ENV=PRODUCTION ts-node src/index.ts",
+    "dev": "cross-env NODE_ENV=DEVELOPMENT nodemon --exec ts-node src/index.ts",
+    "fast-dev": "cross-env NODE_ENV=DEVELOPMENT nodemon --exec 'ts-node --transpileOnly' src/index.ts",
+    "prod": "cross-env NODE_ENV=PRODUCTION ts-node src/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -39,6 +38,7 @@
     "@types/xlsx": "^0.0.36",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
+    "cross-env": "^7.0.3",
     "eslint": "^9.16.0",
     "globals": "^15.13.0",
     "nodemon": "^3.1.7",

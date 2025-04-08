@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import ErrorLogModel from "../models/ErrorLogModel";
-import { IErrorLog } from "../interfaces/IErrorLog";
+import { IErrorLog } from "../interfaces/models/IErrorLog";
 import CustomException from "../exceptions/CustomException";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import { IErrorLogRepository } from "../interfaces/repositories/IErrorLogRepository";

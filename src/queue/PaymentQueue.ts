@@ -1,6 +1,6 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import { IReceipt } from "../interfaces/IReceipt";
+import { IReceipt } from "../interfaces/models/IReceipt";
 import { IPaymentQueue } from "../interfaces/queue/IPaymentQueue";
 import { IReceiptService } from "../interfaces/services/IReceiptService";
 import { IUserService } from "../interfaces/services/IUserService";

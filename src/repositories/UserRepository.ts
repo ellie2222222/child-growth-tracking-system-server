@@ -1,7 +1,7 @@
 import mongoose, { Types } from "mongoose";
 import UserModel from "../models/UserModel";
-import { IUser } from "../interfaces/IUser";
-import { IQuery } from "../interfaces/IQuery";
+import { IUser } from "../interfaces/models/IUser";
+import { IQuery } from "../interfaces/models/IQuery";
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
 import getLogger from "../utils/logger";

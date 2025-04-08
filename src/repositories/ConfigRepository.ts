@@ -1,6 +1,6 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
 import CustomException from "../exceptions/CustomException";
-import { IConfig } from "../interfaces/IConfig";
+import { IConfig } from "../interfaces/models/IConfig";
 import { IConfigRepository } from "../interfaces/repositories/IConfigRepository";
 import ConfigModel from "../models/ConfigModel";
 

@@ -1,4 +1,4 @@
-import { IBaseEntity } from "../models/BaseModel";
+import { IBaseEntity } from "../../models/BaseModel";
 import { ObjectId } from "mongoose";
 
 export interface IConsultationMessage extends IBaseEntity {

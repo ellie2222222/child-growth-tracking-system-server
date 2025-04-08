@@ -1,5 +1,5 @@
 import StatusCodeEnum from "../enums/StatusCodeEnum";
-import { IUser } from "../interfaces/IUser";
+import { IUser } from "../interfaces/models/IUser";
 import { IUserService } from "../interfaces/services/IUserService";
 // import UserService from "../services/UserService";
 import { Request, Response, NextFunction } from "express";
