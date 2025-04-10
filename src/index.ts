@@ -129,7 +129,7 @@ app.use("/api/requests", requestRouter);
 app.use("/api/consultations", consultationRouter);
 app.use("/api/consultation-messages", consultationMessageRouter);
 app.use("/api/statistics", statisticRouter);
-app.use("/api/doctor-schedule", doctorScheduleRouter);
+app.use("/api/doctor-schedules", doctorScheduleRouter);
 
 // Middleware for error logging
 app.use(ErrorLogMiddleware);

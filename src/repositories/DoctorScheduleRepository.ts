@@ -126,7 +126,7 @@ class DoctorScheduleRepository implements IDoctorScheduleRepository {
     session?: ClientSession
   ): Promise<void> => {
     try {
-      await DoctorSchedule.findByIdAndUpdate(scheduleId, { data }, { session });
+      await DoctorSchedule.findByIdAndUpdate(scheduleId, data, { session });
     } catch (error) {
       if ((error as Error) || (error as CustomException)) {
         throw error;
