@@ -114,7 +114,6 @@ class MembershipPackageController {
         description,
         postLimit,
         updateChildDataLimit,
-        ,
       } = req.body;
 
       const formatedPrice = {
@@ -136,8 +135,7 @@ class MembershipPackageController {
           price,
           duration,
           parseInt(postLimit),
-          parseInt(updateChildDataLimit),
-          
+          parseInt(updateChildDataLimit)
         );
       res.status(StatusCodeEnum.OK_200).json({
         package: membershipPackage,

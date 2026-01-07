@@ -14,6 +14,5 @@
     "types": ["node", "express"],
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules"],
-  "files": ["src/types/express.d.ts"]
+  "exclude": ["node_modules"]
 }

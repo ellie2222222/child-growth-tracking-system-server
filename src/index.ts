@@ -27,7 +27,7 @@ import consultationRouter from "./routes/ConsultationRoute";
 import consultationMessageRouter from "./routes/ConsultationMessageRoute";
 import statisticRouter from "./routes/StatisticRoute";
 import { swaggerDoc } from "./config/swaggerConfig";
-import limiter from "./middlewares/rateLimiter";
+import limiter from "./middlewares/RateLimiter";
 import path from "path";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
@@ -90,11 +90,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   res.on("finish", () => {
     const duration = new Date().getTime() - startTime.getTime();
-    const logMessage = `${req.ip} ${req.method} ${
-      req.originalUrl
-    } ${req.protocol.toUpperCase()}/${req.httpVersion} ${res.statusCode} ${
-      res.get("Content-Length") || 0
-    } ${req.get("User-Agent")} ${duration}ms`;
+    const logMessage = `${req.ip} ${req.method} ${req.originalUrl
+      } ${req.protocol.toUpperCase()}/${req.httpVersion} ${res.statusCode} ${res.get("Content-Length") || 0
+      } ${req.get("User-Agent")} ${duration}ms`;
     logger.info(logMessage);
   });
 
