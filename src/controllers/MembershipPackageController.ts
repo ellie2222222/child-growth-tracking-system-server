@@ -10,34 +10,35 @@ class MembershipPackageController {
   constructor(membershipPackageService: IMembershipPackageService) {
     this.membershipPackageService = membershipPackageService;
   }
+
   createMembershipPackage = async (
     req: Request,
     res: Response,
     next: NextFunction
   ) => {
     try {
-      let { price, duration } = req.body;
-      const { unit, name, description, postLimit, updateChildDataLimit } =
-        req.body;
-      const formatedPrice = {
-        value: parseFloat(price as string),
+      const { price: rawPrice, duration: rawDuration, unit, name, description, postLimit, updateChildDataLimit } = req.body;
+
+      const formattedPrice = {
+        value: parseFloat(rawPrice as string),
         unit: unit,
       };
-      price = formatedPrice;
-      const formatedDuration = {
-        value: parseInt(duration as string),
+
+      const formattedDuration = {
+        value: parseInt(rawDuration as string),
         unit: "DAY",
       };
-      duration = formatedDuration;
+
       const membershipPackage =
         await this.membershipPackageService.createMembershipPackage(
           name,
           description,
-          price,
-          duration,
+          formattedPrice,
+          formattedDuration,
           parseInt(postLimit),
           parseInt(updateChildDataLimit)
         );
+
       res.status(StatusCodeEnum.Created_201).json({
         package: membershipPackage,
         message: "Membership package created successfully",
@@ -55,7 +56,8 @@ class MembershipPackageController {
     next: NextFunction
   ) => {
     try {
-      const requesterId = req.userInfo.userId;
+      // @ts-ignore
+      const requesterId = req.userInfo?.userId;
       const { id } = req.params;
       const membershipPackage =
         await this.membershipPackageService.getMembershipPackage(
@@ -78,7 +80,8 @@ class MembershipPackageController {
     next: NextFunction
   ) => {
     try {
-      const requesterId = req.userInfo.userId;
+      // @ts-ignore
+      const requesterId = req.userInfo?.userId;
       const { page, size, search, order, sortBy } = req.query;
       const membershipPackages =
         await this.membershipPackageService.getMembershipPackages(
@@ -100,6 +103,7 @@ class MembershipPackageController {
       next(error);
     }
   };
+
   updateMembershipPackage = async (
     req: Request,
     res: Response,
@@ -107,31 +111,29 @@ class MembershipPackageController {
   ) => {
     try {
       const { id } = req.params;
-      let { price, duration } = req.body;
-      const { unit, name, description, postLimit, updateChildDataLimit } =
-        req.body;
+      const { price: rawPrice, duration: rawDuration, unit, name, description, postLimit, updateChildDataLimit } = req.body;
 
-      const formatedPrice = {
-        value: parseFloat(price as string),
+      const formattedPrice = {
+        value: parseFloat(rawPrice as string),
         unit: unit,
       };
-      price = formatedPrice;
-      const formatedDuration = {
-        value: parseInt(duration as string),
+
+      const formattedDuration = {
+        value: parseInt(rawDuration as string),
         unit: "DAY",
       };
-      duration = formatedDuration;
 
       const membershipPackage =
         await this.membershipPackageService.updateMembershipPackage(
           id,
           name,
           description,
-          price,
-          duration,
+          formattedPrice,
+          formattedDuration,
           parseInt(postLimit),
           parseInt(updateChildDataLimit)
         );
+
       res.status(StatusCodeEnum.OK_200).json({
         package: membershipPackage,
         message: "Updated membership package successfully",
