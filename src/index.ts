@@ -27,7 +27,7 @@ import consultationRouter from "./routes/ConsultationRoute";
 import consultationMessageRouter from "./routes/ConsultationMessageRoute";
 import statisticRouter from "./routes/StatisticRoute";
 import { swaggerDoc } from "./config/swaggerConfig";
-import limiter from "./middlewares/RateLimiter";
+import limiter from "./middlewares/ApiRateLimiter";
 import path from "path";
 
 process.env.TZ = "Asia/Ho_Chi_Minh";
