@@ -1,7 +1,7 @@
 # Node.js
 node_modules/
 dist/
-.env
+.env*
 
 # Logs
 *.log
@@ -13,3 +13,5 @@ npm-debug.log*
 Thumbs.db
 
 assets/
+
+certs/
